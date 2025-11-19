@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Aegis — Настройки</title>
+    <link rel="icon" type="image/png" href="icons/logo.png" />
+    <style>
+      :root { --bg: #0b1020; --card: #131a2b; --muted: #93a0c0; --text: #e6ecff; --primary: #4f8cff; --success: #2ecc71; --danger: #ff5c5c; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 24px; }
+      h1 { margin: 0 0 12px; font-size: 22px; }
+      h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+      p.desc { margin: 0 0 20px; color: var(--muted); }
+      .card { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+      .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .muted { color: var(--muted); }
+      .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+      .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); color: var(--text); cursor: pointer; }
+      .btn.primary { background: linear-gradient(180deg, rgba(79,140,255,0.3), rgba(79,140,255,0.15)); border-color: rgba(79,140,255,0.45); }
+      .grid { display: grid; gap: 10px; }
+      label.switch { position: relative; display: inline-block; width: 44px; height: 26px; }
+      label.switch input { opacity: 0; width: 0; height: 0; }
+      .slider { position: absolute; cursor: pointer; inset: 0; background: #4b546a; transition: .2s; border-radius: 999px; }
+      .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background: white; transition: .2s; border-radius: 50%; }
+      input:checked + .slider { background: #4f8cff; }
+      input:checked + .slider:before { transform: translateX(18px); }
+      .kv { display: grid; grid-template-columns: 220px 1fr; gap: 8px 12px; align-items: center; }
+      input[type="text"], input[type="password"], input[type="email"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: var(--text); }
+      .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Aegis — Настройки</h1>
+      <p class="desc">Управляйте тем, как расширение проверяет сайты и загрузки.</p>
+
+      <div class="card grid">
+        <div class="row">
+          <div>
+            <div>Антивирус активен</div>
+            <div class="hint">Включить/выключить всю защиту SafeBrowse</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="opt-antivirus" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div>
+            <div>Проверка ссылок при клике</div>
+            <div class="hint">Intercept ссылок на страницах и мгновенная проверка URL</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="opt-link-check" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div>
+            <div>Анализ при наведении (Premium)</div>
+            <div class="hint">Показывать результаты проверки при наведении на ссылки</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="opt-hover-scan" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div>
+            <div>Уведомления об угрозах</div>
+            <div class="hint">Показывать системные уведомления при обнаружении опасности</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="opt-notify" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div>
+          <div class="kv">
+            <div>API Base URL</div>
+            <input type="text" id="opt-api-base" placeholder="https://aegis.builders" />
+          </div>
+      </div>
+
+      <!-- Секция аккаунта -->
+      <div class="card">
+        <h2 style="margin: 0 0 12px; font-size: 18px;">Аккаунт Premium</h2>
+        <p class="muted" id="account-status" style="margin: 0 0 16px;">Не авторизован</p>
+        
+        <!-- Форма входа -->
+        <div id="login-form" style="display: none;">
+          <div style="display: grid; gap: 10px; margin-bottom: 12px;">
+            <input type="text" id="login-username" placeholder="Username или Email" />
+            <input type="password" id="login-password" placeholder="Пароль" />
+          </div>
+          <button class="btn primary" id="login-btn">Войти</button>
+          <button class="btn" id="show-register-btn" style="margin-left: 8px;">Регистрация</button>
+          <button class="btn-secondary" id="forgot-password-btn" style="margin-top: 8px;">Забыли пароль?</button>
+        </div>
+        
+        <!-- Форма восстановления пароля -->
+        <div id="forgot-form" style="display: none;">
+          <div style="display: grid; gap: 10px; margin-bottom: 12px;">
+            <input type="email" id="forgot-email" placeholder="Email для восстановления" />
+            <button class="btn" id="forgot-btn">Отправить код</button>
+          </div>
+          <div id="reset-code-section" style="display: none;">
+            <input type="text" id="reset-code" placeholder="Код из письма" />
+            <input type="password" id="new-password" placeholder="Новый пароль" />
+            <button class="btn" id="reset-btn">Сбросить пароль</button>
+          </div>
+          <button class="btn-secondary" id="back-to-login-btn">← Назад к входу</button>
+        </div>
+        
+        <!-- Форма регистрации -->
+        <div id="register-form" style="display: none;">
+          <div style="display: grid; gap: 10px; margin-bottom: 12px;">
+            <input type="text" id="register-username" placeholder="Username" />
+            <input type="email" id="register-email" placeholder="Email" />
+            <input type="password" id="register-password" placeholder="Пароль (минимум 6 символов)" />
+            <input type="text" id="register-api-key" placeholder="API ключ для привязки" />
+          </div>
+          <button class="btn primary" id="register-btn">Зарегистрироваться</button>
+          <button class="btn" id="show-login-btn" style="margin-left: 8px;">Вернуться к входу</button>
+        </div>
+        
+        <!-- Информация об аккаунте -->
+        <div id="account-info" style="display: none;">
+          <div style="margin-bottom: 12px;">
+            <div><strong>Username:</strong> <span id="account-username"></span></div>
+            <div><strong>Email:</strong> <span id="account-email"></span></div>
+          </div>
+          <button class="btn" id="logout-btn">Выйти</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <button class="btn primary" id="save-btn">Сохранить</button>
+        <a href="#" id="reset-btn">Сбросить по умолчанию</a>
+      </div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+ </html>
+
+
+

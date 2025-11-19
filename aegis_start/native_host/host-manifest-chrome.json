@@ -1,0 +1,9 @@
+{
+  "name": "com.safebrowse.native",
+  "description": "SafeBrowse native host",
+  "path": "/absolute/path/to/native_host.py",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://__EXTENSION_ID__/"
+  ]
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis Admin Panel v2.0</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<body>
+    <!-- Inlined minimal UI tells users to open standalone admin if styles missing -->
+    <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto; padding: 24px;">
+        <h1>🛡️ Aegis Admin Panel v2.0</h1>
+        <p>Если вы видите этот минимальный экран, откройте полный интерфейс: <code>/admin_ui_simple.html</code> в корне проекта или используйте встроенный Admin UI на этом же пути позже.</p>
+    </div>
+    <script>
+        // Attempt to fetch and inject the standalone content if server allows
+        fetch('/admin_ui_simple.html').then(r => r.text()).then(html => {
+            if (html && html.includes('<!DOCTYPE html>')) {
+                document.open();
+                document.write(html);
+                document.close();
+            }
+        }).catch(() => {});
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

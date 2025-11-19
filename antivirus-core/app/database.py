@@ -1,0 +1,1132 @@
+# app/database.py
+import sqlite3
+import logging
+import secrets
+import os
+from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime, timedelta
+
+# Настраиваем логирование
+logger = logging.getLogger(__name__)
+
+class DatabaseManager:
+    """
+    Полностью переписанный менеджер базы данных с улучшенной архитектурой.
+    Включает управление API ключами, блокировками и оптимизацией.
+    """
+    
+    def __init__(self, db_path: str = None):
+        """
+        Инициализация менеджера базы данных.
+        
+        Args:
+            db_path (str): Путь к файлу базы данных (если None, берется из окружения или дефолтный)
+        """
+        # КРИТИЧНО: Поддержка переменной окружения для пути к БД
+        if db_path is None:
+            db_path = os.getenv("DATABASE_PATH", "/opt/Aegis/data/antivirus.db")
+        
+        self.db_path = db_path
+        logger.info(f"Initializing database at: {self.db_path}")
+        self._init_database()
+    
+    def _get_connection(self) -> sqlite3.Connection:
+        """
+        Создает и возвращает подключение к базе данных с таймаутом.
+        КРИТИЧНО: Автоматическое переподключение при ошибках соединения.
+        
+        Returns:
+            sqlite3.Connection: Подключение к базе данных
+        """
+        max_retries = 3
+        retry_delay = 0.1
+        
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(
+                    self.db_path, 
+                    timeout=30,  # Таймаут 30 секунд
+                    check_same_thread=False  # Для многопоточности
+                )
+                conn.row_factory = sqlite3.Row  # Возвращать результаты как словари
+                # Включаем foreign keys и улучшаем производительность
+                conn.execute("PRAGMA foreign_keys = ON")
+                conn.execute("PRAGMA journal_mode = WAL")
+                conn.execute("PRAGMA synchronous = NORMAL")
+                conn.execute("PRAGMA cache_size = -10000")  # 10MB кеша
+                
+                # КРИТИЧНО: Проверяем что соединение действительно работает
+                conn.execute("SELECT 1").fetchone()
+                
+                return conn
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e).lower() and attempt < max_retries - 1:
+                    logger.warning(f"Database locked, retrying ({attempt + 1}/{max_retries})...")
+                    import time
+                    time.sleep(retry_delay * (attempt + 1))
+                    continue
+                logger.error(f"Database connection error (attempt {attempt + 1}): {e}")
+                if attempt == max_retries - 1:
+                    raise
+            except sqlite3.Error as e:
+                logger.error(f"Database connection error: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                import time
+                time.sleep(retry_delay * (attempt + 1))
+        
+        raise sqlite3.Error("Failed to establish database connection after retries")
+    
+    def _init_database(self):
+        """
+        Инициализирует базу данных: создает все таблицы и индексы.
+        """
+        try:
+            # Создаем папку для базы данных если ее нет
+            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # 1. Таблица для аккаунтов пользователей
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS accounts (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE NOT NULL,
+                        email TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_login TIMESTAMP DEFAULT NULL,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        reset_code TEXT DEFAULT NULL,
+                        reset_code_expires TIMESTAMP DEFAULT NULL
+                    )
+                """)
+                
+                # 2. Таблица для API ключей (компактная)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS api_keys (
+                        api_key TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT DEFAULT '',
+                        is_active BOOLEAN DEFAULT TRUE,
+                        access_level TEXT DEFAULT 'basic' CHECK(access_level IN ('basic', 'premium')),
+                        features TEXT DEFAULT '[]',
+                        rate_limit_daily INTEGER DEFAULT 1000,
+                        rate_limit_hourly INTEGER DEFAULT 100,
+                        requests_total INTEGER DEFAULT 0,
+                        requests_today INTEGER DEFAULT 0,
+                        requests_hour INTEGER DEFAULT 0,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP DEFAULT NULL,
+                        user_id INTEGER DEFAULT NULL,
+                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
+                    )
+                """)
+                
+                # 3. Таблица для вредоносных хэшей файлов
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS malicious_hashes (
+                        hash TEXT PRIMARY KEY,
+                        threat_type TEXT NOT NULL CHECK(threat_type IN (
+                            'malware', 'trojan', 'ransomware', 'virus', 
+                            'worm', 'spyware', 'adware', 'rootkit', 'backdoor'
+                        )),
+                        severity TEXT NOT NULL CHECK(severity IN (
+                            'low', 'medium', 'high', 'critical'
+                        )) DEFAULT 'medium',
+                        description TEXT,
+                        source TEXT DEFAULT 'manual',
+                        first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        detection_count INTEGER DEFAULT 1
+                    )
+                """)
+                
+                # 4. Таблица для вредоносных URL
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS malicious_urls (
+                        url TEXT PRIMARY KEY,
+                        domain TEXT NOT NULL,
+                        threat_type TEXT NOT NULL CHECK(threat_type IN (
+                            'phishing', 'malware', 'scam', 'fraud',
+                            'defacement', 'spam', 'botnet', 'cryptojacking'
+                        )),
+                        severity TEXT NOT NULL CHECK(severity IN (
+                            'low', 'medium', 'high', 'critical'
+                        )) DEFAULT 'medium',
+                        description TEXT,
+                        source TEXT DEFAULT 'manual',
+                        first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        detection_count INTEGER DEFAULT 1
+                    )
+                """)
+                
+                # 5. Таблица для логов запросов (для аналитики)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS request_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        api_key_hash TEXT,
+                        endpoint TEXT NOT NULL,
+                        method TEXT NOT NULL,
+                        status_code INTEGER,
+                        response_time_ms INTEGER,
+                        user_agent TEXT,
+                        client_ip_truncated TEXT,
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+
+                # 6. Таблица репутации IP
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS ip_reputation (
+                        ip TEXT PRIMARY KEY,
+                        threat_type TEXT,
+                        reputation_score INTEGER,
+                        details TEXT,
+                        source TEXT,
+                        first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        detection_count INTEGER DEFAULT 1
+                    )
+                """)
+                
+                # 7. Таблица фоновых задач
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS background_jobs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        job_type TEXT NOT NULL,
+                        job_data TEXT NOT NULL,
+                        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
+                        retry_count INTEGER DEFAULT 0,
+                        error_message TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                
+                # Миграции схемы для совместимости со старыми базами (до индексов)
+                self._migrate_schema(conn)
+
+                # Создаем индексы для быстрого поиска
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_hashes_hash ON malicious_hashes(hash)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_urls_url ON malicious_urls(url)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_urls_domain ON malicious_urls(domain)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_request_logs_timestamp ON request_logs(timestamp)")
+                # Индекс для хеша ключа создаем только если колонка существует
+                try:
+                    c2 = conn.cursor()
+                    c2.execute("PRAGMA table_info(request_logs)")
+                    cols = {row[1] for row in c2.fetchall()}
+                    if "api_key_hash" in cols:
+                        cursor.execute("CREATE INDEX IF NOT EXISTS idx_request_logs_api_hash ON request_logs(api_key_hash)")
+                except Exception as e:
+                    logger.warning(f"Could not create api_key_hash index: {e}")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_ip_reputation_score ON ip_reputation(reputation_score)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_status ON background_jobs(status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_created ON background_jobs(created_at)")
+
+                # Добавляем тестовые данные
+                self._add_test_data(cursor)
+                
+                conn.commit()
+                logger.info("Database initialized successfully with all tables")
+                
+        except sqlite3.Error as e:
+            logger.error(f"Database initialization error: {e}")
+            raise
+
+    def _migrate_schema(self, conn: sqlite3.Connection):
+        """Миграции схемы БД для существующих инсталляций."""
+        try:
+            cur = conn.cursor()
+            
+            # Миграция request_logs
+            cur.execute("PRAGMA table_info(request_logs)")
+            cols = {row[1] for row in cur.fetchall()}  # row[1] = name
+            if "api_key_hash" not in cols:
+                cur.execute("ALTER TABLE request_logs ADD COLUMN api_key_hash TEXT")
+            if "client_ip_truncated" not in cols:
+                cur.execute("ALTER TABLE request_logs ADD COLUMN client_ip_truncated TEXT")
+            
+            # Миграция api_keys для новых полей
+            cur.execute("PRAGMA table_info(api_keys)")
+            api_cols = {row[1] for row in cur.fetchall()}
+            if "access_level" not in api_cols:
+                cur.execute("ALTER TABLE api_keys ADD COLUMN access_level TEXT DEFAULT 'basic'")
+            if "features" not in api_cols:
+                cur.execute("ALTER TABLE api_keys ADD COLUMN features TEXT DEFAULT '[]'")
+            if "user_id" not in api_cols:
+                cur.execute("ALTER TABLE api_keys ADD COLUMN user_id INTEGER DEFAULT NULL")
+            
+            # Миграция accounts для восстановления пароля
+            cur.execute("PRAGMA table_info(accounts)")
+            account_cols = {row[1] for row in cur.fetchall()}
+            if "reset_code" not in account_cols:
+                cur.execute("ALTER TABLE accounts ADD COLUMN reset_code TEXT DEFAULT NULL")
+            if "reset_code_expires" not in account_cols:
+                cur.execute("ALTER TABLE accounts ADD COLUMN reset_code_expires TIMESTAMP DEFAULT NULL")
+            
+            conn.commit()
+        except Exception as e:
+            logger.error(f"Schema migration error: {e}")
+    
+    def _add_test_data(self, cursor: sqlite3.Cursor):
+        """Добавляет тестовые данные в базу."""
+        # Только тестовый API ключ премиум уровня (базовый функционал работает без ключей)
+        cursor.execute("""
+            INSERT OR IGNORE INTO api_keys 
+            (api_key, name, description, access_level, features, rate_limit_daily, rate_limit_hourly)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            "PREMI-12345-67890-ABCDE-FGHIJ-KLMNO", 
+            "Test Premium Client", 
+            "API key for premium testing with advanced features",
+            "premium",
+            '["url_check", "file_check", "domain_check", "ip_check", "advanced_analysis", "hover_analysis"]',
+            10000,  # 10k запросов в день
+            1000    # 1k запросов в час
+        ))
+        
+        # Тестовые вредоносные хэши
+        test_hashes = [
+            ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+             "trojan", "high", "Test Trojan horse"),
+            ("a1b2c3d4e5f67890abcdef***REMOVED_ADMIN_ID***0abcdef***REMOVED_ADMIN_ID***0abcdef***REMOVED_ADMIN_ID***0",
+             "ransomware", "critical", "Test Ransomware variant")
+        ]
+        
+        for file_hash, threat_type, severity, description in test_hashes:
+            cursor.execute("""
+                INSERT OR IGNORE INTO malicious_hashes 
+                (hash, threat_type, severity, description)
+                VALUES (?, ?, ?, ?)
+            """, (file_hash, threat_type, severity, description))
+        
+        # Тестовые вредоносные URL
+        test_urls = [
+            ("https://evil-site.com/download/malware.exe", "evil-site.com",
+             "malware", "high", "Malware distribution site"),
+            ("https://phishing-bank.com/login", "phishing-bank.com",
+             "phishing", "medium", "Fake bank login page")
+        ]
+        
+        for url, domain, threat_type, severity, description in test_urls:
+            cursor.execute("""
+                INSERT OR IGNORE INTO malicious_urls 
+                (url, domain, threat_type, severity, description)
+                VALUES (?, ?, ?, ?, ?)
+            """, (url, domain, threat_type, severity, description))
+    
+    # ===== API KEYS MANAGEMENT =====
+    
+    def validate_api_key(self, api_key: str) -> Tuple[bool, str]:
+        """
+        Проверяет валидность API ключа и обновляет счетчики.
+        
+        Args:
+            api_key (str): API ключ для проверки
+            
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Получаем информацию о ключе
+                cursor.execute("""
+                    SELECT api_key, is_active, access_level, features, rate_limit_daily, rate_limit_hourly,
+                           requests_today, requests_hour, expires_at
+                    FROM api_keys 
+                    WHERE api_key = ?
+                """, (api_key,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    logger.warning(f"API key not found: {api_key[:10]}...")
+                    return False, "API key not found"
+                
+                if not result["is_active"]:
+                    logger.warning(f"API key is deactivated: {api_key[:10]}...")
+                    return False, "API key is deactivated"
+                
+                # Проверяем expiration
+                if result["expires_at"]:
+                    try:
+                        expires_at = datetime.fromisoformat(result["expires_at"])
+                        if expires_at < datetime.now():
+                            logger.warning(f"API key expired: {api_key[:10]}...")
+                            return False, "API key has expired"
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Error parsing expiration date: {e}")
+                
+                # Проверяем daily rate limit
+                if result["requests_today"] >= result["rate_limit_daily"]:
+                    logger.warning(f"Daily rate limit exceeded for key: {api_key[:10]}...")
+                    return False, "Daily rate limit exceeded"
+                
+                # Проверяем hourly rate limit
+                if result["requests_hour"] >= result["rate_limit_hourly"]:
+                    logger.warning(f"Hourly rate limit exceeded for key: {api_key[:10]}...")
+                    return False, "Hourly rate limit exceeded"
+                
+                # Обновляем счетчики
+                cursor.execute("""
+                    UPDATE api_keys 
+                    SET requests_total = requests_total + 1,
+                        requests_today = requests_today + 1,
+                        requests_hour = requests_hour + 1,
+                        last_used = CURRENT_TIMESTAMP
+                    WHERE api_key = ?
+                """, (api_key,))
+                
+                conn.commit()
+                logger.debug(f"API key validated successfully: {api_key[:10]}...")
+                return True, "Valid API key"
+                
+        except sqlite3.Error as e:
+            logger.error(f"API key validation error: {e}", exc_info=True)
+            return False, f"Database error: {str(e)}"
+    
+    def create_api_key(self, name: str, description: str = "", 
+                      access_level: str = "basic", daily_limit: int = 1000, 
+                      hourly_limit: int = 100, expires_days: int = 365) -> Optional[str]:
+        """Создает новый API ключ в формате XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"""
+        try:
+            safe_name = (name or "").strip() or "Client"
+            safe_desc = (description or "").strip()
+            try:
+                daily_limit = max(1, int(daily_limit))
+                hourly_limit = max(1, int(hourly_limit))
+            except Exception:
+                daily_limit, hourly_limit = 1000, 100
+
+            # Генерируем ключ в новом формате
+            api_key = self._generate_formatted_key(access_level)
+            logger.info(f"Generated API key: {api_key[:10]}... for {safe_name}")
+            
+            # Определяем доступные функции в зависимости от уровня
+            if access_level == "premium":
+                features = '["url_check", "file_check", "domain_check", "ip_check", "advanced_analysis", "hover_analysis"]'
+            else:
+                features = '["url_check", "file_check", "domain_check"]'
+            
+            expires_at = (datetime.now() + timedelta(days=expires_days)).isoformat()
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                try:
+                    cursor.execute(
+                        """
+                        INSERT INTO api_keys (
+                            api_key, name, description, is_active, access_level, features,
+                            rate_limit_daily, rate_limit_hourly,
+                            requests_total, requests_today, requests_hour,
+                            created_at, last_used, expires_at
+                        ) VALUES (
+                            ?, ?, ?, 1, ?, ?,
+                            ?, ?,
+                            0, 0, 0,
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?
+                        )
+                        """,
+                        (api_key, safe_name, safe_desc, access_level, features, 
+                         daily_limit, hourly_limit, expires_at)
+                    )
+                    conn.commit()
+                    logger.info(f"✅ API key created successfully for {safe_name} with level {access_level}: {api_key[:10]}...")
+                    return api_key
+                except sqlite3.IntegrityError as e:
+                    logger.error(f"❌ API key creation failed - duplicate key: {e}")
+                    # Пробуем еще раз с новым ключом
+                    api_key = self._generate_formatted_key(access_level)
+                    cursor.execute(
+                        """
+                        INSERT INTO api_keys (
+                            api_key, name, description, is_active, access_level, features,
+                            rate_limit_daily, rate_limit_hourly,
+                            requests_total, requests_today, requests_hour,
+                            created_at, last_used, expires_at
+                        ) VALUES (
+                            ?, ?, ?, 1, ?, ?,
+                            ?, ?,
+                            0, 0, 0,
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?
+                        )
+                        """,
+                        (api_key, safe_name, safe_desc, access_level, features, 
+                         daily_limit, hourly_limit, expires_at)
+                    )
+                    conn.commit()
+                    logger.info(f"✅ API key created on retry for {safe_name}: {api_key[:10]}...")
+                    return api_key
+        except sqlite3.Error as e:
+            logger.error(f"❌ API key creation error: {e}", exc_info=True)
+            return None
+        except Exception as e:
+            logger.error(f"❌ Unexpected error during API key creation: {e}", exc_info=True)
+            return None
+    
+    def _generate_formatted_key(self, access_level: str) -> str:
+        """Генерирует ключ в формате XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"""
+        import string
+        import random
+        
+        # Префикс в зависимости от уровня доступа
+        prefix = "BASIC" if access_level == "basic" else "PREMI"
+        
+        # Генерируем случайные символы (буквы и цифры)
+        chars = string.ascii_uppercase + string.digits
+        
+        # Создаем 5 групп по 5 символов
+        groups = []
+        for i in range(5):
+            if i == 0:
+                # Первая группа содержит префикс + 1 символ
+                group = prefix + random.choice(chars)
+            else:
+                # Остальные группы по 5 случайных символов
+                group = ''.join(random.choice(chars) for _ in range(5))
+            groups.append(group)
+        
+        return '-'.join(groups)
+    
+    def extend_api_key(self, api_key: str, extend_days: int) -> bool:
+        """Продлевает срок действия API ключа"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем, существует ли ключ
+                cursor.execute("SELECT expires_at FROM api_keys WHERE api_key = ?", (api_key,))
+                result = cursor.fetchone()
+                
+                if not result:
+                    return False
+                
+                # Получаем текущую дату истечения
+                current_expires = datetime.fromisoformat(result[0])
+                
+                # Добавляем дни
+                new_expires = current_expires + timedelta(days=extend_days)
+                
+                # Обновляем дату истечения
+                cursor.execute(
+                    "UPDATE api_keys SET expires_at = ? WHERE api_key = ?",
+                    (new_expires.isoformat(), api_key)
+                )
+                
+                conn.commit()
+                return True
+                
+        except Exception as e:
+            logger.error(f"Extend API key error: {e}")
+            return False
+    
+    def list_api_keys(self) -> List[Dict[str, Any]]:
+        """Возвращает список всех API ключей"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT api_key, name, description, access_level, features, 
+                           daily_limit, hourly_limit, created_at, expires_at
+                    FROM api_keys 
+                    ORDER BY created_at DESC
+                """)
+                
+                keys = []
+                for row in cursor.fetchall():
+                    keys.append({
+                        "api_key": row[0],
+                        "name": row[1],
+                        "description": row[2],
+                        "access_level": row[3],
+                        "features": row[4],
+                        "daily_limit": row[5],
+                        "hourly_limit": row[6],
+                        "created_at": row[7],
+                        "expires_at": row[8],
+                        "requests_today": 0
+                    })
+                
+                return keys
+        except Exception as e:
+            logger.error(f"List API keys error: {e}")
+            return []
+    
+    def get_api_key_info(self, api_key: str) -> Optional[Dict[str, Any]]:
+        """Возвращает информацию об API ключе."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM api_keys WHERE api_key = ?", (api_key,))
+                result = cursor.fetchone()
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"API key info error: {e}")
+            return None
+    
+    def reset_rate_limits(self):
+        """Ежедневное сброс счетчиков запросов."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE api_keys SET requests_today = 0, requests_hour = 0")
+                conn.commit()
+                logger.info("Rate limits reset successfully")
+        except sqlite3.Error as e:
+            logger.error(f"Rate limit reset error: {e}")
+    
+    # ===== THREAT DATABASE METHODS =====
+    
+    def check_hash(self, file_hash: str) -> Optional[Dict[str, Any]]:
+        """Проверяет хэш файла в базе данных."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT hash, threat_type, severity, description, detection_count
+                    FROM malicious_hashes 
+                    WHERE hash = ?
+                """, (file_hash.lower(),))
+                
+                result = cursor.fetchone()
+                if result:
+                    # Увеличиваем счетчик обнаружений
+                    cursor.execute("""
+                        UPDATE malicious_hashes 
+                        SET detection_count = detection_count + 1,
+                            last_updated = CURRENT_TIMESTAMP
+                        WHERE hash = ?
+                    """, (file_hash.lower(),))
+                    conn.commit()
+                
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Hash check error: {e}")
+            return None
+    
+    def check_url(self, url: str) -> Optional[Dict[str, Any]]:
+        """Проверяет URL в базе данных с улучшенной обработкой ошибок."""
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with self._get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT url, domain, threat_type, severity, description, detection_count
+                        FROM malicious_urls 
+                        WHERE url = ?
+                    """, (url.lower(),))
+                    
+                    result = cursor.fetchone()
+                    if result:
+                        # Увеличиваем счетчик обнаружений
+                        try:
+                            cursor.execute("""
+                                UPDATE malicious_urls 
+                                SET detection_count = detection_count + 1,
+                                    last_updated = CURRENT_TIMESTAMP
+                                WHERE url = ?
+                            """, (url.lower(),))
+                            conn.commit()
+                        except sqlite3.Error as update_error:
+                            logger.warning(f"Failed to update detection_count for {url}: {update_error}")
+                            # Не критично, продолжаем
+                    
+                    return dict(result) if result else None
+            except sqlite3.OperationalError as e:
+                error_msg = str(e).lower()
+                if "database is locked" in error_msg and attempt < max_retries - 1:
+                    logger.warning(f"Database locked during URL check (attempt {attempt + 1}/{max_retries}), retrying...")
+                    import time
+                    time.sleep(0.1 * (attempt + 1))
+                    continue
+                logger.error(f"URL check operational error: {e}", exc_info=True)
+                raise
+            except sqlite3.Error as e:
+                logger.error(f"URL check database error: {e}", exc_info=True)
+                if attempt == max_retries - 1:
+                    raise
+                import time
+                time.sleep(0.1 * (attempt + 1))
+        
+        logger.error(f"URL check failed after {max_retries} attempts")
+        return None
+    
+    def check_domain(self, domain: str) -> List[Dict[str, Any]]:
+        """Проверяет домен в базе данных с улучшенной обработкой ошибок."""
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with self._get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT url, threat_type, severity, description, detection_count
+                        FROM malicious_urls 
+                        WHERE domain = ?
+                    """, (domain.lower(),))
+                    
+                    return [dict(row) for row in cursor.fetchall()]
+            except sqlite3.OperationalError as e:
+                error_msg = str(e).lower()
+                if "database is locked" in error_msg and attempt < max_retries - 1:
+                    logger.warning(f"Database locked during domain check (attempt {attempt + 1}/{max_retries}), retrying...")
+                    import time
+                    time.sleep(0.1 * (attempt + 1))
+                    continue
+                logger.error(f"Domain check operational error: {e}", exc_info=True)
+                raise
+            except sqlite3.Error as e:
+                logger.error(f"Domain check database error: {e}", exc_info=True)
+                if attempt == max_retries - 1:
+                    raise
+                import time
+                time.sleep(0.1 * (attempt + 1))
+        
+        logger.error(f"Domain check failed after {max_retries} attempts")
+        return []
+    
+    def add_malicious_hash(self, file_hash: str, threat_type: str, 
+                          description: str = "", severity: str = "medium") -> bool:
+        """Добавляет вредоносный хэш в базу данных."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO malicious_hashes 
+                    (hash, threat_type, severity, description, last_updated)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (file_hash.lower(), threat_type, severity, description))
+                
+                conn.commit()
+                logger.info(f"Malicious hash added: {file_hash}")
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Add hash error: {e}")
+            return False
+    
+    def add_malicious_url(self, url: str, threat_type: str, 
+                         description: str = "", severity: str = "medium") -> bool:
+        """Добавляет вредоносный URL в базу данных."""
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(url).netloc.lower()
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO malicious_urls 
+                    (url, domain, threat_type, severity, description, last_updated)
+                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (url.lower(), domain, threat_type, severity, description))
+                
+                conn.commit()
+                logger.info(f"Malicious URL added: {url}")
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Add URL error: {e}")
+            return False
+    
+    # ===== STATISTICS AND ADMIN METHODS =====
+    
+    def get_database_stats(self) -> Dict[str, Any]:
+        """Возвращает статистику базы данных."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute("SELECT COUNT(*) as count FROM malicious_hashes")
+                hash_count = cursor.fetchone()["count"]
+                
+                cursor.execute("SELECT COUNT(*) as count FROM malicious_urls")
+                url_count = cursor.fetchone()["count"]
+                
+                cursor.execute("SELECT COUNT(*) as count FROM api_keys WHERE is_active = TRUE")
+                active_keys = cursor.fetchone()["count"]
+                
+                cursor.execute("SELECT SUM(requests_total) as total FROM api_keys")
+                total_requests = cursor.fetchone()["total"] or 0
+                
+                return {
+                    "malicious_hashes": hash_count,
+                    "malicious_urls": url_count,
+                    "total_threats": hash_count + url_count,
+                    "active_api_keys": active_keys,
+                    "total_requests": total_requests
+                }
+        except sqlite3.Error as e:
+            logger.error(f"Database stats error: {e}")
+            return {}
+    
+    def log_request(self, api_key: Optional[str], endpoint: str, method: str,
+                   status_code: int, response_time_ms: int, 
+                   user_agent: Optional[str], client_ip: Optional[str]):
+        """Логирует запрос в базу данных."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Обезличивание api_key и усечение IP до /24
+                import hashlib
+                api_key_hash = hashlib.sha256((api_key or "").encode("utf-8")).hexdigest() if api_key else None
+                truncated_ip = None
+                try:
+                    if client_ip and ":" not in client_ip:
+                        parts = client_ip.split(".")
+                        if len(parts) == 4:
+                            truncated_ip = ".".join(parts[:3]) + ".0"
+                except Exception:
+                    truncated_ip = None
+
+                cursor.execute("""
+                    INSERT INTO request_logs 
+                    (api_key_hash, endpoint, method, status_code, response_time_ms, user_agent, client_ip_truncated)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (api_key_hash, endpoint, method, status_code, response_time_ms, user_agent, truncated_ip))
+                
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Request log error: {e}")
+
+    # ===== IP REPUTATION =====
+    def upsert_ip_reputation(self, ip: str, threat_type: Optional[str], reputation_score: Optional[int], details: str, source: str) -> bool:
+        """Создает или обновляет запись репутации IP."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO ip_reputation (ip, threat_type, reputation_score, details, source)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(ip) DO UPDATE SET
+                        threat_type=excluded.threat_type,
+                        reputation_score=excluded.reputation_score,
+                        details=excluded.details,
+                        source=excluded.source,
+                        last_updated=CURRENT_TIMESTAMP,
+                        detection_count=detection_count+1
+                    """,
+                    (ip, threat_type, reputation_score, details, source)
+                )
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Upsert IP reputation error: {e}")
+            return False
+
+    def get_ip_reputation(self, ip: str) -> Optional[Dict[str, Any]]:
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM ip_reputation WHERE ip = ?", (ip,))
+                row = cursor.fetchone()
+                return dict(row) if row else None
+        except sqlite3.Error as e:
+            logger.error(f"Get IP reputation error: {e}")
+            return None
+
+    def list_ip_reputation(self, limit: int = 200) -> List[Dict[str, Any]]:
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT ip, threat_type, reputation_score, details, source, last_updated, detection_count FROM ip_reputation ORDER BY last_updated DESC LIMIT ?",
+                    (limit,)
+                )
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"List IP reputation error: {e}")
+            return []
+    def get_api_key_stats(self, api_key: str) -> Optional[Dict[str, Any]]:
+        """Возвращает статистику использования API ключа."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                SELECT name, is_active, rate_limit_daily, rate_limit_hourly,
+                       requests_total, requests_today, requests_hour,
+                       created_at, last_used, expires_at
+                FROM api_keys 
+                WHERE api_key = ?
+            """, (api_key,))
+            
+                result = cursor.fetchone()
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"API key stats error: {e}")
+            return None
+    # В класс DatabaseManager добавим методы:
+
+    def get_all_hashes(self) -> List[Dict[str, Any]]:
+        """Возвращает все вредоносные хэши."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT hash, threat_type, severity FROM malicious_hashes")
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get all hashes error: {e}")
+        return []
+
+    def get_all_urls(self) -> List[Dict[str, Any]]:
+        """Возвращает все вредоносные URL."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT url, threat_type, severity FROM malicious_urls")
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get all URLs error: {e}")
+        return []
+    
+    def get_all_threats(self) -> List[Dict[str, Any]]:
+        """Получает все угрозы из универсальной таблицы threats"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT type, value, threat_level, source, created_at
+                    FROM threats
+                    ORDER BY created_at DESC
+                """)
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get all threats error: {e}")
+            return []
+    
+    def get_all_logs(self) -> List[Dict[str, Any]]:
+        """Получает все логи из упрощенной таблицы logs"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT endpoint, method, status_code, response_time_ms, client_ip, api_key_hash, created_at
+                    FROM logs
+                    ORDER BY created_at DESC
+                """)
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get all logs error: {e}")
+            return []
+    
+    # ===== ACCOUNT MANAGEMENT =====
+    
+    def create_account(self, username: str, email: str, password_hash: str) -> Optional[int]:
+        """Создает новый аккаунт и возвращает его ID."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO accounts (username, email, password_hash, is_active)
+                    VALUES (?, ?, ?, TRUE)
+                """, (username, email, password_hash))
+                conn.commit()
+                return cursor.lastrowid
+        except sqlite3.IntegrityError as e:
+            logger.error(f"Account creation error (duplicate): {e}")
+            return None
+        except sqlite3.Error as e:
+            logger.error(f"Account creation error: {e}")
+            return None
+    
+    def get_account_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Возвращает аккаунт по username."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM accounts WHERE username = ?", (username,))
+                result = cursor.fetchone()
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Get account by username error: {e}")
+            return None
+    
+    def get_account_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Возвращает аккаунт по email."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM accounts WHERE email = ?", (email,))
+                result = cursor.fetchone()
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Get account by email error: {e}")
+            return None
+    
+    def get_account_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Возвращает аккаунт по ID."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM accounts WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                return dict(result) if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Get account by ID error: {e}")
+            return None
+    
+    def bind_api_key_to_account(self, api_key: str, user_id: int) -> bool:
+        """Привязывает API ключ к аккаунту."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем, что ключ существует и не привязан
+                cursor.execute("SELECT user_id FROM api_keys WHERE api_key = ?", (api_key,))
+                result = cursor.fetchone()
+                
+                if not result:
+                    return False  # Ключ не найден
+                
+                if result[0] is not None:
+                    return False  # Ключ уже привязан
+                
+                # Привязываем ключ
+                cursor.execute("""
+                    UPDATE api_keys 
+                    SET user_id = ? 
+                    WHERE api_key = ?
+                """, (user_id, api_key))
+                conn.commit()
+                
+                logger.info(f"API key {api_key} bound to account {user_id}")
+                return True
+                
+        except sqlite3.Error as e:
+            logger.error(f"Bind API key error: {e}")
+            return False
+    
+    def get_api_keys_for_account(self, user_id: int) -> List[Dict[str, Any]]:
+        """Возвращает все API ключи для аккаунта."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT api_key, name, description, access_level, expires_at,
+                           created_at, last_used, requests_total
+                    FROM api_keys 
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC
+                """, (user_id,))
+                
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get API keys for account error: {e}")
+            return []
+    
+    def get_free_api_keys(self) -> List[Dict[str, Any]]:
+        """Возвращает все свободные (не привязанные) API ключи."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT api_key, name, description, access_level, expires_at,
+                           created_at
+                    FROM api_keys 
+                    WHERE user_id IS NULL AND is_active = TRUE
+                    ORDER BY created_at DESC
+                """)
+                
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Get free API keys error: {e}")
+            return []
+    
+    def update_last_login(self, user_id: int):
+        """Обновляет время последнего входа."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE accounts 
+                    SET last_login = CURRENT_TIMESTAMP 
+                    WHERE id = ?
+                """, (user_id,))
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Update last login error: {e}")
+    
+    def generate_reset_code(self, email: str) -> Optional[str]:
+        """Генерирует код восстановления для email."""
+        try:
+            import secrets
+            reset_code = secrets.token_hex(16)
+            expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE accounts 
+                    SET reset_code = ?, reset_code_expires = ?
+                    WHERE email = ?
+                """, (reset_code, expires_at, email))
+                
+                if cursor.rowcount == 0:
+                    return None  # Email не найден
+                
+                conn.commit()
+                return reset_code
+        except sqlite3.Error as e:
+            logger.error(f"Generate reset code error: {e}")
+            return None
+    
+    def verify_reset_code(self, email: str, code: str) -> bool:
+        """Проверяет код восстановления."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT reset_code, reset_code_expires
+                    FROM accounts 
+                    WHERE email = ?
+                """, (email,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return False
+                
+                stored_code, expires_str = result
+                if not stored_code or stored_code != code:
+                    return False
+                
+                # Проверяем срок действия
+                expires_at = datetime.fromisoformat(expires_str)
+                if datetime.now() > expires_at:
+                    return False
+                
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Verify reset code error: {e}")
+            return False
+    
+    def reset_password(self, email: str, new_password_hash: str) -> bool:
+        """Сбрасывает пароль и очищает код восстановления."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE accounts 
+                    SET password_hash = ?, reset_code = NULL, reset_code_expires = NULL
+                    WHERE email = ?
+                """, (new_password_hash, email))
+                
+                if cursor.rowcount == 0:
+                    return False
+                
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Reset password error: {e}")
+            return False
+
+# Глобальный экземпляр менеджера базы данных
+db_manager = DatabaseManager()

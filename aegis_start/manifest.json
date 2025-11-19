@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "AEGIS - Антивирусное расширение",
+  "version": "1.0.1",
+  "description": "Антивирусное расширение для защиты от вредоносных URL и файлов",
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "notifications",
+    "alarms",
+    "downloads",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://aegis.builders/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://aegis.builders;"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "AEGIS",
+    "default_icon": {
+      "16": "icons/logo16.png",
+      "32": "icons/logo32.png",
+      "48": "icons/logo48.png",
+      "128": "icons/logo128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/logo16.png",
+    "32": "icons/logo32.png",
+    "48": "icons/logo48.png",
+    "128": "icons/logo128.png"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
+
+

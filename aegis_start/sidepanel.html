@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AEGIS Side Panel</title>
+    <style>
+      :root {
+        --bg: #0A0E1A;
+        --surface: #131722;
+        --surface-alt: #1A1F2E;
+        --primary: #3B82F6;
+        --primary-hover: #2563EB;
+        --text: #E2E8F0;
+        --text-muted: #94A3B8;
+        --text-dim: #64748B;
+        --border: rgba(255,255,255,0.08);
+        --border-hover: rgba(255,255,255,0.12);
+        --success: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --radius: 6px;
+        --radius-sm: 4px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font: 12px/1.4 "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* Компактный хедер */
+      .header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+
+      .brand-text h1 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.2;
+      }
+
+      .brand-text .eyebrow {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        line-height: 1;
+      }
+
+      .badge {
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1px solid transparent;
+      }
+      .badge.ready { color: var(--primary); background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); }
+      .badge.scanning { color: var(--warning); background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); }
+      .badge.safe { color: var(--success); background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); }
+      .badge.suspicious { color: var(--warning); background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); }
+      .badge.malicious { color: var(--danger); background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); }
+      .badge.disabled { color: var(--text-dim); background: rgba(100,116,139,0.15); border-color: rgba(100,116,139,0.3); }
+
+      /* Компактная навигация */
+      .nav {
+        background: var(--surface-alt);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 2px;
+        padding: 4px;
+        flex-shrink: 0;
+      }
+
+      .tab-btn {
+        flex: 1;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-sm);
+        padding: 6px 8px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: center;
+      }
+
+      .tab-btn.primary {
+        background: rgba(59,130,246,0.2);
+        color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(59,130,246,0.3);
+      }
+
+      .tab-btn:not(.primary):hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+      }
+
+      /* Контент */
+      .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+      }
+
+      .content::before {
+        content: "";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 280px;
+        height: 280px;
+        background-image: url('icons/logo.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .section {
+        display: none;
+        position: relative;
+        z-index: 1;
+      }
+
+      .section.active {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Компактные карточки */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .connection {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        flex-shrink: 0;
+      }
+      .status-dot.online { background: var(--success); box-shadow: 0 0 4px rgba(16,185,129,0.5); }
+      .status-dot.offline { background: var(--danger); }
+      .status-dot.checking { background: var(--warning); animation: pulse 1.5s infinite; }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      /* Анализ */
+      .analysis-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .analysis-card.analysis-malicious { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+      .analysis-card.analysis-suspicious { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
+      .analysis-card.analysis-safe,
+      .analysis-card.analysis-clean { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08); }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .result-section {
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.4;
+        word-break: break-word;
+      }
+
+      /* Переключатели */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 0;
+        gap: 10px;
+      }
+
+      .toggle-row:not(:last-child) {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+        margin-bottom: 2px;
+      }
+
+      .toggle-label {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .toggle-label strong {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .toggle-label span {
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .switch {
+        position: relative;
+        width: 36px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .switch-track {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.15);
+        border-radius: 9px;
+        transition: background 0.2s;
+        cursor: pointer;
+      }
+
+      .switch-track::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+
+      .switch input:checked + .switch-track {
+        background: var(--primary);
+      }
+
+      .switch input:checked + .switch-track::after {
+        transform: translateX(18px);
+      }
+
+      /* Формы */
+      .section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        margin-bottom: 4px;
+        padding: 0 2px;
+      }
+
+      .form-field {
+        margin-bottom: 8px;
+      }
+
+      .form-field:last-child {
+        margin-bottom: 0;
+      }
+
+      .form-field label {
+        display: block;
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      .form-field input {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        color: var(--text);
+        font-size: 11px;
+        transition: border-color 0.2s;
+      }
+
+      .form-field input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+      }
+
+      .form-field input::placeholder {
+        color: var(--text-dim);
+      }
+
+      /* Кнопки */
+      .btn {
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: var(--surface-alt);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn:hover:not(:disabled) {
+        background: var(--surface);
+        border-color: var(--border-hover);
+      }
+
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+
+      .btn.primary:hover:not(:disabled) {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+      }
+
+      .btn.secondary {
+        background: transparent;
+        color: var(--text-muted);
+        border-color: var(--border);
+      }
+
+      .btn.secondary:hover:not(:disabled) {
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .actions .btn {
+        flex: 1;
+        min-width: 80px;
+      }
+
+      /* Радио опции */
+      .radio-option {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: var(--surface-alt);
+        margin-bottom: 6px;
+      }
+
+      .radio-option:last-child {
+        margin-bottom: 0;
+      }
+
+      .radio-option:hover {
+        border-color: var(--border-hover);
+        background: var(--surface);
+      }
+
+      .radio-option.active {
+        border-color: var(--primary);
+        background: rgba(59,130,246,0.1);
+        box-shadow: 0 0 0 1px rgba(59,130,246,0.2);
+      }
+
+      .radio-option input[type="radio"] {
+        margin: 0;
+        cursor: pointer;
+      }
+
+      .radio-option span {
+        font-size: 11px;
+        color: var(--text);
+        flex: 1;
+      }
+
+      /* Предупреждение */
+      .warning-card {
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(239,68,68,0.3);
+        background: rgba(239,68,68,0.08);
+        color: var(--danger);
+        font-size: 11px;
+      }
+
+      .warning-card svg {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+      }
+
+      .warning-card strong {
+        display: block;
+        font-size: 11px;
+        margin-bottom: 2px;
+      }
+
+      .warning-card .muted {
+        font-size: 10px;
+        color: rgba(239,68,68,0.8);
+      }
+
+      /* KV пары */
+      .kv {
+        display: grid;
+        grid-template-columns: minmax(0, 80px) minmax(0, 1fr);
+        gap: 6px 10px;
+        font-size: 11px;
+      }
+
+      .kv .k {
+        color: var(--text-muted);
+        word-break: break-word;
+      }
+
+      .kv .v {
+        color: var(--text);
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+
+      /* Ссылки */
+      .link {
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 11px;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      /* Футер */
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: var(--text-dim);
+        padding: 6px 10px;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        flex-shrink: 0;
+      }
+
+      /* Утилиты */
+      .hidden {
+        display: none !important;
+      }
+
+      .muted {
+        color: var(--text-muted);
+      }
+
+      /* Скроллбар */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--surface-alt);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-dim);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="brand" style="flex: 1; display: flex; justify-content: center;">
+          <div class="brand-text" style="text-align: center;">
+            <h1>AEGIS</h1>
+          </div>
+        </div>
+      </header>
+
+      <nav class="nav">
+        <button class="tab-btn primary" id="tab-home">Главная</button>
+        <button class="tab-btn" id="tab-settings">Настройки</button>
+        <button class="tab-btn" id="tab-customize">Тема</button>
+        <button class="tab-btn" id="tab-about">О нас</button>
+      </nav>
+
+      <div class="content">
+        <section id="view-home" class="section active">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title" id="status">Готово</div>
+                <p class="muted" style="font-size: 10px; margin-top: 2px;" id="toggle-subtitle">Сканирование ссылок и загрузок</p>
+              </div>
+            </div>
+            <div class="connection" id="connection-status">
+              <span class="status-dot checking" id="status-dot"></span>
+              <span id="connection-text">Проверка подключения...</span>
+            </div>
+          </div>
+
+          <div class="analysis-card" id="main-analysis-card">
+            <div class="status-row">
+              <div class="status-text" id="status-text">Готово</div>
+              <div class="badge ready" id="analysis-badge">SAFE</div>
+            </div>
+            <div class="result-section" id="result">
+              <p class="muted">Результаты проверки появятся здесь автоматически.</p>
+            </div>
+          </div>
+
+          <div class="warning-card hidden" id="warning-card">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2zm0-4h-2v-4h2z"/></svg>
+            <div>
+              <strong>Обнаружены угрозы</strong>
+              <p class="muted" id="warning-text">Подробности появятся здесь.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-settings" class="section">
+          <div class="section-title">Защита</div>
+          <div class="card">
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <strong>Главная защита</strong>
+                <span>Включает/выключает AEGIS</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="antivirus-toggle" checked />
+                <span class="switch-track"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <strong>Анализ по наведению</strong>
+                <span>Показывать подсказку при наведении</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-hover-scan" checked />
+                <span class="switch-track"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="section-title">Аккаунт</div>
+          <div class="card">
+            <p class="muted" id="account-status" style="font-size: 10px; margin-bottom: 8px;">Вход в аккаунт</p>
+            
+            <div id="account-info" style="display:none;">
+              <p style="font-size: 11px; margin-bottom: 4px;"><strong id="account-username">AdminCEO</strong></p>
+              <p class="muted" id="account-email" style="font-size: 10px; margin-bottom: 8px;">admin@example.com</p>
+              <div class="actions">
+                <button class="btn secondary" id="logout-btn">Выйти</button>
+              </div>
+            </div>
+
+            <form id="login-form">
+              <div class="form-field">
+                <label for="login-username">Логин</label>
+                <input type="text" id="login-username" placeholder="Имя пользователя или Email" />
+              </div>
+              <div class="form-field">
+                <label for="login-password">Пароль</label>
+                <input type="password" id="login-password" placeholder="Ваш пароль" />
+              </div>
+              <div class="actions">
+                <button type="button" class="btn primary" id="login-btn">Войти</button>
+                <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button>
+                <button type="button" class="btn secondary" id="forgot-password-btn">Забыли?</button>
+              </div>
+            </form>
+
+            <form id="register-form" style="display:none;">
+              <div class="form-field">
+                <label for="register-username">Логин</label>
+                <input type="text" id="register-username" placeholder="Придумайте логин" />
+              </div>
+              <div class="form-field">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" placeholder="Ваш email" />
+              </div>
+              <div class="form-field">
+                <label for="register-password">Пароль</label>
+                <input type="password" id="register-password" placeholder="Придумайте пароль" />
+              </div>
+              <div class="form-field">
+                <label for="register-api-key">API ключ (опционально)</label>
+                <input type="text" id="register-api-key" placeholder="Получите в админке" />
+              </div>
+              <div class="actions">
+                <button type="button" class="btn primary" id="register-btn">Зарегистрироваться</button>
+                <button type="button" class="btn secondary" id="show-login-btn">Назад</button>
+              </div>
+            </form>
+
+            <form id="forgot-form" style="display:none;">
+              <div class="form-field">
+                <label for="forgot-email">Email</label>
+                <input type="email" id="forgot-email" placeholder="Email для восстановления" />
+              </div>
+              <div class="actions">
+                <button type="button" class="btn primary" id="forgot-btn">Отправить код</button>
+                <button type="button" class="btn secondary" id="back-to-login-btn">Назад</button>
+              </div>
+              <div id="reset-code-section" style="display:none; margin-top:8px;">
+                <div class="form-field">
+                  <label for="reset-code">Код из письма</label>
+                  <input type="text" id="reset-code" placeholder="Код подтверждения" />
+                </div>
+                <div class="form-field">
+                  <label for="new-password">Новый пароль</label>
+                  <input type="password" id="new-password" placeholder="Новый пароль" />
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary" id="reset-btn">Сбросить пароль</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="view-customize" class="section">
+          <div class="section-title">Тема анализа по наведению</div>
+          <div class="card">
+            <label class="radio-option active">
+              <input type="radio" name="hover-theme" value="classic" checked />
+              <span>Классическая подсказка</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="hover-theme" value="dot" />
+              <span>Цветная точка возле ссылки</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="hover-theme" value="linkcolor" />
+              <span>Изменение цвета ссылки</span>
+            </label>
+          </div>
+        </section>
+
+        <section id="view-about" class="section">
+          <div class="section-title">О проекте AEGIS</div>
+          <div class="card">
+            <p style="font-size: 11px; line-height: 1.5; margin-bottom: 8px;">
+              AEGIS — современное расширение для безопасного серфинга. Мы анализируем URL, ссылки по наведению и загрузки, чтобы вовремя предупредить о фишинге и вредоносных ресурсах.
+            </p>
+            <ul style="padding-left: 16px; margin: 8px 0; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+              <li>URL и hover-анализ в реальном времени</li>
+              <li>Уведомления об угрозах</li>
+              <li>Поддержка аккаунтов и API ключей</li>
+              <li>Приватность и локальные эвристики</li>
+            </ul>
+            <p style="font-size: 11px; margin-top: 8px;">
+              Версия: <strong>AEGIS 1.0.1</strong>
+            </p>
+            <p style="margin-top: 8px;">
+              <a class="link" id="open-logs" href="#">Посмотреть логи расширения</a>
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <span>&copy; 2024 AEGIS</span>
+        <span>Безопасный веб</span>
+      </footer>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

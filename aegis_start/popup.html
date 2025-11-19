@@ -1,0 +1,1028 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Aegis</title>
+    <link rel="icon" type="image/png" href="icons/logo.png" />
+    <style>
+      :root {
+        --bg: #F8FAFC;
+        --surface: #FFFFFF;
+        --primary: #2563EB;
+        --primary-soft: rgba(37, 99, 235, 0.12);
+        --text: #1E293B;
+        --muted: #64748B;
+        --border: #E2E8F0;
+        --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        --success: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.4 "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      .muted { color: var(--muted); }
+
+      .container {
+        width: 380px;
+        padding: 18px;
+      }
+
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(37, 99, 235, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.25);
+      }
+
+      .logo img {
+        width: 28px;
+        height: 28px;
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .brand h1 {
+        margin: 2px 0 0;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .badge {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .badge.ready { color: var(--primary); border-color: rgba(37,99,235,0.35); background: rgba(37,99,235,0.12); }
+      .badge.scanning { color: var(--warning); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.12); }
+      .badge.safe { color: var(--success); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.12); }
+      .badge.suspicious { color: var(--warning); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.12); }
+      .badge.malicious { color: var(--danger); border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.12); }
+      .badge.disabled { color: var(--muted); border-color: rgba(148,163,184,0.35); background: rgba(148,163,184,0.12); }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+        margin-bottom: 16px;
+      }
+
+      .shield-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .shield-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .shield-head h2 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .shield-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--primary-soft);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .connection {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .status-dot.online { background: var(--success); }
+      .status-dot.offline { background: var(--danger); }
+      .status-dot.checking { background: var(--warning); animation: pulse 1.5s infinite; }
+
+      .toggle-title {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 600;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .switch-track {
+        position: relative;
+        width: 48px;
+        height: 24px;
+        border-radius: 24px;
+        background: var(--border);
+        transition: background 0.25s;
+      }
+
+      .switch-track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+        transition: transform 0.25s;
+      }
+
+      .switch input:checked + .switch-track {
+        background: var(--primary);
+      }
+
+      .switch input:checked + .switch-track::after {
+        transform: translateX(24px);
+      }
+
+      .workspace {
+        display: flex;
+        padding: 0;
+      }
+
+      .sidebar {
+        width: 108px;
+        border-right: 1px solid var(--border);
+        padding: 16px 12px;
+        background: #EFF4FF;
+        border-radius: 8px 0 0 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .tab-btn {
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        padding: 10px;
+        color: var(--muted);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+      }
+
+      .tab-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+
+      .tab-btn.primary {
+        background: rgba(37,99,235,0.12);
+        color: var(--primary);
+      }
+
+      .content {
+        flex: 1;
+        padding: 18px;
+        min-height: 360px;
+      }
+
+      .section-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      .analysis-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: #F8FBFF;
+        margin-bottom: 12px;
+      }
+      .analysis-card.analysis-malicious { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+      .analysis-card.analysis-suspicious { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
+      .analysis-card.analysis-safe,
+      .analysis-card.analysis-clean { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.12); }
+
+      .analysis-card .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .status-text {
+        font-weight: 600;
+        font-size: 15px;
+      }
+
+      .result-section {
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+        background: #fff;
+      }
+
+      .hover-details { position: relative; }
+      .hover-trigger { cursor: help; color: var(--primary); font-weight: 600; }
+      .hover-popup {
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: #0f172a;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        white-space: nowrap;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.35);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s;
+      }
+      .hover-details:hover .hover-popup { opacity: 1; visibility: visible; }
+
+      .engine-results {
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+        display: grid;
+        gap: 6px;
+      }
+      .engine-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+      }
+      .engine-name { color: var(--muted); }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 6px 12px;
+        font-size: 12px;
+        margin-top: 12px;
+      }
+      .kv .k { color: var(--muted); }
+      .kv .v { color: var(--text); }
+
+      .warning-card {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(239,68,68,0.35);
+        background: rgba(239,68,68,0.08);
+        color: var(--danger);
+        margin-bottom: 12px;
+      }
+
+      .toggle-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .toggle-section:last-child { border-bottom: none; }
+
+      .toggle-info strong {
+        display: block;
+        font-size: 14px;
+      }
+      .toggle-info span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .radio-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .radio-option {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: border 0.2s, box-shadow 0.2s;
+      }
+
+      .radio-option input {
+        width: 16px;
+        height: 16px;
+      }
+
+      .radio-option.active {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+      }
+
+      .account-card {
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 14px;
+      }
+
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .form-field {
+        margin-bottom: 10px;
+      }
+
+      .form-field label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .form-field input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        font-size: 14px;
+      }
+
+      .form-field input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .btn {
+        flex: 1;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.2s;
+      }
+
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 8px 16px rgba(37,99,235,0.25);
+      }
+
+      .btn.secondary {
+        background: #E2E8F0;
+        color: var(--text);
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .footer {
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .link:hover { text-decoration: underline; }
+
+      .threat-level {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .threat-level.safe,
+      .threat-level.clean { background: rgba(16,185,129,0.15); color: var(--success); }
+      .threat-level.malicious { background: rgba(239,68,68,0.15); color: var(--danger); }
+      .threat-level.suspicious { background: rgba(245,158,11,0.15); color: var(--warning); }
+      .threat-level.unknown { background: rgba(148,163,184,0.15); color: var(--muted); }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      .hidden { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="hero">
+        <div class="brand">
+          <div class="logo">
+            <img src="icons/logo.png" alt="Aegis logo" />
+          </div>
+          <div>
+            <p class="eyebrow">Защита браузера</p>
+            <h1>Aegis</h1>
+          </div>
+        </div>
+        <span class="badge ready" id="status-badge">READY</span>
+      </header>
+
+      <section class="card shield-card">
+        <div class="shield-head">
+          <div>
+            <p class="eyebrow" style="letter-spacing:0.1em;">Статус</p>
+            <h2 id="status">Готово</h2>
+            <p class="muted" id="toggle-subtitle">Сканирование ссылок и загрузок</p>
+          </div>
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24">
+              <path fill="#2563EB" d="M12 2l8 4v6c0 5.25-3.4 10.09-8 11C7.4 22.09 4 17.25 4 12V6l8-4zm0 2.18L6 6.67v5.33c0 4.17 2.6 8.13 6 8.97 3.4-.84 6-4.8 6-8.97V6.67l-6-2.49zm1 4.82v6h-2v-6h2zm0-2v2h-2V7h2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="connection" id="connection-status">
+          <span class="status-dot checking" id="status-dot"></span>
+          <span id="connection-text">Проверка подключения...</span>
+        </div>
+        <label class="switch">
+          <span class="toggle-title">Защита активна</span>
+          <input type="checkbox" id="antivirus-toggle" checked />
+          <span class="switch-track"></span>
+        </label>
+      </section>
+
+      <section class="workspace card">
+        <nav class="sidebar">
+          <button class="tab-btn primary" id="tab-home">
+            <svg viewBox="0 0 24 24"><path d="M5 12l7-7 7 7v7a2 2 0 0 1-2 2h-3v-6h-4v6H7a2 2 0 0 1-2-2z"/></svg>
+            <span>Главная</span>
+          </button>
+          <button class="tab-btn" id="tab-settings">
+            <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm8.94 2.34l-1.8-.31a6.9 6.9 0 0 0-.86-2.06l1.07-1.47-1.42-1.42-1.47 1.07a6.9 6.9 0 0 0-2.06-.86l-.31-1.8h-2l-.31 1.8a6.9 6.9 0 0 0-2.06.86L6.64 4.17 5.22 5.6l1.07 1.47c-.4.63-.68 1.32-.86 2.06l-1.8.31v2l1.8.31c.17.74.46 1.43.86 2.06L5.22 15l1.42 1.42 1.47-1.07c.63.4 1.32.69 2.06.86l.31 1.8h2l.31-1.8c.74-.17 1.43-.46 2.06-.86l1.47 1.07 1.42-1.42-1.07-1.47c.4-.63.69-1.32.86-2.06l1.8-.31v-2z"/></svg>
+            <span>Настройки</span>
+          </button>
+          <button class="tab-btn" id="tab-customize">
+            <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01a1.5 1.5 0 0 1 1.27-2.49H16c2.76 0 5-2.24 5-5 0-4.41-4.03-8-9-8zm-5.5 9A1.5 1.5 0 1 1 8 10.5 1.5 1.5 0 0 1 6.5 12zm3-4A1.5 1.5 0 1 1 11 6.5 1.5 1.5 0 0 1 9.5 8zm6.5 4a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5z"/></svg>
+            <span>Кастомизация</span>
+          </button>
+          <button class="tab-btn" id="tab-about">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
+            <span>О нас</span>
+          </button>
+        </nav>
+        <div class="content">
+          <section id="view-home">
+            <div class="analysis-card" id="main-analysis-card">
+              <div class="status-row">
+                <div class="status-text" id="status-text">Готово</div>
+                <div class="badge ready" id="analysis-badge">SAFE</div>
+              </div>
+              <div class="result-section" id="result">
+                <p class="muted">Результаты проверки появятся здесь автоматически.</p>
+              </div>
+            </div>
+            <div class="warning-card hidden" id="warning-card">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2zm0-4h-2v-4h2z"/></svg>
+              <div>
+                <strong>Обнаружены угрозы</strong>
+                <p class="muted" id="warning-text">Подробности появятся здесь.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="view-settings" style="display:none;">
+            <div class="section-title">Защита</div>
+            <div class="card" style="box-shadow:none; margin-bottom:14px;">
+              <div class="toggle-section">
+                <div class="toggle-info">
+                  <strong>Проверка ссылок</strong>
+                  <span>Автоматическая проверка открываемых URL</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="opt-link-check" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="toggle-section">
+                <div class="toggle-info">
+                  <strong>Анализ по наведению</strong>
+                  <span>Показывать подсказку при наведении</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="opt-hover-scan" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="toggle-section">
+                <div class="toggle-info">
+                  <strong>Уведомления</strong>
+                  <span>Сообщать об угрозах и событиях</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="opt-notify" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="section-title">Аккаунт</div>
+            <div class="account-card">
+              <div id="account-info" style="display:none;">
+                <div class="avatar" id="account-avatar">U</div>
+                <div class="form-field">
+                  <label>Пользователь</label>
+                  <div id="account-username">—</div>
+                </div>
+                <div class="form-field">
+                  <label>Email</label>
+                  <div id="account-email">—</div>
+                </div>
+                <div class="actions">
+                  <button class="btn secondary" id="logout-btn">Выйти</button>
+                </div>
+              </div>
+
+              <form id="login-form">
+                <div class="form-field">
+                  <label for="login-username">Логин</label>
+                  <input type="text" id="login-username" placeholder="Имя пользователя или Email" />
+                </div>
+                <div class="form-field">
+                  <label for="login-password">Пароль</label>
+                  <input type="password" id="login-password" placeholder="Ваш пароль" />
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary" id="login-btn">Войти</button>
+                  <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button>
+                  <button type="button" class="btn secondary" id="forgot-password-btn">Забыли пароль?</button>
+                </div>
+              </form>
+
+              <form id="register-form" style="display:none;">
+                <div class="form-field">
+                  <label for="register-username">Логин</label>
+                  <input type="text" id="register-username" placeholder="Придумайте логин" />
+                </div>
+                <div class="form-field">
+                  <label for="register-email">Email</label>
+                  <input type="email" id="register-email" placeholder="Ваш email" />
+                </div>
+                <div class="form-field">
+                  <label for="register-password">Пароль</label>
+                  <input type="password" id="register-password" placeholder="Придумайте пароль" />
+                </div>
+                <div class="form-field">
+                  <label for="register-api-key">API ключ (опционально)</label>
+                  <input type="text" id="register-api-key" placeholder="Получите в админке" />
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary" id="register-btn">Зарегистрироваться</button>
+                  <button type="button" class="btn secondary" id="show-login-btn">Назад</button>
+                </div>
+              </form>
+
+              <form id="forgot-form" style="display:none;">
+                <div class="form-field">
+                  <label for="forgot-email">Email</label>
+                  <input type="email" id="forgot-email" placeholder="Email для восстановления" />
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary" id="forgot-btn">Отправить код</button>
+                  <button type="button" class="btn secondary" id="back-to-login-btn">Назад</button>
+                </div>
+                <div id="reset-code-section" style="display:none; margin-top:12px;">
+                  <div class="form-field">
+                    <label for="reset-code">Код из письма</label>
+                    <input type="text" id="reset-code" placeholder="Код подтверждения" />
+                  </div>
+                  <div class="form-field">
+                    <label for="new-password">Новый пароль</label>
+                    <input type="password" id="new-password" placeholder="Новый пароль" />
+                  </div>
+                  <div class="actions">
+                    <button type="button" class="btn primary" id="reset-btn">Сбросить пароль</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="view-customize" style="display:none;">
+            <div class="section-title">Анализ по наведению</div>
+            <div class="radio-grid">
+              <label class="radio-option active">
+                <input type="radio" name="hover-theme" value="classic" checked />
+                <span>Классическая подсказка</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="hover-theme" value="dot" />
+                <span>Цветная точка возле ссылки</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="hover-theme" value="linkcolor" />
+                <span>Изменение цвета ссылки</span>
+              </label>
+            </div>
+          </section>
+
+          <section id="view-about" style="display:none;">
+            <div class="section-title">О проекте</div>
+            <div class="card" style="box-shadow:none;">
+              <p>Aegis — современное расширение для анализа ссылок, файлов и загрузок в реальном времени. Мы защищаем от фишинга, вредоносного ПО и подозрительных ресурсов.</p>
+              <ul style="padding-left:18px; margin:12px 0; color: var(--muted);">
+                <li>Анализ URL в реальном времени</li>
+                <li>Проверка по наведению</li>
+                <li>Уведомления об угрозах</li>
+                <li>Приватный режим работы</li>
+              </ul>
+              <p>Версия: <strong>Aegis 1.0.1</strong></p>
+              <p><a class="link" id="open-logs" href="#">Посмотреть логи расширения</a></p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <div class="footer">
+        <span>&copy; 2024 Aegis</span>
+        <span>Безопасный веб</span>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Aegis</title>
+    <style>
+      :root { --bg: #0b1020; --card: #131a2b; --muted: #93a0c0; --text: #e6ecff; --primary: #4f8cff; --success: #2ecc71; --warn: #f1c40f; --danger: #ff5c5c; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      .container { width: 360px; padding: 12px; }
+      .header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+      .logo { width: 28px; height: 28px; border-radius: 6px; overflow: hidden; }
+      .title { font-weight: 700; letter-spacing: 0.2px; }
+      .card { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+      .layout { display: flex; gap: 10px; }
+      .sidebar { width: 96px; display: flex; flex-direction: column; gap: 6px; }
+      .tab-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px; font-size: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text); cursor: pointer; }
+      .tab-btn.primary { background: rgba(79,140,255,0.18); border-color: rgba(79,140,255,0.4); color: var(--text); }
+      .content { flex: 1; min-width: 0; }
+      .btn.sm { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+      .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .status { font-size: 12px; color: var(--muted); }
+      .badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+      .badge.ready { background: rgba(79,140,255,0.15); color: var(--primary); border: 1px solid rgba(79,140,255,0.35); }
+      .badge.scanning { background: rgba(241,196,15,0.15); color: var(--warn); border: 1px solid rgba(241,196,15,0.35); }
+      .badge.safe { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.35); }
+      .badge.suspicious { background: rgba(241,196,15,0.15); color: var(--warn); border: 1px solid rgba(241,196,15,0.35); }
+      .badge.malicious { background: rgba(255,92,92,0.15); color: var(--danger); border: 1px solid rgba(255,92,92,0.35); }
+      .badge.disabled { background: rgba(147,160,192,0.15); color: var(--muted); border: 1px solid rgba(147,160,192,0.35); }
+      .actions { display: flex; gap: 8px; margin-top: 12px; }
+      .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); color: var(--text); cursor: pointer; transition: transform 0.06s ease, background 0.2s ease; }
+      .btn:hover { background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); }
+      .btn:active { transform: translateY(1px); }
+      .btn.primary { background: linear-gradient(180deg, rgba(79,140,255,0.3), rgba(79,140,255,0.15)); border-color: rgba(79,140,255,0.45); }
+      .btn.secondary { background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); }
+      .result { margin-top: 12px; display: grid; gap: 8px; }
+      .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .pill { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
+      .kv { display: grid; grid-template-columns: 100px 1fr; gap: 6px 10px; }
+      .kv .k { color: var(--muted); }
+      .muted { color: var(--muted); }
+      .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+      .link { color: var(--primary); text-decoration: none; font-weight: 600; }
+      .link:hover { text-decoration: underline; }
+      
+      /* Antivirus Toggle */
+      .toggle-section { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 12px; }
+      .toggle-info { flex: 1; }
+      .toggle-title { font-weight: 600; margin-bottom: 2px; }
+      .toggle-subtitle { font-size: 11px; color: var(--muted); }
+      .toggle-switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+      .toggle-switch input { opacity: 0; width: 0; height: 0; }
+      .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #4b546a; transition: .3s; border-radius: 28px; }
+      .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background: white; transition: .3s; border-radius: 50%; }
+      input:checked + .toggle-slider { background: var(--primary); }
+      input:checked + .toggle-slider:before { transform: translateX(24px); }
+      
+      /* Enhanced Analysis Display */
+      .analysis-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-top: 8px; }
+      .threat-level { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+      .threat-level.safe { background: rgba(46,204,113,0.15); color: var(--success); }
+      .threat-level.suspicious { background: rgba(241,196,15,0.15); color: var(--warn); }
+      .threat-level.malicious { background: rgba(255,92,92,0.15); color: var(--danger); }
+      .threat-level.unknown { background: rgba(147,160,192,0.15); color: var(--muted); }
+      
+      .hover-details { position: relative; }
+      .hover-trigger { cursor: help; border-bottom: 1px dotted var(--muted); }
+      .hover-popup { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 10px; font-size: 11px; white-space: nowrap; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; visibility: hidden; transition: opacity 0.2s; }
+      .hover-popup::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: var(--card); }
+      .hover-trigger:hover .hover-popup { opacity: 1; visibility: visible; }
+      
+      .engine-results { display: grid; gap: 6px; margin-top: 8px; }
+      .engine-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; background: rgba(255,255,255,0.02); border-radius: 4px; }
+      .engine-name { font-size: 11px; color: var(--muted); }
+      .engine-verdict { font-size: 11px; font-weight: 600; }
+      
+      .connection-status { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-top: 8px; }
+      .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+      .status-dot.online { background: var(--success); }
+      .status-dot.offline { background: var(--danger); }
+      .status-dot.checking { background: var(--warn); animation: pulse 1.5s infinite; }
+      
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img class="logo" src="icons/logo.png" alt="Aegis" />
+        <div class="title">Aegis</div>
+      </div>
+
+      <!-- Antivirus Toggle Section -->
+      <div class="toggle-section">
+        <div class="toggle-info">
+          <div class="toggle-title">Защита активна</div>
+          <div class="toggle-subtitle" id="toggle-subtitle">Сканирование ссылок и загрузок</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="antivirus-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Tabs -->
+      <div class="card" style="padding: 10px;">
+        <div class="layout">
+          <nav class="sidebar">
+            <button class="tab-btn" id="tab-home">Главная</button>
+            <button class="tab-btn" id="tab-settings">Настройки</button>
+            <button class="tab-btn" id="tab-customize">Кастомизация</button>
+            <button class="tab-btn" id="tab-about">О нас</button>
+          </nav>
+          <div class="content">
+          <!-- Главная -->
+          <section id="view-home">
+        <div class="row">
+          <div class="status" id="status">Готово</div>
+          <div class="badge ready" id="status-badge">READY</div>
+            </div>
+            <div class="connection-status" id="connection-status">
+              <div class="status-dot checking" id="status-dot"></div>
+              <span id="connection-text">Проверка подключения...</span>
+            </div>
+            <div class="result" id="result" style="margin-top:12px;">
+              <div class="muted">Результаты проверки появятся здесь автоматически.</div>
+            </div>
+          </section>
+          <!-- Настройки -->
+          <section id="view-settings" style="display:none;">
+            <div class="toggle-section">
+              <div class="toggle-info">
+                <div class="toggle-title">Защита</div>
+                <div class="toggle-subtitle">Сканирование ссылок и загрузок</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="antivirus-toggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-section">
+              <div class="toggle-info">
+                <div class="toggle-title">Проверка ссылок</div>
+                <div class="toggle-subtitle">Автоматическая проверка открываемых URL</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="opt-link-check" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-section">
+              <div class="toggle-info">
+                <div class="toggle-title">Анализ по наведению</div>
+                <div class="toggle-subtitle">Показывать подсказку при наведении</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="opt-hover-scan" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-section">
+              <div class="toggle-info">
+                <div class="toggle-title">Уведомления</div>
+                <div class="toggle-subtitle">Показывать нотификации об угрозах</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="opt-notify" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Аккаунт -->
+            <div class="analysis-card" style="margin-top:12px;">
+              <div class="row" style="margin-bottom:8px;">
+                <div class="status" id="account-status">Вход в аккаунт</div>
+              </div>
+              <!-- Блок аккаунта (когда вошли) -->
+              <div id="account-info" style="display:none;">
+                <div class="kv" style="margin-bottom:8px;">
+                  <div class="k">Пользователь</div><div class="v" id="account-username">—</div>
+                  <div class="k">Email</div><div class="v" id="account-email">—</div>
+                </div>
+                <div class="actions">
+                  <button class="btn secondary sm" id="logout-btn">Выйти</button>
+                </div>
+              </div>
+
+              <!-- Вход -->
+              <form id="login-form">
+                <div class="kv" style="margin-bottom:8px;">
+                  <div class="k">Логин</div><div class="v"><input id="login-username" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                  <div class="k">Пароль</div><div class="v"><input id="login-password" type="password" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary sm" id="login-btn">Войти</button>
+                  <button type="button" class="btn secondary sm" id="show-register-btn">Регистрация</button>
+                  <button type="button" class="btn secondary sm" id="forgot-password-btn">Забыли пароль?</button>
+                </div>
+              </form>
+
+              <!-- Регистрация -->
+              <form id="register-form" style="display:none;">
+                <div class="kv" style="margin-bottom:8px;">
+                  <div class="k">Логин</div><div class="v"><input id="register-username" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                  <div class="k">Email</div><div class="v"><input id="register-email" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                  <div class="k">Пароль</div><div class="v"><input id="register-password" type="password" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                  <div class="k">API ключ</div><div class="v"><input id="register-api-key" placeholder="Получите в админке" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary sm" id="register-btn">Зарегистрироваться</button>
+                  <button type="button" class="btn secondary sm" id="show-login-btn">Назад</button>
+                </div>
+              </form>
+
+              <!-- Восстановление пароля -->
+              <form id="forgot-form" style="display:none;">
+                <div class="kv" style="margin-bottom:8px;">
+                  <div class="k">Email</div><div class="v"><input id="forgot-email" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn primary sm" id="forgot-btn">Отправить код</button>
+                  <button type="button" class="btn secondary sm" id="back-to-login-btn">Назад</button>
+                </div>
+                <div id="reset-code-section" style="display:none; margin-top:8px;">
+                  <div class="kv" style="margin-bottom:8px;">
+                    <div class="k">Код</div><div class="v"><input id="reset-code" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+                    <div class="k">Новый пароль</div><div class="v"><input id="new-password" type="password" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
+        </div>
+        <div class="actions">
+                    <button type="button" class="btn primary sm" id="reset-btn">Сбросить пароль</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+          <!-- Кастомизация -->
+          <section id="view-customize" style="display:none;">
+            <div class="muted" style="margin-bottom:8px;">Тема оформления анализа по наведению</div>
+            <div class="toggle-section" style="display:block;">
+              <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <input type="radio" name="hover-theme" value="classic" checked />
+                <span>Классическая (подсказка как сейчас)</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <input type="radio" name="hover-theme" value="dot" />
+                <span>Цветная точка возле ссылки</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:8px;">
+                <input type="radio" name="hover-theme" value="linkcolor" />
+                <span>Цвет ссылки меняется по вердикту</span>
+              </label>
+            </div>
+          </section>
+          <!-- О нас -->
+          <section id="view-about" style="display:none;">
+            <div class="analysis-card">
+              <div class="muted" style="margin-bottom:6px;">О проекте</div>
+              <div> Aegis — расширение для безопасного серфинга: анализ URL, подсказки по наведению, уведомления об угрозах. Мы не перехватываем личные данные, работаем только с проверками выбранных ссылок. </div>
+            </div>
+          </section>
+        </div>
+        </div>
+      </div>
+      <div class="footer">
+        <span class="muted">Aegis 1.0.1</span>
+        <a class="link" id="open-logs" href="#">Логи</a>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
