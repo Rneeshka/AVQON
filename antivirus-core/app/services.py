@@ -25,6 +25,11 @@ class AnalysisService:
         # Простой in-memory кэш: ключ -> (истекает_в_мс, результат)
         self._cache: Dict[str, Any] = {}
         self._cache_ttl_seconds = 300
+        # КРИТИЧНО: Очищаем старые данные с source: local_only при инициализации
+        try:
+            disk_cache.delete_by_source("local_only")
+        except Exception as e:
+            logger.warning(f"Failed to clean old cache entries: {e}")
         # YARA правила (простые сигнатуры)
         self._yara_rules = self._load_yara_rules()
 
@@ -36,11 +41,41 @@ class AnalysisService:
             if time.time() * 1000 > expires_at_ms:
                 self._cache.pop(key, None)
                 return None
+            # КРИТИЧНО: Проверяем что кэшированный результат валиден
+            # Игнорируем результаты с safe: True если source не "combined" или "external_apis"
+            # Также игнорируем любые результаты с source: "local_only" (старые данные)
+            if value and isinstance(value, dict):
+                cached_safe = value.get("safe")
+                cached_source = value.get("source", "")
+                if cached_source == "local_only":
+                    logger.warning(f"Ignoring cached result with invalid source=local_only for {key}")
+                    self._cache.pop(key, None)
+                    disk_cache.delete(key)
+                    return None
+                elif cached_safe is True and cached_source not in ("combined", "external_apis"):
+                    logger.warning(f"Ignoring cached safe=True result with source={cached_source} for {key}")
+                    self._cache.pop(key, None)
+                    disk_cache.delete(key)
+                    return None
             return value
         
         # Затем проверяем диск-кэш
         disk_result = disk_cache.get(key)
         if disk_result:
+            # КРИТИЧНО: Проверяем что кэшированный результат валиден
+            # Игнорируем результаты с safe: True если source не "combined" или "external_apis"
+            # Также игнорируем любые результаты с source: "local_only" (старые данные)
+            if disk_result and isinstance(disk_result, dict):
+                cached_safe = disk_result.get("safe")
+                cached_source = disk_result.get("source", "")
+                if cached_source == "local_only":
+                    logger.warning(f"Ignoring cached result with invalid source=local_only for {key}")
+                    disk_cache.delete(key)
+                    return None
+                elif cached_safe is True and cached_source not in ("combined", "external_apis"):
+                    logger.warning(f"Ignoring cached safe=True result with source={cached_source} for {key}")
+                    disk_cache.delete(key)
+                    return None
             # Восстанавливаем в in-memory кэш
             self._cache_set(key, disk_result)
             return disk_result
@@ -115,11 +150,28 @@ class AnalysisService:
             except Exception:
                 pass
             
-            # Кэш
+            # КРИТИЧНО: Кэш - но НЕ возвращаем кэшированные результаты с safe: True
+            # если они были созданы без проверки внешних API
             cache_key = f"url:{url}"
             cached = self._cache_get(cache_key)
             if cached is not None:
-                return cached
+                # КРИТИЧНО: Если кэшированный результат имеет safe: True, но source не "combined" или "external_apis",
+                # значит он был создан без проверки внешних API - игнорируем его
+                # Также игнорируем любые результаты с source: "local_only" (старые данные)
+                cached_safe = cached.get("safe")
+                cached_source = cached.get("source", "")
+                if cached_source == "local_only":
+                    logger.warning(f"Ignoring cached result with invalid source=local_only for {url}, re-analyzing")
+                    # Удаляем из кэша и продолжаем анализ
+                    self._cache.pop(cache_key, None)
+                    disk_cache.delete(cache_key)
+                elif cached_safe is True and cached_source not in ("combined", "external_apis"):
+                    logger.warning(f"Ignoring cached safe=True result with source={cached_source} for {url}, re-analyzing")
+                    # Удаляем из кэша и продолжаем анализ
+                    self._cache.pop(cache_key, None)
+                    disk_cache.delete(cache_key)
+                else:
+                    return cached
             
             # 1. Проверка в локальной базе данных
             try:
@@ -212,17 +264,48 @@ class AnalysisService:
             
             # 5. Объединяем результаты - ПРИОРИТЕТ ВНЕШНИМ API
             # КРИТИЧНО: Проверяем safe явно, не используя default True
-            if external_result:
-                external_safe = external_result.get("safe")
-                if external_safe is False or (external_safe is None and external_result.get("threat_type")):
-                    result = {
-                        **external_result,
-                        "safe": False,  # Явно устанавливаем False
-                        "source": "external_apis",
-                        "confidence": external_result.get("confidence", 80)
-                    }
-                    self._cache_set(cache_key, result)
-                    return result
+            
+            # КРИТИЧНО: Если внешние API не использовались (should_use_external = False), 
+            # НЕ возвращаем результат из эвристики - всегда возвращаем safe: None
+            if not should_use_external:
+                logger.warning(f"External APIs disabled for {url}, returning unknown")
+                result = {
+                    "safe": None,
+                    "threat_type": None,
+                    "details": "External APIs disabled - unable to determine safety",
+                    "source": "unknown",
+                    "confidence": 0,
+                    "external_scans": {}
+                }
+                self._cache_set(cache_key, result)
+                return result
+            
+            # КРИТИЧНО: Если внешние API не вернули результат (external_result is None), 
+            # НЕ возвращаем результат из эвристики - всегда возвращаем safe: None
+            if not external_result:
+                logger.warning(f"External APIs did not return result for {url}, returning unknown")
+                result = {
+                    "safe": None,
+                    "threat_type": None,
+                    "details": "External APIs did not return result - unable to determine safety",
+                    "source": "unknown",
+                    "confidence": 0,
+                    "external_scans": {}
+                }
+                self._cache_set(cache_key, result)
+                return result
+            
+            # КРИТИЧНО: Обрабатываем результат внешних API
+            external_safe = external_result.get("safe")
+            if external_safe is False or (external_safe is None and external_result.get("threat_type")):
+                result = {
+                    **external_result,
+                    "safe": False,  # Явно устанавливаем False
+                    "source": "external_apis",
+                    "confidence": external_result.get("confidence", 80)
+                }
+                self._cache_set(cache_key, result)
+                return result
             
             heuristic_safe = heuristic_result.get("safe")
             if heuristic_safe is False:
@@ -234,44 +317,114 @@ class AnalysisService:
                 self._cache_set(cache_key, result)
                 return result
             
-            # Если внешние API вернули safe=True, считаем безопасным
+            # КРИТИЧНО: Если внешние API вернули safe=True, считаем безопасным
+            # НО только если есть результаты от всех включенных API
             if external_result and external_result.get("safe") is True:
+                # Проверяем что все включенные API вернули результат
+                external_scans = external_result.get("external_scans", {})
+                enabled_apis = [name for name, enabled in external_api_manager.enabled_apis.items() if enabled]
+                # Проверяем что есть результаты от всех включенных API
+                if enabled_apis and all(api_name in external_scans for api_name in enabled_apis):
+                    result = {
+                        "safe": True,
+                        "threat_type": None,
+                        "details": "URL appears to be safe (local + external verification)",
+                        "source": "combined",
+                        "external_scans": external_scans,
+                        "confidence": max(heuristic_result.get("confidence", 50), 
+                                        external_result.get("confidence", 50))
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+                else:
+                    # Не все API вернули результат - считаем неизвестным
+                    logger.warning(f"Not all external APIs returned results for {url}, treating as unknown")
+                    result = {
+                        "safe": None,
+                        "threat_type": None,
+                        "details": "Unable to determine safety (not all external APIs returned results)",
+                        "source": "unknown",
+                        "confidence": 0,
+                        "external_scans": external_scans
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+            
+            # КРИТИЧНО: Если external_result есть, но safe не True и не False - это None или ошибка
+            # В этом случае НЕ возвращаем результат из эвристики - возвращаем safe: None
+            if external_result and external_result.get("safe") is None:
+                logger.warning(f"External APIs returned None for {url}, treating as unknown")
                 result = {
-                    "safe": True,
+                    "safe": None,
                     "threat_type": None,
-                    "details": "URL appears to be safe (local + external verification)",
-                    "source": "combined",
-                    "external_scans": external_result.get("external_scans", {}),
-                    "confidence": max(heuristic_result.get("confidence", 50), 
-                                    external_result.get("confidence", 50))
+                    "details": "External APIs returned unclear result",
+                    "source": "unknown",
+                    "confidence": 0,
+                    "external_scans": external_result.get("external_scans", {})
                 }
                 self._cache_set(cache_key, result)
-                # КРИТИЧНО: Не кэшируем clean-домены, чтобы не пропускать опасные URL
-                # domain_cache_key = f"domain-clean:{domain}"
-                # self._cache_set(domain_cache_key, {"clean": True})
                 return result
             
-            # Если эвристика вернула safe=True, считаем безопасным
-            if heuristic_safe is True:
+            # КРИТИЧНО: Эвристика не должна возвращать safe=True без внешних API
+            # Если внешние API не использовались или не вернули результат, считаем неизвестным
+            if not external_result or external_result.get("safe") is None:
+                # КРИТИЧНО: Если внешние API не использовались или не вернули результат, НЕ считаем безопасным
+                # Всегда возвращаем safe: None (неизвестно), а НЕ safe: True
                 result = {
-                    "safe": True,
+                    "safe": None,  # КРИТИЧНО: НЕ True, а None!
                     "threat_type": None,
-                    "details": "URL appears to be safe",
-                    "source": "local_only",
-                    "confidence": heuristic_result.get("confidence", 50)
+                    "details": "Unable to determine safety (external APIs unavailable or returned unclear result)",
+                    "source": "unknown",
+                    "confidence": 0,
+                    "external_scans": external_result.get("external_scans", {}) if external_result else {}
                 }
                 self._cache_set(cache_key, result)
                 return result
             
-            # Если ничего не определено, возвращаем None (неизвестно)
+            # КРИТИЧНО: Если эвристика вернула safe=True И внешние API тоже safe=True, считаем безопасным
+            # НО только если есть результаты от всех включенных API
+            if heuristic_safe is True and external_result.get("safe") is True:
+                external_scans = external_result.get("external_scans", {})
+                enabled_apis = [name for name, enabled in external_api_manager.enabled_apis.items() if enabled]
+                # Проверяем что есть результаты от всех включенных API
+                if enabled_apis and all(api_name in external_scans for api_name in enabled_apis):
+                    result = {
+                        "safe": True,
+                        "threat_type": None,
+                        "details": "URL appears to be safe (local + external verification)",
+                        "source": "combined",
+                        "confidence": max(heuristic_result.get("confidence", 50), 
+                                        external_result.get("confidence", 50)),
+                        "external_scans": external_scans
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+                else:
+                    # Не все API вернули результат - считаем неизвестным
+                    logger.warning(f"Not all external APIs returned results for {url}, treating as unknown")
+                    result = {
+                        "safe": None,
+                        "threat_type": None,
+                        "details": "Unable to determine safety (not all external APIs returned results)",
+                        "source": "unknown",
+                        "confidence": 0,
+                        "external_scans": external_scans
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+            
+            # КРИТИЧНО: Если ничего не определено, возвращаем None (неизвестно)
+            # НИКОГДА не возвращаем safe: True по умолчанию!
             result = {
-                "safe": None,
+                "safe": None,  # КРИТИЧНО: Всегда None, никогда True!
                 "threat_type": None,
-                "details": "Unable to determine safety",
+                "details": "Unable to determine safety - external API verification required",
                 "source": "unknown",
-                "confidence": 0
+                "confidence": 0,
+                "external_scans": external_result.get("external_scans", {}) if external_result else {}
             }
             self._cache_set(cache_key, result)
+            logger.warning(f"Final fallback for {url}: returning safe=None (unknown)")
             return result
                 
         except Exception as e:
@@ -347,11 +500,12 @@ class AnalysisService:
                     logger.error(f"External file hash check failed: {e}")
                     # Продолжаем с локальным результатом
             
-            # 3. Локальный результат если внешние API недоступны
+            # КРИТИЧНО: Локальный результат если внешние API недоступны
+            # НЕ устанавливаем safe: True - возвращаем None (неизвестно)
             result = {
-                "safe": True,
+                "safe": None,  # КРИТИЧНО: Неизвестно, а не безопасно!
                 "threat_type": None,
-                "details": "File hash not found in local malware database",
+                "details": "File hash not found in local malware database, but external API verification required",
                 "source": "local_db_only"
             }
             self._cache_set(cache_key, result)
@@ -493,13 +647,13 @@ class AnalysisService:
         
         # КРИТИЧНО: Защита от неопределенного домена
         if not domain or domain == "unknown":
-            # Если домен неизвестен, считаем безопасным (недостаточно данных)
+            # Если домен неизвестен, считаем неизвестным (недостаточно данных)
             return {
-                "safe": True,
+                "safe": None,  # Неизвестно, не безопасно по умолчанию
                 "threat_type": None,
                 "details": "Domain information unavailable",
                 "threat_score": 0,
-                "confidence": 50
+                "confidence": 0
             }
 
         # IP-адрес вместо домена — сильный сигнал, но редкий в нормальном серфинге
@@ -571,18 +725,20 @@ class AnalysisService:
                     "confidence": min(95, 50 + threat_score)  # Higher confidence for higher threat scores
                 }
 
+            # КРИТИЧНО: Эвристика не должна возвращать safe: True без внешних API
+            # Возвращаем None (неизвестно), чтобы требовать проверку внешними API
             return {
-                "safe": True,
+                "safe": None,  # Неизвестно, не безопасно по умолчанию
                 "threat_type": None,
-                "details": "Heuristic analysis passed",
+                "details": "Heuristic analysis passed, but external API verification required",
                 "threat_score": threat_score,
-                "confidence": max(50, 100 - threat_score)  # Higher confidence for lower threat scores
+                "confidence": 0  # Низкая уверенность без внешних API
             }
         except Exception as e:
             logger.error(f"Error in heuristic analysis result generation: {e}", exc_info=True)
-            # Fallback: считаем безопасным при ошибке
+            # Fallback: считаем неизвестным при ошибке
             return {
-                "safe": True,
+                "safe": None,  # Неизвестно, не безопасно по умолчанию
                 "threat_type": None,
                 "details": "Heuristic analysis completed with warnings",
                 "threat_score": 0,

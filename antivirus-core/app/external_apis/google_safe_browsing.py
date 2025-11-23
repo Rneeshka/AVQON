@@ -44,8 +44,13 @@ class GoogleSafeBrowsingClient(BaseAPIClient):
         if not result:
             return {"safe": None, "external_scan": "failed", "details": "Google Safe Browsing: No response", "confidence": 0}
         
-        # Если нет поля 'matches', это означает, что URL безопасен (Google возвращает пустой объект для безопасных URL)
+        # КРИТИЧНО: Если нет поля 'matches', это означает, что URL безопасен
+        # НО только если это валидный ответ от Google (не ошибка)
         if 'matches' not in result:
+            # Проверяем что это не ошибка
+            if 'error' in result:
+                return {"safe": None, "external_scan": "failed", "details": f"Google Safe Browsing error: {result.get('error', {}).get('message', 'Unknown error')}", "confidence": 0}
+            # Валидный ответ без угроз - безопасно
             return {"safe": True, "external_scan": "google_safe_browsing", "confidence": 85, "details": "Google Safe Browsing: No threats detected"}
         
         matches = result['matches']

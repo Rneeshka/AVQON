@@ -53,10 +53,10 @@ class CheckResponse(BaseModel):
         example="success",
         description="Статус выполнения запроса"
     )
-    safe: bool = Field(
-        ...,
+    safe: Optional[bool] = Field(
+        default=None,
         example=True,
-        description="Результат проверки: True - безопасно, False - опасно"
+        description="Результат проверки: True - безопасно, False - опасно, None - неизвестно"
     )
     threat_type: Optional[str] = Field(
         default=None,

@@ -225,12 +225,13 @@ app.state.ws_cleanup_task = None
 # Note: do not mount static at /admin/ui to avoid masking /admin/ui/* router routes
 
 # CORS middleware ДОЛЖЕН быть первым, чтобы обрабатывать OPTIONS запросы
+# КРИТИЧНО: WebSocket требует специальной обработки CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-    allow_headers=["X-API-Key", "Authorization", "Content-Type", "Origin", "Accept"],
+    allow_headers=["X-API-Key", "Authorization", "Content-Type", "Origin", "Accept", "Upgrade", "Connection", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"],
     expose_headers=["*"],
     max_age=3600,
 )
@@ -259,10 +260,14 @@ async def websocket_health_check():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint для двусторонней связи с расширением."""
+    client_ip = websocket.client.host if websocket.client else "unknown"
+    logger.info(f"[WS] WebSocket connection attempt from {client_ip}")
+    
     try:
         await websocket.accept()
+        logger.info(f"[WS] WebSocket connection accepted from {client_ip}")
     except Exception as e:
-        logger.error(f"[WS] Failed to accept connection: {e}", exc_info=True)
+        logger.error(f"[WS] Failed to accept connection from {client_ip}: {e}", exc_info=True)
         return
 
     api_key = (
@@ -832,26 +837,36 @@ async def check_url_secure(
         
         # Создаем ответ
         try:
-            # Если safe is None, устанавливаем True (безопасно по умолчанию)
+            # КРИТИЧНО: НЕ устанавливаем safe: True по умолчанию!
+            # Если safe не указан, проверяем threat_type - если есть, значит небезопасно
             safe_value = result.get("safe")
+            threat_type = result.get("threat_type")
+            
+            # КРИТИЧНО: Если safe не указан, определяем по threat_type
             if safe_value is None:
-                safe_value = True
+                if threat_type:
+                    # Если есть threat_type, значит небезопасно
+                    safe_value = False
+                else:
+                    # Если нет threat_type и safe не указан - неизвестно
+                    # НЕ устанавливаем True по умолчанию!
+                    safe_value = None
             
             response_data = {
                 "safe": safe_value,
-                "threat_type": result.get("threat_type"),
+                "threat_type": threat_type,
                 "details": result.get("details", ""),
                 "source": result.get("source", "unknown")
             }
             
-            # Валидация через CheckResponse
+            # КРИТИЧНО: Валидация через CheckResponse - safe может быть None
             validated = CheckResponse(**response_data)
             response_data = validated.dict()
         except Exception as schema_error:
             logger.error(f"Schema validation error: {schema_error}, result: {result}", exc_info=True)
-            # Fallback - по умолчанию безопасно
+            # Fallback - НЕ устанавливаем safe: True по умолчанию!
             response_data = {
-                "safe": True,
+                "safe": None,  # Неизвестно, а не безопасно!
                 "threat_type": result.get("threat_type"),
                 "details": result.get("details", "Analysis completed"),
                 "source": result.get("source", "unknown")

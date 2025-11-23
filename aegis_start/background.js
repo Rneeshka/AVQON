@@ -1,6 +1,6 @@
 // background.js
 const DEFAULTS = { antivirusEnabled: true, linkCheck: true, hoverScan: true, notify: true };
-const DEFAULT_API_BASE = 'https://aegis.builders';
+const DEFAULT_API_BASE = 'https://api.aegis.builders';
 
 // Кеш результатов для быстрого анализа по наведению
 const cache = new Map();
@@ -11,7 +11,7 @@ const FILE_EXTENSIONS = [
   '.exe', '.msi', '.apk', '.bat', '.cmd', '.scr', '.ps1',
   '.js', '.jar', '.vbs', '.py', '.zip', '.rar', '.7z', '.gz', '.tar',
   '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-  '.pdf', '.rtf', '.iso', '.img'
+  '.pdf', '.rtf', '.iso', '.img' 
 ];
 const FILE_ANALYSIS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 часа
 const MAX_FILE_ANALYSIS_SIZE = 15 * 1024 * 1024; // 15 МБ лимит быстрой проверки
@@ -28,10 +28,8 @@ let connectionState = {
   maxRetries: 5
 };
 
-// КРИТИЧНО: Долгоживущие соединения для поддержания активности Service Worker
-// Chrome останавливает Service Worker через 5 минут, даже если он обрабатывает события
-// Долгоживущее соединение с content script предотвращает остановку
-const keepAlivePorts = new Set();
+// КРИТИЧНО: Manifest V3 - keep-alive порты больше не используются
+// Service Worker управляется через chrome.alarms (см. startConnectionMonitoring)
 
 // Время последней загрузки состояния (чтобы не загружать слишком часто)
 let lastStateLoad = 0;
@@ -311,9 +309,32 @@ class AegisWebSocketClient {
 
     if (msgType === 'analysis_result') {
       this.lastPong = Date.now();
-      const result = data.payload ?? data.result ?? data;
-      console.log('[Aegis WS] analysis_result received, requestId:', data.requestId, 'result.safe:', result?.safe, 'result.threat_type:', result?.threat_type);
-      this._resolvePending(data.requestId, result);
+      // КРИТИЧНО: Извлекаем результат из разных возможных форматов
+      let result = data.payload ?? data.result ?? data;
+      
+      // КРИТИЧНО: Если result это объект, но не содержит safe напрямую - проверяем вложенные структуры
+      if (result && typeof result === 'object') {
+        // Если есть вложенный объект с результатом
+        if (result.data && typeof result.data === 'object') {
+          result = result.data;
+        }
+        // Если есть вложенный analysis
+        if (result.analysis && typeof result.analysis === 'object') {
+          result = result.analysis;
+        }
+      }
+      
+      console.log('[Aegis WS] analysis_result received, requestId:', data.requestId, 'result.safe:', result?.safe, 'result.threat_type:', result?.threat_type, 'full result keys:', result ? Object.keys(result) : 'null');
+      
+      // КРИТИЧНО: Нормализуем результат перед передачей
+      // Это гарантирует что safe всегда явно true/false/null
+      const normalized = normalizeAnalysisPayload(result, null);
+      if (normalized) {
+        this._resolvePending(data.requestId, normalized);
+      } else {
+        // Если нормализация не удалась, передаем как есть
+        this._resolvePending(data.requestId, result);
+      }
       return;
     }
 
@@ -859,11 +880,19 @@ const requestQueue = [];
 const MAX_QUEUE_SIZE = 50;
 
 function getCached(url) {
-  const cached = cache.get(url);
+  const normalizedUrl = normalizeUrl(url);
+  const cached = cache.get(normalizedUrl);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log('[Aegis] Cache hit for:', url, 'cached safe:', cached.data?.safe, 'cached threat_type:', cached.data?.threat_type);
+    // КРИТИЧНО: Проверяем что кэшированные данные валидны
+    if (!cached.data || typeof cached.data !== 'object') {
+      console.warn('[Aegis] Cache contains invalid data, ignoring');
+      cache.delete(normalizedUrl);
+      return null;
+    }
+    
+    console.log('[Aegis] Cache hit for:', normalizedUrl, 'cached safe:', cached.data?.safe, 'cached threat_type:', cached.data?.threat_type);
     // КРИТИЧНО: Если в кэше safe: true, но URL содержит опасные паттерны - игнорируем кэш
-    const urlLower = url.toLowerCase();
+    const urlLower = normalizedUrl.toLowerCase();
     const dangerousPatterns = ['eicar', 'testfile', 'malware-test', 'virus-test', 'download-anti-malware-testfile'];
     const hasDangerousPattern = dangerousPatterns.some(pattern => urlLower.includes(pattern));
     if (hasDangerousPattern && cached.data?.safe === true) {
@@ -881,8 +910,24 @@ function getCached(url) {
 }
 
 function setCached(url, data) {
-  console.log('[Aegis] Setting cache for:', url, 'safe:', data?.safe, 'threat_type:', data?.threat_type);
-  cache.set(url, { data, timestamp: Date.now() });
+  // КРИТИЧНО: Нормализуем URL перед кэшированием
+  const normalizedUrl = normalizeUrl(url);
+  
+  // КРИТИЧНО: Проверяем что данные валидны перед кэшированием
+  if (!data || typeof data !== 'object') {
+    console.warn('[Aegis] Cannot cache invalid data:', data);
+    return;
+  }
+  
+  // КРИТИЧНО: Убеждаемся что safe нормализован (true/false/null)
+  const normalizedData = {
+    ...data,
+    safe: data.safe === true ? true : (data.safe === false ? false : null),
+    threat_type: data.threat_type || null
+  };
+  
+  console.log('[Aegis] Setting cache for:', normalizedUrl, 'safe:', normalizedData.safe, 'threat_type:', normalizedData.threat_type);
+  cache.set(normalizedUrl, { data: normalizedData, timestamp: Date.now() });
 }
 
 function getConfig() {
@@ -1192,28 +1237,60 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
   
   try {
     const response = await wsClient.request(type, payload, options);
-    console.log('[Aegis WS] Response received (full):', JSON.stringify(response));
+    console.log('[Aegis WS] Response received (full):', JSON.stringify(response).substring(0, 500));
+    
     // КРИТИЧНО: Проверяем, что response содержит правильные данные
     if (response && typeof response === 'object') {
+      let result = response;
+      
       // Если response содержит payload (WebSocket формат), извлекаем его
       if (response.payload && typeof response.payload === 'object') {
-        console.log('[Aegis WS] Extracting payload from response, payload.safe:', response.payload.safe);
-        return response.payload;
+        console.log('[Aegis WS] Extracting payload from response, payload.safe:', response.payload.safe, 'payload.threat_type:', response.payload.threat_type);
+        result = response.payload;
       }
-      // Если response уже содержит safe напрямую, возвращаем как есть
-      if ('safe' in response) {
+      // Если response содержит data
+      else if (response.data && typeof response.data === 'object') {
+        console.log('[Aegis WS] Extracting data from response, data.safe:', response.data.safe);
+        result = response.data;
+      }
+      // Если response уже содержит safe напрямую, используем как есть
+      else if ('safe' in response) {
         console.log('[Aegis WS] Response has safe field directly:', response.safe, 'threat_type:', response.threat_type);
-        return response;
+        result = response;
       }
       // Если response не содержит safe, но содержит другие поля - логируем
-      console.warn('[Aegis WS] Response does not contain safe field!', Object.keys(response));
+      else {
+        console.warn('[Aegis WS] Response does not contain safe field!', Object.keys(response));
+        // Пробуем найти результат в других полях
+        if (response.result && typeof response.result === 'object') {
+          result = response.result;
+        }
+      }
+      
+      // КРИТИЧНО: Нормализуем результат перед возвратом
+      // Это гарантирует что safe всегда явно true/false/null
+      const normalized = normalizeAnalysisPayload(result, payload.url);
+      if (normalized) {
+        connectionState.isOnline = true;
+        connectionState.lastCheck = Date.now();
+        connectionState.retryCount = 0;
+        await saveConnectionState();
+        console.log('[Aegis WS] Returning normalized result - safe:', normalized.safe, 'threat_type:', normalized.threat_type);
+        return normalized;
+      }
+      
+      // Если нормализация не удалась, возвращаем как есть
+      connectionState.isOnline = true;
+      connectionState.lastCheck = Date.now();
+      connectionState.retryCount = 0;
+      await saveConnectionState();
+      console.log('[Aegis WS] Returning response as-is (normalization failed):', JSON.stringify(response).substring(0, 300));
+      return response;
     }
-    connectionState.isOnline = true;
-    connectionState.lastCheck = Date.now();
-    connectionState.retryCount = 0;
-    await saveConnectionState();
-    console.log('[Aegis WS] Returning response as-is:', JSON.stringify(response));
-    return response;
+    
+    // Если response не объект - это ошибка
+    console.error('[Aegis WS] Invalid response format:', typeof response, response);
+    throw new Error('Invalid response format from WebSocket');
   } catch (error) {
     const errorMsg = error?.message || String(error) || 'WebSocket error';
     const closeCode = error?.closeCode;
@@ -1294,13 +1371,46 @@ async function requestRestFallback(type, payload) {
       throw new Error('Invalid response format from server');
     }
     
-    // Нормализуем ответ для совместимости с WebSocket форматом
-    // КРИТИЧНО: Не ставим safe: true по умолчанию, используем реальное значение от сервера
+    // КРИТИЧНО: Нормализуем ответ для совместимости с WebSocket форматом
+    // НЕ ставим safe: true по умолчанию - это критическая ошибка безопасности!
+    // Если safe не указан явно, проверяем threat_type - если есть, значит небезопасно
+    let safeValue = null;
+    
+    // КРИТИЧНО: Проверяем явные значения safe
+    if (data.safe === true) {
+      // Явно безопасно - но проверяем что нет threat_type (противоречие)
+      if (data.threat_type) {
+        console.warn('[Aegis REST] Contradiction: safe=true but threat_type present:', data.threat_type);
+        // Если есть threat_type, но safe=true - это ошибка, считаем небезопасно
+        safeValue = false;
+      } else {
+        safeValue = true;
+      }
+    } else if (data.safe === false) {
+      // Явно небезопасно
+      safeValue = false;
+    } else if (data.safe === null || data.safe === undefined) {
+      // safe не указан - определяем по threat_type
+      if (data.threat_type) {
+        // Если есть threat_type, но safe не указан - значит небезопасно
+        console.log('[Aegis REST] safe is null but threat_type present, setting safe=false');
+        safeValue = false;
+      } else {
+        // Нет ни safe, ни threat_type - неизвестно
+        safeValue = null;
+      }
+    } else {
+      // Неожиданное значение - логируем и считаем неизвестно
+      console.warn('[Aegis REST] Unexpected safe value:', data.safe, 'treating as null');
+      safeValue = null;
+    }
+    
     const normalized = {
-      safe: data.safe !== undefined ? data.safe : null,
+      safe: safeValue,
       threat_type: data.threat_type || null,
       details: data.details || data.message || '',
-      source: data.source || 'rest_fallback'
+      source: data.source || 'rest_fallback',
+      url: payload.url || null
     };
     
     console.log('[Aegis REST] Normalized response - safe:', normalized.safe, 'threat_type:', normalized.threat_type);
@@ -1319,15 +1429,50 @@ async function requestRestFallback(type, payload) {
   }
 }
 
+// КРИТИЧНО: Нормализация результатов анализа для единообразной обработки
 function normalizeAnalysisPayload(payload, url) {
   if (!payload || typeof payload !== 'object') {
     console.warn('[Aegis] normalizeAnalysisPayload: invalid payload', payload);
     return null;
   }
-  const result = { ...payload };
-  if (url && !result.url) {
-    result.url = url;
+  
+  // КРИТИЧНО: Нормализуем safe - должен быть явно true, false или null
+  // Не полагаемся на truthy/falsy значения
+  let safeValue = null;
+  if (payload.safe === true) {
+    safeValue = true;
+  } else if (payload.safe === false) {
+    safeValue = false;
+  } else if (payload.threat_type) {
+    // КРИТИЧНО: Если есть threat_type, но safe не указан - значит небезопасно
+    safeValue = false;
+  } else {
+    // Иначе неизвестно
+    safeValue = null;
   }
+  
+  // КРИТИЧНО: Нормализуем threat_type
+  const threatType = payload.threat_type || null;
+  
+  // КРИТИЧНО: Если safe === false, но нет threat_type - добавляем общий
+  if (safeValue === false && !threatType) {
+    // Это небезопасный URL, но тип угрозы не указан
+    // Оставляем threat_type как null, но safe остается false
+  }
+  
+  const result = {
+    safe: safeValue,
+    threat_type: threatType,
+    details: payload.details || payload.message || null,
+    source: payload.source || 'websocket',
+    url: url || payload.url || null
+  };
+  
+  // КРИТИЧНО: Сохраняем дополнительные поля если есть
+  if (payload.confidence !== undefined) result.confidence = payload.confidence;
+  if (payload.timestamp !== undefined) result.timestamp = payload.timestamp;
+  if (payload.external_scans !== undefined) result.external_scans = payload.external_scans;
+  
   console.log('[Aegis] normalizeAnalysisPayload result - safe:', result.safe, 'threat_type:', result.threat_type, 'source:', result.source);
   return result;
 }
@@ -1336,7 +1481,7 @@ async function scanUrl(url, useCache = true) {
   if (useCache) {
     const cached = getCached(url);
     if (cached) {
-      console.log('[Aegis] scanUrl returning cached result, safe:', cached.safe);
+      console.log('[Aegis] scanUrl returning cached result, safe:', cached.safe, 'threat_type:', cached.threat_type);
       return cached;
     }
   }
@@ -1397,6 +1542,16 @@ function maybeNotify(cfg, verdict, url) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === 'save_api_key') {
+    chrome.storage.sync.set(
+      { apiKey: msg.apiKey, account: msg.account || true },
+      () => {
+        wsClient.forceReconnect();
+        sendResponse({ ok: true });
+      }
+    );
+    return true;
+  }
   if (!msg || typeof msg !== 'object') {
     return false;
   }
@@ -1420,7 +1575,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       connectionState: connectionState,
       cacheSize: cache.size,
       requestQueueSize: requestQueue.length,
-      keepAlivePortsCount: keepAlivePorts.size,
+      keepAlivePortsCount: 0, // Manifest V3 - порты не используются
       timestamp: Date.now()
     });
     return true;
@@ -1448,7 +1603,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
-  if (msg.type === 'ws_analyze_url') {
+  if (msg.type === 'analyze_url') {
     const url = msg.url;
     (async () => {
       try {
@@ -1505,25 +1660,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       
       try {
+        // КРИТИЧНО: Проверяем кэш перед запросом
         const cached = getCached(url);
         let res = cached;
         
-        // Если кэша нет или он истек - выполняем запрос
+        // КРИТИЧНО: Если кэша нет или он истек - выполняем запрос
         if (!cached) {
           const timeSinceLastCheck = Date.now() - connectionState.lastCheck;
           if (timeSinceLastCheck > 60000) { // Если прошло больше минуты
             warmUpConnection().catch(() => {});
           }
 
+          // КРИТИЧНО: Выполняем анализ hover
           res = await scanHover(url);
+          
+          console.log('[Aegis] hover_url: scanHover result - safe:', res?.safe, 'threat_type:', res?.threat_type, 'source:', res?.source);
 
           // После каждого запроса проверяем состояние подключения
           if (res && res.source === 'error') {
             // Если была ошибка - проверяем подключение сразу
             await checkServerConnection().catch(() => {});
-          } else if (res && typeof res.safe === 'boolean') {
-            // Успешный результат - кэшируем на 5 минут
+          } else if (res && (typeof res.safe === 'boolean' || res.safe === null)) {
+            // КРИТИЧНО: Кэшируем результат только если он валидный (safe: true/false/null)
+            // НЕ кэшируем если res === null или undefined
             setCached(url, res);
+            console.log('[Aegis] hover_url: cached result for:', url, 'safe:', res.safe);
+          } else {
+            console.warn('[Aegis] hover_url: invalid result, not caching:', res);
           }
         } else {
           // Кэш есть, но проверяем подключение периодически (каждые 30 секунд)
@@ -1615,18 +1778,9 @@ if (chrome.downloads && chrome.downloads.onCreated) {
 }
 
 
-// КРИТИЧНО: Обработчик долгоживущих соединений с content script
-// Эти соединения предотвращают остановку Service Worker
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === "keepAlive") {
-    keepAlivePorts.add(port);
-    port.onDisconnect.addListener(() => {
-      keepAlivePorts.delete(port);
-    });
-    // Отправляем подтверждение подключения
-    port.postMessage({ type: 'keepAlive_connected' });
-  }
-});
+// КРИТИЧНО: Manifest V3 - keep-alive порты больше не используются
+// Service Worker управляется через chrome.alarms API
+// Обработчик onConnect удален, так как порты не используются
 
 // КРИТИЧНО: Сохранение состояния перед остановкой Service Worker
 // Это позволяет восстановить состояние после перезапуска

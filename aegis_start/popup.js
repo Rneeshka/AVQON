@@ -1,774 +1,9 @@
-// popup.js – UI logic for popup and side panel
-(() => {
-  if (typeof chrome === 'undefined' || !chrome.runtime) {
-    console.warn('[Aegis Popup] chrome.runtime is not available. Script aborted.');
-    return;
-  }
-(() => {
-  if (window.__AEGIS_POPUP_INITIALIZED__) {
-    return;
-  }
-  window.__AEGIS_POPUP_INITIALIZED__ = true;
-
-  const DEFAULT_API_BASE = 'https://aegis.builders';
-  const STORAGE_DEFAULTS = {
-    antivirusEnabled: true,
-    linkCheck: true,
-    hoverScan: true,
-    notify: true,
-    apiBase: DEFAULT_API_BASE,
-    apiKey: '',
-    hoverTheme: 'classic'
-  };
-
-  const state = {
-    settings: { ...STORAGE_DEFAULTS },
-    account: null,
-    scanning: false
-  };
-  let layoutStylesInjected = false;
-
-  const els = {
-    status: document.getElementById('status'),
-    statusSubtitle: document.getElementById('toggle-subtitle'),
-    statusBadge: document.getElementById('status-badge'),
-    analysisBadge: document.getElementById('analysis-badge'),
-    statusText: document.getElementById('status-text'),
-    result: document.getElementById('result'),
-    warningCard: document.getElementById('warning-card'),
-    warningText: document.getElementById('warning-text'),
-    connectionText: document.getElementById('connection-text'),
-    statusDot: document.getElementById('status-dot'),
-    antivirusToggle: document.getElementById('antivirus-toggle'),
-    hoverScanToggle: document.getElementById('opt-hover-scan'),
-    accountStatus: document.getElementById('account-status'),
-    accountInfo: document.getElementById('account-info'),
-    loginForm: document.getElementById('login-form'),
-    registerForm: document.getElementById('register-form'),
-    forgotForm: document.getElementById('forgot-form'),
-    loginUsername: document.getElementById('login-username'),
-    loginPassword: document.getElementById('login-password'),
-    loginBtn: document.getElementById('login-btn'),
-    registerBtn: document.getElementById('register-btn'),
-    registerUsername: document.getElementById('register-username'),
-    registerEmail: document.getElementById('register-email'),
-    registerPassword: document.getElementById('register-password'),
-    registerApiKey: document.getElementById('register-api-key'),
-    showRegisterBtn: document.getElementById('show-register-btn'),
-    showLoginBtn: document.getElementById('show-login-btn'),
-    forgotPasswordBtn: document.getElementById('forgot-password-btn'),
-    backToLoginBtn: document.getElementById('back-to-login-btn'),
-    forgotBtn: document.getElementById('forgot-btn'),
-    resetBtn: document.getElementById('reset-btn'),
-    logoutBtn: document.getElementById('logout-btn'),
-    accountUsername: document.getElementById('account-username'),
-    accountEmail: document.getElementById('account-email'),
-    accountAvatar: document.getElementById('account-avatar'),
-    forgotEmail: document.getElementById('forgot-email'),
-    resetCode: document.getElementById('reset-code'),
-    newPassword: document.getElementById('new-password'),
-    resetCodeSection: document.getElementById('reset-code-section'),
-    sections: {
-      home: document.getElementById('view-home'),
-      settings: document.getElementById('view-settings'),
-      customize: document.getElementById('view-customize'),
-      about: document.getElementById('view-about')
-    },
-    tabButtons: {
-      home: document.getElementById('tab-home'),
-      settings: document.getElementById('tab-settings'),
-      customize: document.getElementById('tab-customize'),
-      about: document.getElementById('tab-about')
-    }
-  };
-
-  const hoverThemeInputs = Array.from(document.querySelectorAll('input[name="hover-theme"]'));
-  const logLinks = Array.from(document.querySelectorAll('#open-logs'));
-
-  function init() {
-    bindTabNavigation();
-    bindSettingToggles();
-    bindHoverThemeControls();
-    bindAccountControls();
-    bindLogLinks();
-    loadSettings();
-    loadAccount();
-    setActiveTab('home');
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        checkConnection();
-        if (!state.scanning) {
-          scanActiveTab();
-        }
-      }
-    });
-  }
-
-  function bindTabNavigation() {
-    Object.entries(els.tabButtons).forEach(([name, btn]) => {
-      if (!btn) return;
-      btn.addEventListener('click', () => setActiveTab(name));
-    });
-  }
-
-  function setActiveTab(name) {
-    Object.entries(els.sections).forEach(([key, section]) => {
-      if (!section) return;
-      if (key === name) {
-        section.style.display = '';
-        section.classList.add('active');
-      } else {
-        section.style.display = 'none';
-        section.classList.remove('active');
-      }
-    });
-    Object.entries(els.tabButtons).forEach(([key, btn]) => {
-      if (!btn) return;
-      btn.classList.toggle('primary', key === name);
-    });
-  }
-
-  function bindSettingToggles() {
-    if (els.antivirusToggle) {
-      els.antivirusToggle.addEventListener('change', (e) => {
-        persistSettings({ antivirusEnabled: e.target.checked });
-        chrome.runtime.sendMessage({ type: 'antivirus_toggle', enabled: e.target.checked });
-        updateProtectionSubtitle();
-        scanActiveTab();
-      });
-    }
-    if (els.hoverScanToggle) {
-      els.hoverScanToggle.addEventListener('change', (e) => {
-        persistSettings({ hoverScan: e.target.checked });
-      });
-    }
-  }
-
-  function bindHoverThemeControls() {
-    hoverThemeInputs.forEach((input) => {
-      input.addEventListener('change', () => {
-        if (!input.checked) return;
-        persistSettings({ hoverTheme: input.value });
-      });
-    });
-  }
-
-  function bindLogLinks() {
-    logLinks.forEach((link) => {
-      if (!link) return;
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (chrome?.runtime?.openOptionsPage) {
-          chrome.runtime.openOptionsPage();
-        } else {
-          chrome.tabs.create({ url: 'chrome://extensions/' });
-        }
-      });
-    });
-  }
-
-  function bindAccountControls() {
-    els.showRegisterBtn?.addEventListener('click', () => showRegisterForm());
-    els.showLoginBtn?.addEventListener('click', () => showLoginForm());
-    els.forgotPasswordBtn?.addEventListener('click', () => showForgotForm());
-    els.backToLoginBtn?.addEventListener('click', () => showLoginForm());
-    els.loginBtn?.addEventListener('click', handleLogin);
-    els.registerBtn?.addEventListener('click', handleRegister);
-    els.forgotBtn?.addEventListener('click', handleForgotPassword);
-    els.resetBtn?.addEventListener('click', handleResetPassword);
-    els.logoutBtn?.addEventListener('click', handleLogout);
-  }
-
-  function loadSettings() {
-    chrome.storage?.sync?.get(STORAGE_DEFAULTS, (cfg) => {
-      if (chrome.runtime?.lastError) {
-        console.warn('[Aegis Popup] storage error', chrome.runtime.lastError);
-        cfg = STORAGE_DEFAULTS;
-      }
-      state.settings = { ...STORAGE_DEFAULTS, ...cfg };
-      applySettingsToUI();
-      checkConnection();
-      scanActiveTab();
-    });
-  }
-
-  function applySettingsToUI() {
-    if (els.antivirusToggle) els.antivirusToggle.checked = !!state.settings.antivirusEnabled;
-    if (els.hoverScanToggle) els.hoverScanToggle.checked = !!state.settings.hoverScan;
-    updateProtectionSubtitle();
-    hoverThemeInputs.forEach((input) => {
-      input.checked = input.value === (state.settings.hoverTheme || 'classic');
-    });
-  }
-
-  function updateProtectionSubtitle() {
-    if (!els.statusSubtitle) return;
-    if (!state.settings.antivirusEnabled) {
-      els.statusSubtitle.textContent = 'Проверки и уведомления отключены';
-      setBadgeState('disabled');
-    } else {
-      els.statusSubtitle.textContent = 'Сканирование ссылок и загрузок';
-    }
-  }
-
-  function persistSettings(patch) {
-    state.settings = { ...state.settings, ...patch };
-    chrome.storage?.sync?.set(state.settings, () => {
-      chrome.runtime?.lastError && console.warn('[Aegis Popup] storage set error', chrome.runtime.lastError);
-    });
-    chrome.runtime?.sendMessage?.({
-      type: 'settings_updated',
-      settings: state.settings
-    });
-  }
-
-  function loadAccount() {
-    chrome.storage?.sync?.get(['account', 'apiKey'], (data) => {
-      if (chrome.runtime?.lastError) {
-        console.warn('[Aegis Popup] account load error', chrome.runtime.lastError);
-        return;
-      }
-      state.account = data.account || null;
-      const hasAccount = !!state.account;
-      const hasApiKey = !!data.apiKey;
-      if (hasAccount) {
-        showAccountInfo(state.account);
-      } else {
-        showLoginForm();
-      }
-      updateHoverScanAvailability(hasAccount && hasApiKey);
-    });
-  }
-
-  function updateHoverScanAvailability(enabled) {
-    if (!els.hoverScanToggle) return;
-    if (enabled) {
-      els.hoverScanToggle.disabled = false;
-      els.hoverScanToggle.parentElement?.classList.remove('muted');
-    } else {
-      els.hoverScanToggle.checked = false;
-      els.hoverScanToggle.disabled = true;
-      els.hoverScanToggle.parentElement?.classList.add('muted');
-      persistSettings({ hoverScan: false });
-    }
-  }
-
-  function setBadgeState(stateName) {
-    const map = {
-      ready: 'READY',
-      scanning: 'SCAN',
-      safe: 'SAFE',
-      clean: 'SAFE',
-      suspicious: 'WARN',
-      malicious: 'DANGER',
-      unknown: 'UNKNOWN',
-      disabled: 'OFF'
-    };
-    if (els.statusBadge) {
-      els.statusBadge.className = `badge ${stateName}`;
-      els.statusBadge.textContent = map[stateName] || stateName?.toUpperCase() || 'READY';
-    }
-    if (els.analysisBadge) {
-      els.analysisBadge.className = `badge ${stateName}`;
-      els.analysisBadge.textContent = map[stateName] || stateName?.toUpperCase() || 'SAFE';
-    }
-  }
-
-  async function checkConnection() {
-    if (!els.connectionText || !els.statusDot) return;
-    setConnectionState('checking', 'Проверка подключения...');
-    const apiBase = normalizeApiBase(state.settings.apiBase || DEFAULT_API_BASE);
-    try {
-      await fetchWithTimeout(`${apiBase}/health`, {}, 4000);
-      setConnectionState('online', 'Подключено');
-    } catch (error) {
-      console.warn('[Aegis Popup] connection error:', error);
-      setConnectionState('offline', 'Нет подключения');
-    }
-  }
-
-  function setConnectionState(stateName, text) {
-    if (els.connectionText) {
-      els.connectionText.textContent = text;
-    }
-    if (!els.statusDot) return;
-    els.statusDot.classList.remove('online', 'offline', 'checking');
-    els.statusDot.classList.add(stateName);
-  }
-
-  async function scanActiveTab() {
-    if (!state.settings.antivirusEnabled) {
-      showResultMessage('Защита выключена. Включите переключатель, чтобы проверить страницу.');
-      setBadgeState('disabled');
-      return;
-    }
-    const tab = await queryActiveTab();
-    if (!tab || !tab.url) {
-      showResultMessage('Откройте вкладку с URL для проверки.');
-      return;
-    }
-    state.scanning = true;
-    setStatusText('Сканируем...');
-    setBadgeState('scanning');
-    chrome.runtime?.sendMessage?.(
-      { type: 'ws_analyze_url', url: tab.url, context: 'popup' },
-      (response) => {
-        state.scanning = false;
-        if (chrome.runtime?.lastError) {
-          console.error('[Aegis Popup] scan error:', chrome.runtime.lastError);
-          showResultMessage('Не удалось выполнить проверку. Попробуйте еще раз.');
-          setBadgeState('suspicious');
-          return;
-        }
-        if (!response || !response.ok) {
-          showResultMessage('Сервис проверки недоступен. Попробуйте позже.');
-          setBadgeState('suspicious');
-          return;
-        }
-        renderResult(tab.url, response.data || response.result || response);
-      }
-    );
-  }
-
-  function queryActiveTab() {
-    return new Promise((resolve) => {
-      chrome.tabs?.query?.({ active: true, lastFocusedWindow: true }, (tabs) => {
-        resolve(tabs && tabs.length ? tabs[0] : null);
-      });
-    });
-  }
-
-  function setStatusText(text) {
-    if (els.status) {
-      els.status.textContent = text;
-    }
-    if (els.statusText) {
-      els.statusText.textContent = text;
-    }
-  }
-
-  function showResultMessage(text) {
-    if (!els.result) return;
-    els.result.innerHTML = `<p class="muted">${text}</p>`;
-    if (els.warningCard) {
-      els.warningCard.classList.add('hidden');
-    }
-  }
-
-  function ensureLayoutStyles() {
-    if (layoutStylesInjected) return;
-    const style = document.createElement('style');
-    style.id = 'aegis-layout-overrides';
-    style.textContent = `
-      .shield-card {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .connection-block {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .verdict-block {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .verdict-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .verdict-row h2 {
-        margin: 0;
-        font-size: 22px;
-      }
-      .result-section {
-        border-top: 1px solid rgba(255,255,255,0.08);
-        padding-top: 12px;
-        font-size: 13px;
-        color: var(--muted);
-        word-break: break-word;
-      }
-      .kv {
-        grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
-      }
-      .kv .k,
-      .kv .v {
-        word-break: break-word;
-        overflow-wrap: anywhere;
-      }
-    `;
-    document.head?.appendChild(style);
-    layoutStylesInjected = true;
-  }
-
-  function enhanceShieldCards() {
-    const cards = document.querySelectorAll('.shield-card');
-    if (!cards.length) return;
-    ensureLayoutStyles();
-    cards.forEach((card) => {
-      if (card.dataset.aegisLayout === '1') return;
-      card.dataset.aegisLayout = '1';
-      const connectionRow = card.querySelector('.connection');
-      if (connectionRow) {
-        const block = document.createElement('div');
-        block.className = 'connection-block';
-        const label = document.createElement('p');
-        label.className = 'eyebrow';
-        label.style.letterSpacing = '0.1em';
-        label.textContent = 'Подключение';
-        block.appendChild(label);
-        block.appendChild(connectionRow);
-        card.insertBefore(block, card.firstChild);
-      }
-
-      const head = card.querySelector('.shield-head');
-      const statusHeading = head?.querySelector('#status') || card.querySelector('#status');
-      const subtitle = head?.querySelector('#toggle-subtitle') || card.querySelector('#toggle-subtitle');
-      const icon = head?.querySelector('.shield-icon');
-      if (head) head.remove();
-
-      const verdictBlock = document.createElement('div');
-      verdictBlock.className = 'verdict-block';
-      const verdictLabel = document.createElement('p');
-      verdictLabel.className = 'eyebrow';
-      verdictLabel.style.letterSpacing = '0.1em';
-      verdictLabel.textContent = 'Вердикт';
-      const verdictRow = document.createElement('div');
-      verdictRow.className = 'verdict-row';
-      if (statusHeading) verdictRow.appendChild(statusHeading);
-      if (icon) verdictRow.appendChild(icon);
-      verdictBlock.appendChild(verdictLabel);
-      verdictBlock.appendChild(verdictRow);
-      if (subtitle) verdictBlock.appendChild(subtitle);
-      card.appendChild(verdictBlock);
-    });
-  }
-
-  function renderResult(url, data) {
-    if (!els.result) return;
-    const verdict = determineVerdict(data);
-    const verdictLabels = {
-      clean: 'Готово',
-      safe: 'Готово',
-      malicious: 'Опасно',
-      suspicious: 'Подозрительно',
-      unknown: 'Неизвестно'
-    };
-    setBadgeState(verdict);
-    setStatusText(verdictLabels[verdict] || 'Готово');
-    if (els.warningCard) {
-      els.warningCard.classList.toggle('hidden', verdict !== 'malicious');
-      if (els.warningText) {
-        els.warningText.textContent = data?.details || 'Обнаружены угрозы';
-      }
-    }
-    const container = document.createElement('div');
-    container.className = 'kv';
-    const addRow = (title, value) => {
-      if (!value) return;
-      const keyEl = document.createElement('div');
-      keyEl.className = 'k';
-      keyEl.textContent = title;
-      const valEl = document.createElement('div');
-      valEl.className = 'v';
-      valEl.textContent = typeof value === 'string' ? value : JSON.stringify(value);
-      container.appendChild(keyEl);
-      container.appendChild(valEl);
-    };
-    addRow('URL', tryExtractHost(url));
-    if (typeof data.safe === 'boolean') {
-      addRow('Безопасно', data.safe ? 'Да' : 'Нет');
-    } else {
-      addRow('Безопасно', 'Неизвестно');
-    }
-    if (data.threat_type) addRow('Тип угрозы', data.threat_type);
-    if (data.source && data.source !== 'error') addRow('Источник', data.source);
-    if (data.details && data.details !== 'rest_fallback') addRow('Детали', sanitizeDetails(data.details));
-    if (data.confidence != null) addRow('Уверенность', `${data.confidence}%`);
-    if (data.timestamp) addRow('Время', new Date(data.timestamp).toLocaleString());
-    if (Array.isArray(data.external_scans) && data.external_scans.length) {
-      const info = data.external_scans
-        .map((scan) => `${scan.source || 'внешний'}: ${formatVerdict(scan.safe)}`)
-        .join(', ');
-      addRow('Внешние проверки', info);
-    }
-    els.result.innerHTML = '';
-    els.result.appendChild(container);
-  }
-
-  function determineVerdict(data) {
-    if (!data || typeof data.safe === 'undefined' || data.safe === null) return 'unknown';
-    return data.safe ? 'safe' : 'malicious';
-  }
-
-  function formatVerdict(value) {
-    if (value === true) return 'безопасно';
-    if (value === false) return 'опасно';
-    return 'неизвестно';
-  }
-
-  function sanitizeDetails(details) {
-    if (Array.isArray(details)) {
-      return details.join(', ');
-    }
-    if (typeof details === 'object') {
-      try {
-        return JSON.stringify(details);
-      } catch (_) {
-        return String(details);
-      }
-    }
-    return String(details);
-  }
-
-  function tryExtractHost(url) {
-    try {
-      return new URL(url).hostname;
-    } catch (_) {
-      return url;
-    }
-  }
-
-  function showLoginForm() {
-    toggleAccountForms('login');
-  }
-
-  function showRegisterForm() {
-    toggleAccountForms('register');
-  }
-
-  function showForgotForm() {
-    toggleAccountForms('forgot');
-  }
-
-  function showAccountInfo(account) {
-    if (!account) {
-      showLoginForm();
-      return;
-    }
-    toggleAccountForms('account');
-    if (els.accountUsername) els.accountUsername.textContent = account.username || '—';
-    if (els.accountEmail) els.accountEmail.textContent = account.email || '—';
-    if (els.accountStatus) els.accountStatus.textContent = `Аккаунт: ${account.username || ''}`;
-    if (els.accountAvatar) {
-      const letter = (account.username || account.email || '?').charAt(0).toUpperCase();
-      els.accountAvatar.textContent = letter;
-    }
-  }
-
-  function toggleAccountForms(mode) {
-    if (document.body) {
-      document.body.setAttribute('data-account-mode', mode);
-    }
-    if (els.loginForm) els.loginForm.style.display = mode === 'login' ? 'block' : 'none';
-    if (els.registerForm) els.registerForm.style.display = mode === 'register' ? 'block' : 'none';
-    if (els.forgotForm) els.forgotForm.style.display = mode === 'forgot' ? 'block' : 'none';
-    if (els.accountInfo) els.accountInfo.style.display = mode === 'account' ? 'block' : 'none';
-    if (els.accountStatus) {
-      const map = {
-        login: 'Вход в аккаунт',
-        register: 'Регистрация',
-        forgot: 'Восстановление доступа',
-        account: 'Аккаунт привязан'
-      };
-      els.accountStatus.textContent = map[mode] || 'Аккаунт';
-    }
-  }
-
-  async function handleLogin() {
-    const username = els.loginUsername?.value.trim();
-    const password = els.loginPassword?.value.trim();
-    if (!username || !password) {
-      alert('Заполните логин и пароль');
-      return;
-    }
-    const apiBase = normalizeApiBase(state.settings.apiBase || DEFAULT_API_BASE);
-    try {
-      setButtonBusy(els.loginBtn, true, 'Вход...');
-      const res = await fetchWithTimeout(`${apiBase}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      }, 10000);
-      if (!res.ok) {
-        const error = await safeJson(res);
-        throw new Error(error?.detail || 'Не удалось войти');
-      }
-      const data = await res.json();
-      state.account = data.account;
-      await chrome.storage?.sync?.set({ account: data.account });
-      if (data.api_keys && data.api_keys.length) {
-        await chrome.storage?.sync?.set({ apiKey: data.api_keys[0].api_key });
-      }
-      showAccountInfo(state.account);
-      updateHoverScanAvailability(true);
-      alert('Успешный вход');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setButtonBusy(els.loginBtn, false, 'Войти');
-    }
-  }
-
-  async function handleRegister() {
-    const username = els.registerUsername?.value.trim();
-    const email = els.registerEmail?.value.trim();
-    const password = els.registerPassword?.value.trim();
-    const apiKey = els.registerApiKey?.value.trim();
-    if (!username || !email || !password || !apiKey) {
-      alert('Заполните все поля для регистрации');
-      return;
-    }
-    if (password.length < 6) {
-      alert('Пароль должен содержать минимум 6 символов');
-      return;
-    }
-    const apiBase = normalizeApiBase(state.settings.apiBase || DEFAULT_API_BASE);
-    try {
-      setButtonBusy(els.registerBtn, true, 'Регистрация...');
-      const res = await fetchWithTimeout(`${apiBase}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, api_key: apiKey })
-      }, 10000);
-      if (!res.ok) {
-        const error = await safeJson(res);
-        throw new Error(error?.detail || 'Ошибка регистрации');
-      }
-      await chrome.storage?.sync?.set({ apiKey });
-      alert('Аккаунт создан. Выполните вход.');
-      showLoginForm();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setButtonBusy(els.registerBtn, false, 'Зарегистрироваться');
-    }
-  }
-
-  async function handleForgotPassword() {
-    const email = els.forgotEmail?.value.trim();
-    if (!email) {
-      alert('Введите email');
-      return;
-    }
-    const apiBase = normalizeApiBase(state.settings.apiBase || DEFAULT_API_BASE);
-    try {
-      setButtonBusy(els.forgotBtn, true, 'Отправляем...');
-      const res = await fetchWithTimeout(`${apiBase}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      }, 10000);
-      if (!res.ok) {
-        const error = await safeJson(res);
-        throw new Error(error?.detail || 'Ошибка отправки');
-      }
-      els.resetCodeSection && (els.resetCodeSection.style.display = 'block');
-      alert('Письмо отправлено. Проверьте почту.');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setButtonBusy(els.forgotBtn, false, 'Отправить код');
-    }
-  }
-
-  async function handleResetPassword() {
-    const email = els.forgotEmail?.value.trim();
-    const code = els.resetCode?.value.trim();
-    const newPassword = els.newPassword?.value.trim();
-    if (!email || !code || !newPassword) {
-      alert('Заполните все поля');
-      return;
-    }
-    const apiBase = normalizeApiBase(state.settings.apiBase || DEFAULT_API_BASE);
-    try {
-      setButtonBusy(els.resetBtn, true, 'Сбрасываем...');
-      const res = await fetchWithTimeout(`${apiBase}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, new_password: newPassword })
-      }, 10000);
-      if (!res.ok) {
-        const error = await safeJson(res);
-        throw new Error(error?.detail || 'Ошибка сброса');
-      }
-      alert('Пароль изменен. Войдите снова.');
-      showLoginForm();
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setButtonBusy(els.resetBtn, false, 'Сбросить пароль');
-    }
-  }
-
-  function handleLogout() {
-    chrome.storage?.sync?.remove(['account', 'apiKey'], () => {
-      state.account = null;
-      showLoginForm();
-      updateHoverScanAvailability(false);
-    });
-  }
-
-  function setButtonBusy(button, busy, busyText) {
-    if (!button) return;
-    if (busy) {
-      button.dataset.originalText = button.textContent;
-      button.textContent = busyText;
-      button.disabled = true;
-    } else {
-      button.textContent = button.dataset.originalText || button.textContent;
-      button.disabled = false;
-    }
-  }
-
-  function normalizeApiBase(value) {
-    let base = (value || '').toString().trim();
-    if (!base) return DEFAULT_API_BASE;
-    if (!/^https?:\/\//i.test(base)) {
-      base = `https://${base}`;
-    }
-    try {
-      const url = new URL(base);
-      url.pathname = url.pathname.replace(/\/proxy\/?$/, '') || '/';
-      url.search = '';
-      url.hash = '';
-      return `${url.origin}${url.pathname}`.replace(/\/$/, '') || url.origin;
-    } catch (_) {
-      return DEFAULT_API_BASE;
-    }
-  }
-
-  function fetchWithTimeout(resource, options = {}, timeoutMs = 8000) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
-    return fetch(resource, { ...options, signal: controller.signal })
-      .finally(() => clearTimeout(id));
-  }
-
-  async function safeJson(response) {
-    try {
-      return await response.json();
-    } catch (_) {
-      return null;
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
-  }
-})();
   const DEFAULTS = {
     antivirusEnabled: true,
     linkCheck: true,
     hoverScan: true,
     notify: true,
-    apiBase: 'https://aegis.builders',
+    apiBase: 'https://api.aegis.builders',
     hoverTheme: 'classic'
   };
 
@@ -1108,12 +343,356 @@
     if (forgotBtn) forgotBtn.addEventListener('click', showForgot);
     if (backToLoginBtn) backToLoginBtn.addEventListener('click', showLogin);
 
-    chrome.storage?.sync?.get(['account'], (data) => {
+    chrome.storage?.sync?.get(['account', 'apiKey'], (data) => {
       if (chrome.runtime?.lastError) {
         applyAccountMode('login');
         return;
       }
-      applyAccountMode(data?.account ? 'account' : 'login');
+      if (data?.account) {
+        applyAccountMode('account');
+        showAccountInfo(data.account);
+      } else {
+        applyAccountMode('login');
+      }
+    });
+
+    // Обработчики кнопок
+    const loginSubmitBtn = document.getElementById('login-btn');
+    const registerSubmitBtn = document.getElementById('register-btn');
+    const forgotSubmitBtn = document.getElementById('forgot-btn');
+    const resetSubmitBtn = document.getElementById('reset-btn');
+    const logoutSubmitBtn = document.getElementById('logout-btn');
+
+    if (loginSubmitBtn) {
+      loginSubmitBtn.addEventListener('click', handleLogin);
+    }
+    if (registerSubmitBtn) {
+      registerSubmitBtn.addEventListener('click', handleRegister);
+    }
+    if (forgotSubmitBtn) {
+      forgotSubmitBtn.addEventListener('click', handleForgotPassword);
+    }
+    if (resetSubmitBtn) {
+      resetSubmitBtn.addEventListener('click', handleResetPassword);
+    }
+    if (logoutSubmitBtn) {
+      logoutSubmitBtn.addEventListener('click', handleLogout);
+    }
+  }
+
+  function showAccountInfo(account) {
+    const accountInfo = document.getElementById('account-info');
+    const accountUsername = document.getElementById('account-username');
+    const accountEmail = document.getElementById('account-email');
+    const accountAvatar = document.getElementById('account-avatar');
+    
+    if (accountInfo) accountInfo.style.display = 'block';
+    if (accountUsername) accountUsername.textContent = account?.username || '—';
+    if (accountEmail) accountEmail.textContent = account?.email || '—';
+    if (accountAvatar) {
+      const letter = (account?.username || account?.email || '?').charAt(0).toUpperCase();
+      accountAvatar.textContent = letter;
+    }
+  }
+
+  async function handleLogin() {
+    const usernameEl = document.getElementById('login-username');
+    const passwordEl = document.getElementById('login-password');
+    const loginBtn = document.getElementById('login-btn');
+    
+    if (!usernameEl || !passwordEl) return;
+    
+    const username = usernameEl.value.trim();
+    const password = passwordEl.value.trim();
+    
+    if (!username || !password) {
+      alert('Заполните логин и пароль');
+      return;
+    }
+    
+    try {
+      if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Вход...';
+      }
+      
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch(`${apiBase}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: 'Ошибка входа' }));
+        throw new Error(error?.detail || 'Не удалось войти');
+      }
+      
+      const data = await res.json();
+      const account = data.account;
+      
+      await new Promise((resolve) => {
+        chrome.storage.sync.set({ account }, () => {
+          if (chrome.runtime?.lastError) {
+            console.error('[Aegis] Failed to save account:', chrome.runtime.lastError);
+          }
+          resolve();
+        });
+      });
+      
+      // Сохраняем API ключ если есть
+      if (data.api_keys && data.api_keys.length > 0) {
+        const apiKey = String(data.api_keys[0].api_key || '').trim();
+        if (apiKey) {
+          await new Promise((resolve) => {
+            chrome.storage.sync.set({ apiKey }, () => {
+              if (chrome.runtime?.lastError) {
+                console.error('[Aegis] Failed to save API key:', chrome.runtime.lastError);
+              }
+              resolve();
+            });
+          });
+        }
+      }
+      
+      showAccountInfo(account);
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const forgotForm = document.getElementById('forgot-form');
+      const accountInfo = document.getElementById('account-info');
+      
+      if (loginForm) loginForm.style.display = 'none';
+      if (registerForm) registerForm.style.display = 'none';
+      if (forgotForm) forgotForm.style.display = 'none';
+      if (accountInfo) accountInfo.style.display = 'block';
+      if (document.body) document.body.setAttribute('data-account-mode', 'account');
+      
+      alert('✅ Успешный вход!');
+    } catch (error) {
+      console.error('[Aegis] Login error:', error);
+      alert(error.message || 'Ошибка входа');
+    } finally {
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Войти';
+      }
+    }
+  }
+
+  async function handleRegister() {
+    const usernameEl = document.getElementById('register-username');
+    const emailEl = document.getElementById('register-email');
+    const passwordEl = document.getElementById('register-password');
+    const apiKeyEl = document.getElementById('register-api-key');
+    const registerBtn = document.getElementById('register-btn');
+    
+    if (!usernameEl || !emailEl || !passwordEl) return;
+    
+    const username = usernameEl.value.trim();
+    const email = emailEl.value.trim();
+    const password = passwordEl.value.trim();
+    const apiKey = apiKeyEl ? apiKeyEl.value.trim() : '';
+    
+    if (!username || !email || !password) {
+      alert('Заполните все обязательные поля');
+      return;
+    }
+    
+    if (password.length < 6) {
+      alert('Пароль должен содержать минимум 6 символов');
+      return;
+    }
+    
+    try {
+      if (registerBtn) {
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Регистрация...';
+      }
+      
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      
+      const body = { username, email, password };
+      if (apiKey) body.api_key = apiKey;
+      
+      const res = await fetch(`${apiBase}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: 'Ошибка регистрации' }));
+        throw new Error(error?.detail || 'Ошибка регистрации');
+      }
+      
+      const data = await res.json();
+      
+      // Сохраняем API ключ если он был указан или пришел с сервера
+      const finalApiKey = apiKey || (data.api_keys && data.api_keys.length > 0 ? data.api_keys[0].api_key : null);
+      if (finalApiKey) {
+        const normalizedApiKey = String(finalApiKey).trim();
+        if (normalizedApiKey) {
+          await new Promise((resolve) => {
+            chrome.storage.sync.set({ apiKey: normalizedApiKey }, () => {
+              if (chrome.runtime?.lastError) {
+                console.error('[Aegis] Failed to save API key:', chrome.runtime.lastError);
+              }
+              resolve();
+            });
+          });
+        }
+      }
+      
+      alert('✅ Аккаунт создан. Выполните вход.');
+      
+      // Переключаемся на форму входа
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      if (loginForm) loginForm.style.display = 'block';
+      if (registerForm) registerForm.style.display = 'none';
+      if (document.body) document.body.setAttribute('data-account-mode', 'login');
+      
+    } catch (error) {
+      console.error('[Aegis] Register error:', error);
+      alert(error.message || 'Ошибка регистрации');
+    } finally {
+      if (registerBtn) {
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Зарегистрироваться';
+      }
+    }
+  }
+
+  async function handleForgotPassword() {
+    const emailEl = document.getElementById('forgot-email');
+    const forgotBtn = document.getElementById('forgot-btn');
+    
+    if (!emailEl) return;
+    
+    const email = emailEl.value.trim();
+    if (!email) {
+      alert('Введите email');
+      return;
+    }
+    
+    try {
+      if (forgotBtn) {
+        forgotBtn.disabled = true;
+        forgotBtn.textContent = 'Отправляем...';
+      }
+      
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch(`${apiBase}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: 'Ошибка отправки' }));
+        throw new Error(error?.detail || 'Ошибка отправки');
+      }
+      
+      const resetCodeSection = document.getElementById('reset-code-section');
+      if (resetCodeSection) resetCodeSection.style.display = 'block';
+      
+      alert('✅ Письмо отправлено. Проверьте почту.');
+    } catch (error) {
+      console.error('[Aegis] Forgot password error:', error);
+      alert(error.message || 'Ошибка отправки');
+    } finally {
+      if (forgotBtn) {
+        forgotBtn.disabled = false;
+        forgotBtn.textContent = 'Отправить код';
+      }
+    }
+  }
+
+  async function handleResetPassword() {
+    const emailEl = document.getElementById('forgot-email');
+    const codeEl = document.getElementById('reset-code');
+    const newPasswordEl = document.getElementById('new-password');
+    const resetBtn = document.getElementById('reset-btn');
+    
+    if (!emailEl || !codeEl || !newPasswordEl) return;
+    
+    const email = emailEl.value.trim();
+    const code = codeEl.value.trim();
+    const newPassword = newPasswordEl.value.trim();
+    
+    if (!email || !code || !newPassword) {
+      alert('Заполните все поля');
+      return;
+    }
+    
+    try {
+      if (resetBtn) {
+        resetBtn.disabled = true;
+        resetBtn.textContent = 'Сбрасываем...';
+      }
+      
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch(`${apiBase}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, new_password: newPassword }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: 'Ошибка сброса' }));
+        throw new Error(error?.detail || 'Ошибка сброса');
+      }
+      
+      alert('✅ Пароль изменен. Войдите снова.');
+      
+      // Переключаемся на форму входа
+      const loginForm = document.getElementById('login-form');
+      const forgotForm = document.getElementById('forgot-form');
+      if (loginForm) loginForm.style.display = 'block';
+      if (forgotForm) forgotForm.style.display = 'none';
+      if (document.body) document.body.setAttribute('data-account-mode', 'login');
+      
+    } catch (error) {
+      console.error('[Aegis] Reset password error:', error);
+      alert(error.message || 'Ошибка сброса');
+    } finally {
+      if (resetBtn) {
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Сбросить пароль';
+      }
+    }
+  }
+
+  function handleLogout() {
+    chrome.storage.sync.remove(['account', 'apiKey'], () => {
+      const loginForm = document.getElementById('login-form');
+      const accountInfo = document.getElementById('account-info');
+      if (loginForm) loginForm.style.display = 'block';
+      if (accountInfo) accountInfo.style.display = 'none';
+      if (document.body) document.body.setAttribute('data-account-mode', 'login');
     });
   }
 
@@ -1165,16 +744,25 @@
       if (elements.statusText) elements.statusText.textContent = 'Проверяем...';
 
       const response = await sendRuntimeMessage({
-        type: 'ws_analyze_url',
+        type: 'analyze_url',
         url: tab.url,
         context: 'popup'
       });
 
-      if (!response || !response.ok) {
-        throw new Error(response?.error || 'Сервер недоступен');
+      if (!response) {
+        throw new Error('Нет ответа от сервера');
       }
 
-      renderResult(tab.url, response.data || response.result || {});
+      // КРИТИЧНО: Проверяем что результат не всегда safe: true
+      const result = response.data || response.result || {};
+      console.log('[Aegis Popup] Analysis result:', result);
+      
+      // Если safe === null или undefined, это unknown, не safe
+      if (result.safe === null || result.safe === undefined) {
+        console.warn('[Aegis Popup] Result has null/undefined safe, treating as unknown');
+      }
+      
+      renderResult(tab.url, result);
     } catch (error) {
       console.error('[Aegis Popup] scanActiveTab failed:', error);
       setBadgeState('unknown');
@@ -1195,7 +783,6 @@
     initToggles();
     initHoverThemeRadios();
     initAccountForms();
-    enhanceShieldCards();
 
     if (elements.antivirusToggle) {
       elements.antivirusToggle.checked = !!state.settings.antivirusEnabled;
@@ -1227,4 +814,4 @@
   }
 
   document.addEventListener('DOMContentLoaded', init);
-})();
+  

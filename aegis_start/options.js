@@ -1,6 +1,6 @@
 // options.js
 (function() {
-  const DEFAULT_API_BASE = 'https://aegis.builders';
+  const DEFAULT_API_BASE = 'https://api.aegis.builders';
   const defaults = {
     antivirusEnabled: true,
     linkCheck: true,

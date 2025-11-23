@@ -40,17 +40,28 @@ class ExternalAPIManager:
             # AbuseIPDB не поддерживает URL проверки, пропускаем
             pass
         
+        # КРИТИЧНО: Если нет задач (API не настроены), возвращаем None (неизвестно)
+        if not tasks:
+            logger.warning(f"No external APIs enabled for URL check: {url}")
+            return {
+                "safe": None,
+                "threat_type": None,
+                "details": "External APIs not configured",
+                "source": "external_apis",
+                "external_scans": {},
+                "confidence": 0
+            }
+        
         # Выполняем все проверки параллельно
-        if tasks:
-            api_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            # Обрабатываем результаты
-            for name, result in zip(api_names, api_results):
-                if isinstance(result, Exception):
-                    logger.error(f"{name} check failed: {result}")
-                    results[name] = {"error": str(result)}
-                else:
-                    results[name] = result
+        api_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Обрабатываем результаты
+        for name, result in zip(api_names, api_results):
+            if isinstance(result, Exception):
+                logger.error(f"{name} check failed: {result}")
+                results[name] = {"error": str(result)}
+            else:
+                results[name] = result
         
         return self._combine_external_results(results, url)
     
@@ -144,6 +155,18 @@ class ExternalAPIManager:
         """Объединение результатов от разных API"""
         logger.info(f"🔍 Combining external results for {original_url}: {results}")
         
+        # КРИТИЧНО: Если results пустой, возвращаем None (неизвестно)
+        if not results:
+            logger.warning(f"No external API results for {original_url}")
+            return {
+                "safe": None,
+                "threat_type": None,
+                "details": "No external API results available",
+                "source": "external_apis",
+                "external_scans": {},
+                "confidence": 0
+            }
+        
         # Парсим результаты каждого API
         parsed_results = {}
         
@@ -176,6 +199,10 @@ class ExternalAPIManager:
             if result and isinstance(result, dict):
                 # КРИТИЧНО: Проверяем safe явно, не используя default True
                 result_safe = result.get('safe')
+                # КРИТИЧНО: Игнорируем результаты с ошибками
+                if 'error' in result or result.get('external_scan') == 'failed':
+                    # Результат с ошибкой - не считаем ни safe, ни unsafe
+                    continue
                 if result_safe is False:
                     unsafe_count += 1
                     threats.append(f"{api_name}: {result.get('threat_type', 'unknown')}")
@@ -185,14 +212,28 @@ class ExternalAPIManager:
                 elif result_safe is True:
                     safe_count += 1
                 # Если safe не определен (None), не считаем ни safe, ни unsafe
-            total_checks += 1
+                # НО увеличиваем total_checks только для валидных результатов
+                total_checks += 1
         
         # КРИТИЧНО: Если хотя бы один API обнаружил угрозу - считаем опасным
         # Если нет проверок или все вернули None - возвращаем None (неизвестно)
         if unsafe_count > 0:
             is_safe = False
         elif safe_count > 0 and unsafe_count == 0:
-            is_safe = True
+            # КРИТИЧНО: Если хотя бы один API подтвердил безопасность И нет угроз
+            # НО только если есть результаты от всех включенных API
+            # Если не все API вернули результат, считаем неизвестным
+            enabled_count = sum(1 for enabled in self.enabled_apis.values() if enabled)
+            # КРИТИЧНО: Проверяем что все включенные API вернули валидные результаты
+            # total_checks должен быть равен количеству валидных результатов
+            # safe_count + unsafe_count должно быть равно количеству включенных API
+            if enabled_count > 0 and safe_count == enabled_count and total_checks == enabled_count:
+                # Все включенные API вернули результат и все безопасны
+                is_safe = True
+            else:
+                # Не все API вернули результат - неизвестно
+                logger.warning(f"Not all APIs returned results: enabled={enabled_count}, safe={safe_count}, total_checks={total_checks}")
+                is_safe = None
         else:
             # Нет результатов или все вернули None
             is_safe = None
@@ -204,6 +245,18 @@ class ExternalAPIManager:
         elif is_safe is None:
             threat_type = None  # Неизвестно
         
+        # КРИТИЧНО: Если parsed_results пустой, значит нет валидных результатов
+        if not parsed_results:
+            logger.warning(f"No valid parsed results for {original_url}, returning unknown")
+            return {
+                "safe": None,
+                "threat_type": None,
+                "details": "No valid external API results",
+                "source": "external_apis",
+                "external_scans": {},
+                "confidence": 0
+            }
+        
         final_result = {
             "safe": is_safe,
             "threat_type": threat_type,
@@ -212,7 +265,7 @@ class ExternalAPIManager:
             "confidence": self._calculate_confidence(parsed_results) if parsed_results else 0
         }
         
-        logger.info(f"🔍 Final external API result for {original_url}: {final_result}")
+        logger.info(f"🔍 Final external API result for {original_url}: safe={is_safe}, threat_type={threat_type}, details={final_result.get('details')}")
         return final_result
     
     def _combine_ip_results(self, results: Dict[str, Any], ip_address: str) -> Dict[str, Any]:

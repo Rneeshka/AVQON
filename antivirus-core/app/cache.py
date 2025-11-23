@@ -82,6 +82,28 @@ class DiskCache:
         except Exception as e:
             logger.error(f"Cache delete error: {e}")
     
+    def delete_by_source(self, source: str):
+        """Удаление всех записей с указанным source из кэша"""
+        try:
+            with sqlite3.connect(self.cache_db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT key, value FROM cache")
+                rows = cursor.fetchall()
+                deleted_count = 0
+                for key, value_str in rows:
+                    try:
+                        value = json.loads(value_str)
+                        if value.get("source") == source:
+                            cursor.execute("DELETE FROM cache WHERE key = ?", (key,))
+                            deleted_count += 1
+                    except Exception:
+                        continue
+                conn.commit()
+                if deleted_count > 0:
+                    logger.info(f"Deleted {deleted_count} cache entries with source={source}")
+        except Exception as e:
+            logger.error(f"Cache delete_by_source error: {e}")
+    
     def clear_expired(self):
         """Очистка истекших записей"""
         try:

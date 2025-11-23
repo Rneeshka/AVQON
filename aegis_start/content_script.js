@@ -1,6 +1,242 @@
 // content_script.js
 // Enhanced content script with hover analysis and visual indicators
 
+// КРИТИЧНО: Флаг инвалидации контекста расширения
+let extensionContextInvalidated = false;
+
+// КРИТИЧНО: Функция-обертка для безопасных вызовов chrome.storage
+function safeStorageGet(keys, callback) {
+  if (extensionContextInvalidated) {
+    if (callback) callback({});
+    return;
+  }
+  try {
+    if (!chrome || !chrome.storage || !chrome.storage.sync) {
+      extensionContextInvalidated = true;
+      if (callback) callback({});
+      return;
+    }
+    chrome.storage.sync.get(keys, (result) => {
+      if (chrome.runtime.lastError) {
+        const error = chrome.runtime.lastError.message || '';
+        if (error.includes('Extension context invalidated') || 
+            error.includes('message port closed') ||
+            error.includes('Receiving end does not exist')) {
+          extensionContextInvalidated = true;
+          if (callback) callback({});
+          return;
+        }
+      }
+      if (callback) callback(result || {});
+    });
+  } catch (e) {
+    extensionContextInvalidated = true;
+    if (callback) callback({});
+  }
+}
+
+// КРИТИЧНО: Функция-обертка для безопасных вызовов chrome.runtime.sendMessage
+// Circuit breaker pattern - не пытается отправлять если контекст инвалидирован
+function safeSendMessage(message, callback) {
+  // КРИТИЧНО: Circuit breaker - если контекст инвалидирован, пробуем восстановить
+  if (extensionContextInvalidated) {
+    // Пробуем проверить доступность перед отказом
+    if (isExtensionAvailable()) {
+      // Контекст восстановлен!
+      extensionContextInvalidated = false;
+      hideContextInvalidatedMessage();
+      console.debug('[Aegis] Extension context recovered, resuming operation');
+    } else {
+      // Контекст все еще инвалидирован
+      if (callback) callback(null);
+      return false;
+    }
+  }
+  
+  // КРИТИЧНО: Проверяем доступность ПЕРЕД попыткой отправки
+  if (!isExtensionAvailable()) {
+    // КРИТИЧНО: Устанавливаем инвалидацию только при реальной ошибке контекста
+    // Не устанавливаем при временных ошибках
+    if (callback) callback(null);
+    return false;
+  }
+  
+  try {
+    if (!chrome || !chrome.runtime || !chrome.runtime.sendMessage) {
+      // КРИТИЧНО: Не устанавливаем инвалидацию - это может быть временная проблема
+      if (callback) callback(null);
+      return false;
+    }
+    
+    chrome.runtime.sendMessage(message, (response) => {
+      if (chrome.runtime.lastError) {
+        const error = chrome.runtime.lastError.message || '';
+        // КРИТИЧНО: Обнаружение инвалидации контекста - только для реальных ошибок
+        if (error.includes('Extension context invalidated')) {
+          // Это реальная инвалидация контекста
+          extensionContextInvalidated = true;
+          showContextInvalidatedMessage();
+          if (callback) callback(null);
+          return;
+        }
+        // КРИТИЧНО: Другие ошибки могут быть временными - не устанавливаем инвалидацию
+        // Например: "Could not establish connection" может быть временной проблемой
+        if (callback) callback(null);
+        return;
+      }
+      // КРИТИЧНО: Успешная отправка - сбрасываем инвалидацию и скрываем сообщение
+      if (response) {
+        extensionContextInvalidated = false;
+        hideContextInvalidatedMessage();
+      }
+      if (callback) callback(response);
+    });
+    return true; // Сообщение отправлено
+  } catch (e) {
+    // КРИТИЧНО: Проверяем тип ошибки - только реальная инвалидация устанавливает флаг
+    const errorMsg = String(e?.message || e || '');
+    if (errorMsg.includes('Extension context invalidated') || 
+        errorMsg.includes('Extension context has been invalidated')) {
+      extensionContextInvalidated = true;
+      showContextInvalidatedMessage();
+    }
+    // Для других ошибок не устанавливаем инвалидацию
+    if (callback) callback(null);
+    return false;
+  }
+}
+
+// КРИТИЧНО: Проверка доступности расширения с детальной диагностикой
+// НЕ устанавливает extensionContextInvalidated - только проверяет доступность
+function isExtensionAvailable() {
+  // КРИТИЧНО: Если флаг установлен, все равно проверяем - может быть восстановлен
+  // if (extensionContextInvalidated) return false; // УБРАНО - проверяем всегда
+  
+  try {
+    // Проверяем наличие chrome объекта
+    if (!chrome || typeof chrome !== 'object') {
+      return false; // НЕ устанавливаем инвалидацию - может быть временная проблема
+    }
+    
+    // Проверяем наличие chrome.runtime
+    if (!chrome.runtime || typeof chrome.runtime !== 'object') {
+      return false; // НЕ устанавливаем инвалидацию
+    }
+    
+    // КРИТИЧНО: Проверяем наличие chrome.runtime.id (критично для Manifest V3)
+    // Если id недоступен, контекст инвалидирован
+    try {
+      const runtimeId = chrome.runtime.id;
+      if (!runtimeId || typeof runtimeId !== 'string') {
+        return false; // НЕ устанавливаем инвалидацию - может быть временная проблема
+      }
+      // КРИТИЧНО: Если все проверки пройдены - контекст валиден, сбрасываем флаг
+      if (extensionContextInvalidated) {
+        extensionContextInvalidated = false;
+        hideContextInvalidatedMessage();
+        console.debug('[Aegis] Extension context validated, resetting invalidated flag');
+      }
+      return true;
+    } catch (e) {
+      // Если не можем получить id - проверяем тип ошибки
+      const errorMsg = String(e?.message || e || '');
+      if (errorMsg.includes('Extension context invalidated') || 
+          errorMsg.includes('Extension context has been invalidated')) {
+        // Это реальная инвалидация
+        extensionContextInvalidated = true;
+        return false;
+      }
+      // Другие ошибки - не устанавливаем инвалидацию
+      return false;
+    }
+  } catch (e) {
+    // Проверяем тип ошибки
+    const errorMsg = String(e?.message || e || '');
+    if (errorMsg.includes('Extension context invalidated') || 
+        errorMsg.includes('Extension context has been invalidated')) {
+      extensionContextInvalidated = true;
+      return false;
+    }
+    // Другие ошибки - не устанавливаем инвалидацию
+    return false;
+  }
+}
+
+// КРИТИЧНО: Визуальная обратная связь для пользователя при инвалидации контекста
+let contextInvalidatedMessage = null;
+let contextInvalidatedMessageShown = false;
+let contextInvalidatedMessageTimeout = null;
+
+function showContextInvalidatedMessage() {
+  // КРИТИЧНО: Не показываем сообщение если уже показано или если контекст восстановлен
+  if (contextInvalidatedMessageShown) {
+    return;
+  }
+  
+  // КРИТИЧНО: Проверяем что контекст действительно инвалидирован
+  if (!extensionContextInvalidated) {
+    return;
+  }
+  
+  try {
+    // Создаем простое уведомление в углу страницы
+    const message = document.createElement('div');
+    message.id = 'aegis-context-invalidated-message';
+    message.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(239, 68, 68, 0.95);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: system-ui, -apple-system, sans-serif;
+      z-index: 999999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      max-width: 300px;
+      line-height: 1.4;
+    `;
+    message.textContent = 'Расширение обновляется. Hover временно недоступен.';
+    
+    document.body.appendChild(message);
+    contextInvalidatedMessage = message;
+    contextInvalidatedMessageShown = true;
+    
+    // Автоматически скрываем через 10 секунд (увеличено с 5)
+    if (contextInvalidatedMessageTimeout) {
+      clearTimeout(contextInvalidatedMessageTimeout);
+    }
+    contextInvalidatedMessageTimeout = setTimeout(() => {
+      hideContextInvalidatedMessage();
+    }, 10000);
+  } catch (e) {
+    // Игнорируем ошибки создания сообщения
+  }
+}
+
+function hideContextInvalidatedMessage() {
+  if (contextInvalidatedMessage && document.body.contains(contextInvalidatedMessage)) {
+    try {
+      contextInvalidatedMessage.remove();
+      contextInvalidatedMessage = null;
+      contextInvalidatedMessageShown = false;
+      if (contextInvalidatedMessageTimeout) {
+        clearTimeout(contextInvalidatedMessageTimeout);
+        contextInvalidatedMessageTimeout = null;
+      }
+    } catch (e) {
+      // Игнорируем ошибки удаления
+    }
+  } else {
+    contextInvalidatedMessageShown = false;
+    if (contextInvalidatedMessageTimeout) {
+      clearTimeout(contextInvalidatedMessageTimeout);
+      contextInvalidatedMessageTimeout = null;
+    }
+  }
+}
+
 let tooltip = null;
 let hoverTimeout = null;
 let currentHoveredLink = null;
@@ -150,28 +386,29 @@ function determineVerdict(result) {
     console.log('[Aegis Content] determineVerdict: safe === true, returning safe');
     return 'safe';
   }
-  // Если есть threat_type, значит есть угроза
-  if (result.threat_type) {
-    console.log('[Aegis Content] determineVerdict: threat_type present, returning malicious');
+  // КРИТИЧНО: Если есть threat_type, значит есть угроза (небезопасно)
+  if (result.threat_type && result.threat_type.trim()) {
+    console.log('[Aegis Content] determineVerdict: threat_type present:', result.threat_type, 'returning malicious');
     return 'malicious';
   }
   
-  const verdictCandidate = (result.result || result.verdict || '').toString().toLowerCase();
-  let verdict = verdictCandidate || 'unknown';
-
+  // КРИТИЧНО: Если source === 'error', это ошибка анализа
   if (result.source === 'error') {
     const msg = String(result.details || '').toLowerCase();
+    // Сетевые ошибки - подозрительно
     if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('превышено время ожидания')) {
-      verdict = 'suspicious';
+      console.log('[Aegis Content] determineVerdict: network error, returning suspicious');
+      return 'suspicious';
     }
-  }
-
-  if (!verdict || verdict === 'null' || verdict === 'undefined') {
-    verdict = 'unknown';
+    // Другие ошибки - неизвестно
+    console.log('[Aegis Content] determineVerdict: error source, returning unknown');
+    return 'unknown';
   }
   
-  console.log('[Aegis Content] determineVerdict final:', verdict);
-  return verdict;
+  // КРИТИЧНО: Если safe === null и нет threat_type - неизвестно
+  // НЕ возвращаем 'safe' по умолчанию!
+  console.log('[Aegis Content] determineVerdict: safe is null and no threat_type, returning unknown');
+  return 'unknown';
 }
 
 // Логирование жизненного цикла контент-скрипта
@@ -182,121 +419,162 @@ try {
   });
 } catch(_) {}
 
-// КРИТИЧНО: Долгоживущее соединение для поддержания активности Service Worker
-// Chrome останавливает Service Worker через 5 минут неактивности
-// Долгоживущее соединение предотвращает остановку
-let keepAlivePort = null;
-let lastKeepAliveAck = Date.now();
+// КРИТИЧНО: Manifest V3 - keep-alive порты больше не используются
+// Service Worker управляется через chrome.alarms в background.js
 
-function setupKeepAlive() {
+// КРИТИЧНО: Механизм автоматического восстановления после инвалидации контекста
+let recoveryAttempts = 0;
+const MAX_RECOVERY_ATTEMPTS = 3;
+let lastRecoveryAttempt = 0;
+const RECOVERY_COOLDOWN = 30000; // 30 секунд между попытками восстановления
+
+function attemptRecovery() {
+  const now = Date.now();
+  if (now - lastRecoveryAttempt < RECOVERY_COOLDOWN) {
+    return; // Слишком рано для новой попытки
+  }
+  if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) {
+    // Превышен лимит попыток - скрываем сообщение об ошибке
+    hideContextInvalidatedMessage();
+    return;
+  }
+  
+  lastRecoveryAttempt = now;
+  recoveryAttempts++;
+  
   try {
-    // Закрываем старое соединение, если есть
-    if (keepAlivePort) {
-      try {
-        keepAlivePort.disconnect();
-      } catch (e) {
-        // Игнорируем ошибки закрытия
+    // КРИТИЧНО: Проверяем доступность расширения через isExtensionAvailable
+    if (isExtensionAvailable()) {
+      // Пробуем простой вызов для проверки связи
+      const messageSent = safeSendMessage({ type: 'hover_ping', ts: Date.now() }, (resp) => {
+        if (resp && resp.ok) {
+          // Восстановление успешно!
+          extensionContextInvalidated = false;
+          recoveryAttempts = 0;
+          consecutivePingFailures = 0;
+          lastSuccessfulPing = Date.now();
+          
+          try { 
+            console.debug('[Aegis] Extension context recovered! Re-initializing hover...'); 
+          } catch(_) {}
+          
+          // Скрываем сообщение об ошибке
+          hideContextInvalidatedMessage();
+          
+          // Переинициализируем hover
+          cleanupHoverListeners();
+          initializeHover();
+        }
+      });
+      
+      // Если сообщение не отправилось, контекст все еще инвалидирован
+      if (!messageSent) {
+        // Продолжаем попытки восстановления
+        return;
       }
-      keepAlivePort = null;
+    } else {
+      // Расширение все еще недоступно
+      return;
     }
-    
-    // Создаем новое соединение
-    keepAlivePort = chrome.runtime.connect({ name: "keepAlive" });
-    
-    // Обработчик отключения - переподключаемся
-    keepAlivePort.onDisconnect.addListener(() => {
-      keepAlivePort = null;
-      try { console.warn('[Aegis] keepAlive port DISCONNECTED. Reconnecting...'); } catch(_) {}
-      // Переподключаемся через 1 секунду
-      setTimeout(setupKeepAlive, 1000);
-    });
-    
-    // Обработчик сообщений от background
-    keepAlivePort.onMessage.addListener((msg) => {
-      if (msg.type === 'keepAlive_connected') {
-        // Соединение установлено успешно
-        lastKeepAliveAck = Date.now();
-      }
-      if (msg.type === 'hover_pong') {
-        lastKeepAliveAck = Date.now();
-      }
-    });
   } catch (e) {
-    // При ошибке переподключаемся через 2 секунды
-    setTimeout(setupKeepAlive, 2000);
+    // Игнорируем ошибки при попытке восстановления
   }
 }
 
-// Устанавливаем keep-alive соединение при загрузке скрипта
-setupKeepAlive();
-
-// Периодический health-check для hover механизма
+// КРИТИЧНО: Умный health-check БЕЗ автоматической переинициализации
+// Переинициализация только при явных проблемах, не по таймеру
 let hoverHealthIntervalId = null;
+let lastSuccessfulPing = Date.now();
+let consecutivePingFailures = 0;
+const MAX_PING_FAILURES = 3;
+
 function startHoverHealthCheck() {
   if (hoverHealthIntervalId) {
     clearInterval(hoverHealthIntervalId);
     hoverHealthIntervalId = null;
   }
+  
+  // КРИТИЧНО: Health check только проверяет состояние, НЕ переинициализирует автоматически
   hoverHealthIntervalId = setInterval(async () => {
-    const timeSinceLastCheck = Date.now() - lastHoverCheck;
-    
-    // КРИТИЧНО: Если listeners не работают - переинициализируем
-    if (!hoverListenersReady || timeSinceLastCheck > 120000) { // 2 минуты без активности
-      try { 
-        console.warn(`[Aegis] Hover listeners inactive (${Math.round(timeSinceLastCheck/1000)}s). Re-initializing...`); 
-      } catch(_) {}
-      cleanupHoverListeners();
-      setupHoverListeners();
-    }
-    
-    // Если порт неактивен — пытаемся восстановить
-    if (!keepAlivePort) {
-      try { console.warn('[Aegis] keepAlive port missing. Re-initializing...'); } catch(_) {}
-      setupKeepAlive();
+    // Если контекст инвалидирован - только пытаемся восстановить
+    if (extensionContextInvalidated) {
+      attemptRecovery();
       return;
     }
-    // Отправляем ping в background и ждем ответ (через onMessage ack)
-    try {
-      chrome.runtime.sendMessage({ type: 'hover_ping', ts: Date.now() }, (resp) => {
-        if (resp && resp.ok) {
-          lastKeepAliveAck = Date.now();
-        } else {
-          try { console.warn('[Aegis] No ping response from background'); } catch(_) {}
-        }
-      });
-    } catch (e) {
-      try { console.warn('[Aegis] Ping error:', e); } catch(_) {}
+    
+    // КРИТИЧНО: Проверяем доступность расширения, но не устанавливаем инвалидацию агрессивно
+    // isExtensionAvailable() сама установит инвалидацию только при реальной ошибке
+    if (!isExtensionAvailable() && extensionContextInvalidated) {
+      attemptRecovery();
+      return;
     }
-    // Если долго нет ack — переинициализируем порт
-    const sinceAck = Date.now() - lastKeepAliveAck;
-    if (sinceAck > 30000) { // 30 секунд без ack
-      try { console.warn('[Aegis] No hover ACK >30s. Re-initializing keepAlive...'); } catch(_) {}
-      try {
-        if (keepAlivePort) {
-          try { keepAlivePort.disconnect(); } catch(_) {}
+    
+    // КРИТИЧНО: Простая проверка доступности background через ping
+    // НЕ переинициализируем listeners автоматически
+    const messageSent = safeSendMessage({ type: 'hover_ping', ts: Date.now() }, (resp) => {
+      if (resp && resp.ok) {
+        // Background доступен - контекст восстановлен
+        lastSuccessfulPing = Date.now();
+        consecutivePingFailures = 0;
+        if (extensionContextInvalidated) {
+          // Контекст восстановлен!
+          extensionContextInvalidated = false;
+          recoveryAttempts = 0;
+          hideContextInvalidatedMessage();
+          
+          // Если listeners не готовы, переинициализируем
+          if (!hoverListenersReady) {
+            try { 
+              console.debug('[Aegis] Context recovered, reinitializing hover listeners...'); 
+            } catch(_) {}
+            cleanupHoverListeners();
+            setupHoverListeners();
+          }
         }
-      } catch(_) {}
-      keepAlivePort = null;
-      setupKeepAlive();
-    }
-  }, 10000); // проверка каждые 10 секунд
+      } else {
+        consecutivePingFailures++;
+        // КРИТИЧНО: Не устанавливаем инвалидацию при временных ошибках
+        // Только после множественных неудач и только если это реальная инвалидация
+        if (consecutivePingFailures >= MAX_PING_FAILURES * 2) {
+          // Множественные неудачи - проверяем реальную инвалидацию
+          if (!isExtensionAvailable()) {
+            extensionContextInvalidated = true;
+            showContextInvalidatedMessage();
+          }
+        }
+      }
+    });
+    
+    // КРИТИЧНО: НЕ устанавливаем инвалидацию здесь - safeSendMessage обработает это
+  }, 30000); // Проверка каждые 30 секунд (реже, чтобы не спамить)
 }
 startHoverHealthCheck();
 
 // === HOVER THEME SUPPORT ===
 // Load theme from storage
 try {
-  chrome.storage.sync.get({ hoverTheme: 'classic' }, (cfg) => {
+  safeStorageGet(['hoverTheme'], (cfg) => {
     if (cfg && cfg.hoverTheme) hoverTheme = cfg.hoverTheme;
     ensureTooltipForTheme();
   });
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.hoverTheme) {
-      hoverTheme = changes.hoverTheme.newValue || 'classic';
-      ensureTooltipForTheme();
+  
+  // КРИТИЧНО: Безопасная подписка на изменения storage
+  if (isExtensionAvailable() && chrome.storage && chrome.storage.onChanged) {
+    try {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (extensionContextInvalidated) return;
+        if (area === 'sync' && changes.hoverTheme) {
+          hoverTheme = changes.hoverTheme.newValue || 'classic';
+          ensureTooltipForTheme();
+        }
+      });
+    } catch (e) {
+      extensionContextInvalidated = true;
     }
-  });
-} catch(_) {}
+  }
+} catch(_) {
+  extensionContextInvalidated = true;
+}
 
 // Utility: apply visual indicator based on theme
 function applyHoverTheme(linkEl, verdict) {
@@ -451,14 +729,53 @@ function cleanupHoverListeners() {
   }
 }
 
+// КРИТИЧНО: Диагностика состояния hover для отладки
+function diagnoseHoverState() {
+  const diagnostics = {
+    extensionAvailable: isExtensionAvailable(),
+    contextInvalidated: extensionContextInvalidated,
+    listenersReady: hoverListenersReady,
+    hasTooltip: !!tooltip,
+    hoverTheme: hoverTheme,
+    lastHoverCheck: Date.now() - lastHoverCheck,
+    recoveryAttempts: recoveryAttempts,
+    consecutivePingFailures: consecutivePingFailures
+  };
+  try {
+    console.debug('[Aegis] Hover diagnostics:', diagnostics);
+  } catch(_) {}
+  return diagnostics;
+}
+
 function setupHoverListeners() {
+  // КРИТИЧНО: Проверяем доступность расширения перед настройкой listeners
+  if (extensionContextInvalidated) {
+    hoverListenersReady = false;
+    try {
+      console.warn('[Aegis] Cannot setup hover listeners: Extension context invalidated');
+    } catch(_) {}
+    return; // Не настраиваем listeners при инвалидации
+  }
+  
+  if (!isExtensionAvailable()) {
+    extensionContextInvalidated = true;
+    hoverListenersReady = false;
+    try {
+      console.warn('[Aegis] Cannot setup hover listeners: Extension not available');
+    } catch(_) {}
+    return; // Не настраиваем listeners если расширение недоступно
+  }
+  
   // КРИТИЧНО: Всегда очищаем старые listeners перед добавлением новых
   cleanupHoverListeners();
   
   hoverListenersReady = true;
   hoverCheckCount++;
   lastHoverCheck = Date.now();
-  try { console.debug(`[Aegis] Setting up hover listeners (check #${hoverCheckCount})`); } catch(_) {}
+  try { 
+    console.debug(`[Aegis] Setting up hover listeners (check #${hoverCheckCount})`);
+    diagnoseHoverState();
+  } catch(_) {}
   
   // Enhanced link hover detection
   hoverMouseOverHandler = (e) => {
@@ -466,14 +783,28 @@ function setupHoverListeners() {
     if (!link || !link.href) return;
     if (!/^https?:/i.test(link.href)) return;
     
+    // КРИТИЧНО: Проверяем доступность расширения перед использованием
+    if (!isExtensionAvailable()) {
+      // Расширение недоступно - скрываем tooltip и выходим
+      if (tooltip) hideTooltip(tooltip);
+      return;
+    }
+    
     // Check if hover analysis is enabled (не требуем ключ)
-    chrome.storage.sync.get(['hoverScan','antivirusEnabled','account','apiKey'], (result) => {
+    safeStorageGet(['hoverScan','antivirusEnabled','account','apiKey'], (result) => {
+      // КРИТИЧНО: Проверяем доступность расширения после получения storage
+      if (extensionContextInvalidated || !isExtensionAvailable()) {
+        if (tooltip) hideTooltip(tooltip);
+        return;
+      }
+      
       // Требуем: включена защита, включен hover, и есть аккаунт+apiKey
       // По умолчанию считаем включенными, если ключи отсутствуют
       const antivirusEnabled = result.antivirusEnabled !== false;
       const hoverScan = result.hoverScan !== false;
       const hasAccount = !!result.account;
       const hasApiKey = !!result.apiKey;
+      
       // КРИТИЧНО: Если нет аккаунта - просто не показываем ничего, без промежуточных подсказок
       if (!antivirusEnabled || !hoverScan || !hasAccount || !hasApiKey) {
         // Скрываем тултип, если он был показан
@@ -521,36 +852,46 @@ function setupHoverListeners() {
         hoverTimeout = setTimeout(() => {
           lastHoverCheck = Date.now(); // Обновляем время последней активности
           // КРИТИЧНО: sendMessage для hover_url не требует ответа, background отправляет результат через onMessage
-          // Поэтому не передаем callback, чтобы избежать ошибки "message port closed"
-          try {
-            chrome.runtime.sendMessage({
-              type: 'hover_url', 
-              url: link.href,
-              mouseX: lastMouseX,
-              mouseY: lastMouseY
-            }).catch(err => {
-              // Игнорируем ошибки отправки - результат придет через onMessage
-              console.debug('[Aegis] Hover message send error (ignored):', err);
-            });
-            
-            // Таймаут для ошибки - не показываем tooltip, только визуальные индикаторы
-            const timeoutId = setTimeout(() => {
-              if (currentHoveredLink === link) {
-                // Для классической темы показываем ошибку, для других - ничего
-                if (hoverTheme === 'classic' && tooltip && tooltip.style.opacity === '1') {
-                  const errorContent = formatAnalysisResult({ source: 'error', details: 'Превышено время ожидания' }, link.href);
-                  updateTooltip(tooltip, lastMouseX, lastMouseY, errorContent, 'unknown');
-                }
-              }
-            }, 5000);
-            
-            // Сохраняем timeout ID для очистки при получении результата
+          // Используем безопасную обертку для предотвращения ошибок при инвалидации контекста
+          if (!isExtensionAvailable()) {
+            return; // Расширение недоступно
+          }
+          // КРИТИЧНО: Проверяем доступность перед отправкой
+          // НЕ блокируем отправку если контекст был инвалидирован - пробуем восстановить
+          if (!isExtensionAvailable() && extensionContextInvalidated) {
+            // Контекст действительно инвалидирован - показываем сообщение только если это реальная проблема
+            // НЕ показываем при каждой попытке - только если контекст действительно недоступен
+            return; // Не пытаемся отправлять сообщение
+          }
+          
+          // КРИТИЧНО: Отправляем сообщение - safeSendMessage обработает все ошибки
+          safeSendMessage({
+            type: 'hover_url', 
+            url: link.href,
+            mouseX: lastMouseX,
+            mouseY: lastMouseY
+          }, (response) => {
+            // Callback не требуется, результат придет через onMessage
+            // safeSendMessage уже обработал все ошибки и восстановил контекст если возможно
+          });
+          
+          // КРИТИЧНО: НЕ показываем сообщение об ошибке здесь - это может быть временная проблема
+          // Сообщение показывается только в safeSendMessage при реальной инвалидации
+          
+          // Таймаут для ошибки - не показываем tooltip, только визуальные индикаторы
+          const timeoutId = setTimeout(() => {
             if (currentHoveredLink === link) {
-              link.dataset.aegisHoverTimeout = timeoutId;
+              // Для классической темы показываем ошибку, для других - ничего
+              if (hoverTheme === 'classic' && tooltip && tooltip.style.opacity === '1') {
+                const errorContent = formatAnalysisResult({ source: 'error', details: 'Превышено время ожидания' }, link.href);
+                updateTooltip(tooltip, lastMouseX, lastMouseY, errorContent, 'unknown');
+              }
             }
-          } catch (err) {
-            // Игнорируем ошибки отправки
-            console.debug('[Aegis] Hover message send exception (ignored):', err);
+          }, 5000);
+          
+          // Сохраняем timeout ID для очистки при получении результата
+          if (currentHoveredLink === link) {
+            link.dataset.aegisHoverTimeout = timeoutId;
           }
         }, 200); // Slightly faster debounce
       }
@@ -599,18 +940,61 @@ function setupHoverListeners() {
   
   // Click handler for URL checking
   hoverClickHandler = (e) => {
-  const a = e.target.closest && e.target.closest('a');
-  if (!a || !a.href) return;
+    const a = e.target.closest && e.target.closest('a');
+    if (!a || !a.href) return;
     if (!/^https?:/i.test(a.href)) return;
-  chrome.runtime.sendMessage({type: 'check_url', url: a.href});
+    
+    // КРИТИЧНО: Circuit breaker - не отправляем если контекст инвалидирован
+    if (extensionContextInvalidated || !isExtensionAvailable()) {
+      return; // Не пытаемся отправлять сообщение
+    }
+    
+    // КРИТИЧНО: Безопасная отправка сообщения с проверкой доступности
+    safeSendMessage({type: 'check_url', url: a.href}, () => {});
   };
   document.addEventListener('click', hoverClickHandler, true);
   
   try { console.debug('[Aegis] Hover listeners SET UP successfully'); } catch(_) {}
 }
 
+// КРИТИЧНО: Надежная одноразовая инициализация с проверкой готовности
+function initializeHover() {
+  // Проверяем что DOM готов
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHover, { once: true });
+    return;
+  }
+  
+  // Проверяем доступность расширения
+  if (!isExtensionAvailable()) {
+    extensionContextInvalidated = true;
+    try {
+      console.warn('[Aegis] Cannot initialize hover: Extension not available');
+    } catch(_) {}
+    // Пробуем восстановить через некоторое время
+    setTimeout(() => {
+      if (isExtensionAvailable()) {
+        extensionContextInvalidated = false;
+        initializeHover();
+      }
+    }, 2000);
+    return;
+  }
+  
+  // Инициализируем tooltip если нужно
+  initTooltip();
+  
+  // Настраиваем listeners
+  setupHoverListeners();
+  
+  try {
+    console.debug('[Aegis] Hover initialized successfully');
+    diagnoseHoverState();
+  } catch(_) {}
+}
+
 // Инициализация слушателей при загрузке
-setupHoverListeners();
+initializeHover();
 
 // КРИТИЧНО: Обработка перезагрузки content script на SPA-сайтах
 // При навигации в SPA content script может перезагружаться, но DOM остается
@@ -620,27 +1004,109 @@ window.addEventListener('pageshow', (e) => {
   // Если страница восстановлена из кэша (bfcache) - переинициализируем
   if (e.persisted) {
     try { console.debug('[Aegis] Page restored from cache. Re-initializing hover...'); } catch(_) {}
+    
+    // КРИТИЧНО: Проверяем доступность расширения перед переинициализацией
+    if (extensionContextInvalidated) {
+      attemptRecovery();
+      return;
+    }
+    
+    // КРИТИЧНО: Проверяем доступность, но не устанавливаем инвалидацию агрессивно
+    if (!isExtensionAvailable() && extensionContextInvalidated) {
+      attemptRecovery();
+      return;
+    }
+    
+    // КРИТИЧНО: Используем полную инициализацию вместо только setupHoverListeners
     cleanupHoverListeners();
-    setupHoverListeners();
+    initializeHover();
   }
 });
 
 // КРИТИЧНО: Переинициализация при возврате на вкладку (visibilitychange)
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
+    // КРИТИЧНО: Проверяем доступность расширения перед переинициализацией
+    if (extensionContextInvalidated) {
+      // Пробуем восстановить при возврате на вкладку
+      attemptRecovery();
+      return;
+    }
+    
+    // КРИТИЧНО: Проверяем доступность, но не устанавливаем инвалидацию агрессивно
+    if (!isExtensionAvailable() && extensionContextInvalidated) {
+      showContextInvalidatedMessage();
+      attemptRecovery();
+      return;
+    }
+    
     // Вкладка стала видимой - проверяем работоспособность
-    const timeSinceLastCheck = Date.now() - lastHoverCheck;
-    if (timeSinceLastCheck > 60000 || !hoverListenersReady) { // 1 минута или listeners не готовы
-      try { console.debug('[Aegis] Tab visible. Checking hover listeners...'); } catch(_) {}
+    // КРИТИЧНО: Переинициализируем ТОЛЬКО если listeners действительно не работают
+    if (!hoverListenersReady) {
+      try { console.debug('[Aegis] Tab visible. Listeners not ready, reinitializing...'); } catch(_) {}
       cleanupHoverListeners();
       setupHoverListeners();
+    } else {
+      // Listeners готовы - проверяем что контекст все еще валиден
+      safeSendMessage({ type: 'hover_ping', ts: Date.now() }, (resp) => {
+        if (resp && resp.ok) {
+          // Все работает - контекст валиден
+          hideContextInvalidatedMessage();
+        }
+      });
+      // КРИТИЧНО: НЕ устанавливаем инвалидацию здесь - safeSendMessage обработает это
     }
   }
 });
 
-// Listen for analysis results from background
-chrome.runtime.onMessage.addListener((msg) => {
+// КРИТИЧНО: Безопасный обработчик сообщений с защитой от инвалидации контекста
+try {
+  if (chrome && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+      // КРИТИЧНО: Проверяем инвалидацию контекста перед обработкой
+      if (extensionContextInvalidated) {
+        return false;
+      }
+      
+      try {
+        // Проверяем наличие chrome.runtime для обработки ошибок
+        if (!chrome.runtime || !chrome.runtime.id) {
+          extensionContextInvalidated = true;
+          return false;
+        }
+      } catch (e) {
+        extensionContextInvalidated = true;
+        return false;
+      }
+      
+      // Обрабатываем сообщения
+      return handleMessage(msg, sender, sendResponse);
+    });
+  }
+} catch (e) {
+  extensionContextInvalidated = true;
+}
+
+// КРИТИЧНО: Функция обработки сообщений с полной защитой от ошибок
+function handleMessage(msg, sender, sendResponse) {
+  if (!msg || typeof msg !== 'object') {
+    return false;
+  }
+  
+  // КРИТИЧНО: Проверяем доступность расширения для каждого сообщения
+  if (!isExtensionAvailable()) {
+    return false;
+  }
+  
+  try {
   if (msg.type === 'hover_result') {
+    // КРИТИЧНО: Получен результат - контекст работает, сбрасываем инвалидацию
+    if (extensionContextInvalidated) {
+      extensionContextInvalidated = false;
+      hideContextInvalidatedMessage();
+      console.debug('[Aegis] Received hover_result, context is valid, resetting invalidated flag');
+    }
+    
     console.log('[Aegis Content] hover_result received:', {
       url: msg.url,
       safe: msg.res?.safe,
@@ -728,27 +1194,44 @@ chrome.runtime.onMessage.addListener((msg) => {
   }
   if (msg.type === 'reinit_hover') {
     try { console.debug('[Aegis] Reinitializing hover after reconnect'); } catch(_) {}
-    setupKeepAlive();
-    startHoverHealthCheck();
-    if (isClassicHover() && !tooltip) createHoverTooltip();
-    // КРИТИЧНО: Полная переинициализация с очисткой старых listeners
+    // КРИТИЧНО: При переинициализации сбрасываем флаг инвалидации и счетчик попыток
+    extensionContextInvalidated = false;
+    recoveryAttempts = 0;
+    consecutivePingFailures = 0;
+    lastSuccessfulPing = Date.now();
+    
+    // КРИТИЧНО: Полная переинициализация через initializeHover
     cleanupHoverListeners();
-    setupHoverListeners();
+    initializeHover();
   }
   
   // КРИТИЧНО: Диагностика - проверка работоспособности hover
   if (msg.type === 'hover_diagnostic') {
-    const timeSinceLastCheck = Date.now() - lastHoverCheck;
-    return Promise.resolve({
-      listenersReady: hoverListenersReady,
-      checkCount: hoverCheckCount,
-      timeSinceLastCheck: timeSinceLastCheck,
-      hasTooltip: !!tooltip,
-      hasKeepAlivePort: !!keepAlivePort,
-      currentLink: currentHoveredLink ? currentHoveredLink.href : null
-    });
+    const diagnostics = diagnoseHoverState();
+    if (sendResponse) {
+      sendResponse({
+        ...diagnostics,
+        checkCount: hoverCheckCount,
+        timeSinceLastCheck: Date.now() - lastHoverCheck,
+        currentLink: currentHoveredLink ? currentHoveredLink.href : null,
+        lastSuccessfulPing: Date.now() - lastSuccessfulPing,
+        cacheSize: hoverResultCache.size
+      });
+    }
+    return true; // Асинхронный ответ
   }
-});
+  
+  return false; // Сообщение не обработано
+  } catch (e) {
+    // КРИТИЧНО: При любой ошибке проверяем инвалидацию контекста
+    if (e && (e.message && (e.message.includes('Extension context invalidated') || 
+                            e.message.includes('message port closed') ||
+                            e.message.includes('Receiving end does not exist')))) {
+      extensionContextInvalidated = true;
+    }
+    return false;
+  }
+}
 
 // Visual indicator for dangerous links
 function addVisualIndicator(link, verdict) {
