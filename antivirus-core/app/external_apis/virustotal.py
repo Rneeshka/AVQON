@@ -84,16 +84,36 @@ class VirusTotalClient(BaseAPIClient):
         attributes = data.get('attributes', {})
         
         # Статистика обнаружений
-        stats = attributes.get('last_analysis_stats', {})
-        malicious = stats.get('malicious', 0)
-        suspicious = stats.get('suspicious', 0)
-        undetected = stats.get('undetected', 0)
-        total = sum(stats.values())
+        stats = attributes.get('last_analysis_stats', {}) or {}
+        malicious = int(stats.get('malicious', 0) or 0)
+        suspicious = int(stats.get('suspicious', 0) or 0)
+        undetected = int(stats.get('undetected', 0) or 0)
+        harmless = int(stats.get('harmless', 0) or 0)
+        total = sum(stats.values()) if stats else 0
+        
+        analysis_results = attributes.get('last_analysis_results', {}) or {}
+        detected_by_results = 0
+        total_results_entries = 0
+        if isinstance(analysis_results, dict):
+            MALICIOUS_CATEGORIES = {"malicious", "suspicious", "phishing", "ransomware", "malware"}
+            for engine, engine_data in analysis_results.items():
+                if not isinstance(engine_data, dict):
+                    continue
+                total_results_entries += 1
+                category = (engine_data.get('category') or '').lower()
+                result = (engine_data.get('result') or '').lower()
+                if category in MALICIOUS_CATEGORIES or result in MALICIOUS_CATEGORIES:
+                    detected_by_results += 1
+        if detected_by_results > malicious:
+            malicious = detected_by_results
+        if total_results_entries > total:
+            total = total_results_entries
+        
         detection_ratio = f"{malicious}/{total or 0}"
         
         logger.info(
-            "[VirusTotal] Raw stats: malicious=%s suspicious=%s undetected=%s total=%s ratio=%s",
-            malicious, suspicious, undetected, total, detection_ratio
+            "[VirusTotal] Raw stats: malicious=%s suspicious=%s undetected=%s harmless=%s total=%s ratio=%s (results=%s)",
+            malicious, suspicious, undetected, harmless, total, detection_ratio, detected_by_results
         )
         
         # КРИТИЧНО: Если нет данных (total == 0), возвращаем None (неизвестно)
@@ -120,8 +140,7 @@ class VirusTotalClient(BaseAPIClient):
             confidence = 85
         
         details = (
-            f"VirusTotal detections: {detection_ratio} (malicious) "
-            f"{suspicious} suspicious engines"
+            f"VirusTotal detections: {detection_ratio} malicious, {suspicious} suspicious"
             if has_detection else
             f"VirusTotal clean: {detection_ratio}"
         )
