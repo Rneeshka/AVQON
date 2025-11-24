@@ -1,6 +1,7 @@
 # app/external_apis/virustotal.py
-from .base_client import BaseAPIClient
+import asyncio
 from typing import Dict, Any, Optional, List
+from .base_client import BaseAPIClient
 from app.config import config
 from app.logger import logger
 
@@ -22,40 +23,44 @@ class VirusTotalClient(BaseAPIClient):
             logger.warning("VirusTotal rate limit exceeded")
             return None
         
-        # Используем правильный подход VirusTotal API v3
-        import hashlib
-        import base64
-        
-        # Создаем хэш URL для VirusTotal (SHA-256)
-        url_hash = hashlib.sha256(url.encode()).hexdigest()
-        
-        # Пробуем получить информацию о URL по хэшу
-        endpoint = f"/urls/{url_hash}"
+        # Согласно API v3, идентификатор URL — это base64 без паддинга
+        url_id = self._encode_url_id(url)
+        endpoint = f"/urls/{url_id}"
         response = await self._make_request("GET", endpoint)
         
         if response and 'data' in response:
             logger.info(f"Found URL in VirusTotal database: {url}")
             return response
-        else:
-            # Если URL не найден в базе, отправляем на анализ
-            logger.info(f"URL not found in VirusTotal database, submitting for analysis: {url}")
-            endpoint = "/urls"
-            data = {"url": url}
-            response = await self._make_request("POST", endpoint, data=data)
-            
-            if response and 'data' in response:
-                analysis_id = response['data']['id']
-                logger.info(f"URL submitted for analysis, ID: {analysis_id}")
-                # Получаем результаты анализа
-                return await self._get_analysis(analysis_id)
-            else:
-                logger.error(f"VirusTotal URL submission failed: {response}")
-                return None
+        
+        # Если URL не найден — отправляем новый анализ и ждём результатов
+        logger.info(f"URL not found in VirusTotal database, submitting for analysis: {url}")
+        submit_resp = await self._make_request("POST", "/urls", data={"url": url})
+        if submit_resp and 'data' in submit_resp:
+            analysis_id = submit_resp['data']['id']
+            logger.info(f"URL submitted for analysis, ID: {analysis_id}")
+            return await self._poll_analysis(analysis_id)
+        
+        logger.error(f"VirusTotal URL submission failed: {submit_resp}")
+        return None
     
-    async def _get_analysis(self, analysis_id: str) -> Optional[Dict[str, Any]]:
-        """Получение результатов анализа"""
+    async def _poll_analysis(self, analysis_id: str, max_attempts: int = 5, delay_seconds: float = 1.5) -> Optional[Dict[str, Any]]:
+        """Периодически запрашивает результат анализа, пока он не завершится"""
         endpoint = f"/analyses/{analysis_id}"
-        return await self._make_request("GET", endpoint)
+        last_response = None
+        for attempt in range(max_attempts):
+            last_response = await self._make_request("GET", endpoint)
+            status = last_response.get('data', {}).get('attributes', {}).get('status')
+            logger.info(f"VirusTotal analysis status ({analysis_id}): {status} (attempt {attempt + 1}/{max_attempts})")
+            if status == 'completed' or status == 'finished':
+                return last_response
+            await asyncio.sleep(delay_seconds * (attempt + 1))
+        logger.warning(f"VirusTotal analysis did not finish in time: {analysis_id}")
+        return last_response
+
+    def _encode_url_id(self, url: str) -> str:
+        import base64
+        encoded = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+        return encoded
     
     async def check_file_hash(self, file_hash: str) -> Optional[Dict[str, Any]]:
         """Проверка файла по хэшу через VirusTotal"""
