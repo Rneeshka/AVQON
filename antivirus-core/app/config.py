@@ -2,14 +2,20 @@
 import os
 from pathlib import Path
 from typing import Dict, Any
+import logging
 
 # Автозагрузка переменных окружения из файла app/env.env (если он существует)
+ENV_FILE_PATH = Path(__file__).with_name("env.env")
+ENV_FILE_LOADED = False
+ENV_FILE_KEYS = []
+
 def _load_env_from_file():
+    global ENV_FILE_LOADED, ENV_FILE_KEYS
     try:
-        env_path = Path(__file__).with_name("env.env")
-        if not env_path.exists():
+        if not ENV_FILE_PATH.exists():
+            logging.getLogger(__name__).info(f"env.env not found at {ENV_FILE_PATH}")
             return
-        with env_path.open("r", encoding="utf-8") as f:
+        with ENV_FILE_PATH.open("r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#") or "=" not in line:
@@ -20,6 +26,11 @@ def _load_env_from_file():
                 # Не перезаписываем, если уже задано в окружении
                 if key and key not in os.environ:
                     os.environ[key] = value
+                    ENV_FILE_KEYS.append(key)
+        ENV_FILE_LOADED = True
+        logging.getLogger(__name__).info(
+            f"Loaded env variables from {ENV_FILE_PATH.name}: {', '.join(ENV_FILE_KEYS) if ENV_FILE_KEYS else 'none'}"
+        )
     except Exception:
         # Тихо игнорируем ошибки чтения .env, чтобы не рушить запуск
         pass
