@@ -87,42 +87,59 @@ class VirusTotalClient(BaseAPIClient):
         stats = attributes.get('last_analysis_stats', {})
         malicious = stats.get('malicious', 0)
         suspicious = stats.get('suspicious', 0)
+        undetected = stats.get('undetected', 0)
         total = sum(stats.values())
+        detection_ratio = f"{malicious}/{total or 0}"
         
-        # Определяем уровень угрозы
-        threat_level = "clean"
-        if malicious > 5:
-            threat_level = "malicious"
-        elif malicious > 0:
-            threat_level = "suspicious"
-        elif suspicious > 2:
-            threat_level = "suspicious"
+        logger.info(
+            "[VirusTotal] Raw stats: malicious=%s suspicious=%s undetected=%s total=%s ratio=%s",
+            malicious, suspicious, undetected, total, detection_ratio
+        )
         
         # КРИТИЧНО: Если нет данных (total == 0), возвращаем None (неизвестно)
         if total == 0:
+            logger.warning("[VirusTotal] No analysis stats available for result: %s", result)
             return {
                 "safe": None,
                 "threat_type": None,
                 "details": "VirusTotal: No analysis data available",
                 "external_scan": "virustotal",
-                "confidence": 0
+                "confidence": 0,
+                "detection_ratio": detection_ratio
             }
         
-        # Вычисляем уверенность на основе количества детекций
-        if malicious == 0:
-            confidence = 85  # Высокая уверенность в чистоте
-        else:
-            confidence = min(95, 60 + (malicious * 5))  # Уверенность растет с количеством детекций
+        # КРИТИЧНО: Любое количество детекций => угрозa
+        has_detection = malicious > 0 or suspicious > 0
+        safe = not has_detection
+        threat_type = "malicious" if has_detection else None
         
-        return {
-            "safe": threat_level == "clean",
-            "threat_type": threat_level if threat_level != "clean" else None,
-            "details": f"VirusTotal: {malicious}/{total} engines detected threats",
+        # Уверенность: базовая 85 для чистых, растет с количеством детектов
+        if has_detection:
+            confidence = min(99, 70 + (malicious + suspicious) * 5)
+        else:
+            confidence = 85
+        
+        details = (
+            f"VirusTotal detections: {detection_ratio} (malicious) "
+            f"{suspicious} suspicious engines"
+            if has_detection else
+            f"VirusTotal clean: {detection_ratio}"
+        )
+        
+        parsed = {
+            "safe": safe,
+            "threat_type": threat_type,
+            "details": details,
             "external_scan": "virustotal",
             "confidence": confidence,
+            "detection_ratio": detection_ratio,
             "raw_data": {
                 "malicious_detections": malicious,
                 "suspicious_detections": suspicious,
+                "undetected": undetected,
                 "total_engines": total
             }
         }
+        
+        logger.info("[VirusTotal] Parsed result: %s", parsed)
+        return parsed
