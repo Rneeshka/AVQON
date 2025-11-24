@@ -2,7 +2,7 @@
 from typing import Dict, Any, List, Optional
 import asyncio
 from app.logger import logger
-from app.config import config
+from app.config import config, ENV_FILE_LOADED, ENV_FILE_PATH
 from .virustotal import VirusTotalClient
 from .google_safe_browsing import GoogleSafeBrowsingClient
 from .abuseipdb import AbuseIPDBClient
@@ -20,7 +20,30 @@ class ExternalAPIManager:
             'google_safe_browsing': bool(config.GOOGLE_SAFE_BROWSING_KEY and 'your_google_key_here' not in config.GOOGLE_SAFE_BROWSING_KEY), 
             'abuseipdb': bool(config.ABUSEIPDB_API_KEY and 'your_abuseipdb_key_here' not in config.ABUSEIPDB_API_KEY)
         }
+        
+        self._log_configuration()
     
+    def _log_configuration(self):
+        def mask(value: Optional[str]) -> str:
+            if not value:
+                return "(empty)"
+            if len(value) <= 8:
+                return "***"
+            return f"{value[:4]}...{value[-4:]}"
+        
+        logger.info(
+            "[ENV] env.env loaded: %s (%s)",
+            "yes" if ENV_FILE_LOADED else "no",
+            ENV_FILE_PATH
+        )
+        logger.info(
+            "[ENV] VIRUSTOTAL_API_KEY: %s",
+            mask(config.VIRUSTOTAL_API_KEY)
+        )
+        if not self.enabled_apis.get('virustotal'):
+            logger.warning("VirusTotal API disabled (missing or placeholder key). Set VIRUSTOTAL_API_KEY in app/env.env")
+        logger.info(f"[External APIs] Enabled map: {self.enabled_apis}")
+
     async def check_url_multiple_apis(self, url: str) -> Dict[str, Any]:
         """Проверка URL через несколько внешних API"""
         results = {}
