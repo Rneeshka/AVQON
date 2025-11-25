@@ -56,9 +56,9 @@ class ExternalAPIConfig:
     """Конфигурация внешних антивирусных API"""
     
     # Ключи API (в продакшене использовать environment variables)
-    VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "your_virustotal_key_here")
+    VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "8958873d9567fe0eeaf1d4468e1515964da7d499b2a51e8618907b131cec96ce")
     GOOGLE_SAFE_BROWSING_KEY = os.getenv("GOOGLE_SAFE_BROWSING_KEY", "your_google_key_here")
-    ABUSEIPDB_API_KEY = os.getenv("ABUSEIPDB_API_KEY", "your_abuseipdb_key_here")
+    ABUSEIPDB_API_KEY = os.getenv("ABUSEIPDB_API_KEY", "96707cab41d7ac50b7503d883ccc6fa002cba3245b086e9cf129eaa55b13c12dfe79bfe4ebb6846")
     
     # URL эндпоинтов
     VIRUSTOTAL_URL_API = "https://www.virustotal.com/api/v3"

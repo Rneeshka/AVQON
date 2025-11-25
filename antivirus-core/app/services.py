@@ -318,13 +318,13 @@ class AnalysisService:
                 return result
             
             # КРИТИЧНО: Если внешние API вернули safe=True, считаем безопасным
-            # НО только если есть результаты от всех включенных API
+            # Даже если не все API вернули результат, если хотя бы один вернул safe=True - безопасно
             if external_result and external_result.get("safe") is True:
-                # Проверяем что все включенные API вернули результат
                 external_scans = external_result.get("external_scans", {})
                 enabled_apis = [name for name, enabled in external_api_manager.enabled_apis.items() if enabled]
                 # Проверяем что есть результаты от всех включенных API
                 if enabled_apis and all(api_name in external_scans for api_name in enabled_apis):
+                    # Все API вернули результат - высокая уверенность
                     result = {
                         "safe": True,
                         "threat_type": None,
@@ -337,15 +337,16 @@ class AnalysisService:
                     self._cache_set(cache_key, result)
                     return result
                 else:
-                    # Не все API вернули результат - считаем неизвестным
-                    logger.warning(f"Not all external APIs returned results for {url}, treating as unknown")
+                    # Не все API вернули результат, но хотя бы один вернул safe=True - считаем безопасным с пониженной уверенностью
+                    logger.info(f"Not all external APIs returned results for {url}, but at least one returned safe=True, treating as safe")
                     result = {
-                        "safe": None,
+                        "safe": True,
                         "threat_type": None,
-                        "details": "Unable to determine safety (not all external APIs returned results)",
-                        "source": "unknown",
-                        "confidence": 0,
-                        "external_scans": external_scans
+                        "details": "URL appears to be safe (partial external verification)",
+                        "source": "combined",
+                        "external_scans": external_scans,
+                        "confidence": min(max(heuristic_result.get("confidence", 50), 
+                                        external_result.get("confidence", 50)), 70)  # Ограничиваем уверенность до 70%
                     }
                     self._cache_set(cache_key, result)
                     return result
@@ -382,12 +383,13 @@ class AnalysisService:
                 return result
             
             # КРИТИЧНО: Если эвристика вернула safe=True И внешние API тоже safe=True, считаем безопасным
-            # НО только если есть результаты от всех включенных API
+            # Даже если не все API вернули результат, если хотя бы один вернул safe=True - безопасно
             if heuristic_safe is True and external_result.get("safe") is True:
                 external_scans = external_result.get("external_scans", {})
                 enabled_apis = [name for name, enabled in external_api_manager.enabled_apis.items() if enabled]
                 # Проверяем что есть результаты от всех включенных API
                 if enabled_apis and all(api_name in external_scans for api_name in enabled_apis):
+                    # Все API вернули результат - высокая уверенность
                     result = {
                         "safe": True,
                         "threat_type": None,
@@ -400,14 +402,15 @@ class AnalysisService:
                     self._cache_set(cache_key, result)
                     return result
                 else:
-                    # Не все API вернули результат - считаем неизвестным
-                    logger.warning(f"Not all external APIs returned results for {url}, treating as unknown")
+                    # Не все API вернули результат, но хотя бы один вернул safe=True - считаем безопасным с пониженной уверенностью
+                    logger.info(f"Not all external APIs returned results for {url}, but at least one returned safe=True, treating as safe")
                     result = {
-                        "safe": None,
+                        "safe": True,
                         "threat_type": None,
-                        "details": "Unable to determine safety (not all external APIs returned results)",
-                        "source": "unknown",
-                        "confidence": 0,
+                        "details": "URL appears to be safe (partial external verification)",
+                        "source": "combined",
+                        "confidence": min(max(heuristic_result.get("confidence", 50), 
+                                        external_result.get("confidence", 50)), 70),  # Ограничиваем уверенность до 70%
                         "external_scans": external_scans
                     }
                     self._cache_set(cache_key, result)
