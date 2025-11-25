@@ -1,7 +1,8 @@
 # Импортируем необходимые классы из Pydantic
 # Pydantic отвечает за валидацию данных и автоматическую документацию
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional
+from typing import Optional, Dict, Any
+from datetime import datetime
 
 # Модель для запроса на проверку URL
 class UrlCheckRequest(BaseModel):
@@ -99,3 +100,41 @@ class ErrorResponse(BaseModel):
         example="INVALID_API_KEY",
         description="Код ошибки для программной обработки"
     )
+
+
+class LocalCacheCheckRequest(BaseModel):
+    url: HttpUrl = Field(..., description="URL для проверки в локальном кэше")
+
+
+class LocalCacheSaveRequest(BaseModel):
+    url: HttpUrl
+    safe: bool
+    threat_type: Optional[str] = None
+    details: Optional[str] = None
+    detection_ratio: Optional[str] = None
+    confidence: Optional[int] = None
+    source: Optional[str] = None
+    payload: Optional[Dict[str, Any]] = None
+
+
+class LocalCacheResponse(BaseModel):
+    status: str = Field(..., example="hit")
+    safe: Optional[bool] = None
+    threat_type: Optional[str] = None
+    details: Optional[str] = None
+    source: Optional[str] = None
+    detection_ratio: Optional[str] = None
+    confidence: Optional[int] = None
+    domain: Optional[str] = None
+    url: Optional[str] = None
+    storage: Optional[str] = None
+    cached_at: Optional[datetime] = None
+
+
+class LocalCacheStatsResponse(BaseModel):
+    whitelist_entries: int
+    blacklist_entries: int
+    whitelist_hits: int
+    blacklist_hits: int
+    bytes_estimated: int
+    total_entries: int

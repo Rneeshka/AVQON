@@ -3,8 +3,11 @@ import sqlite3
 import logging
 import secrets
 import os
+import hashlib
+import json
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
+from urllib.parse import urlparse
 from datetime import datetime, timedelta
 
 # Настраиваем логирование
@@ -28,6 +31,10 @@ class DatabaseManager:
             db_path = os.getenv("DATABASE_PATH", "/opt/Aegis/data/antivirus.db")
         
         self.db_path = db_path
+        self.storage_dir = Path(self.db_path).parent
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        self.whitelist_file = self.storage_dir / "cache_whitelist.jsonl"
+        self.blacklist_file = self.storage_dir / "cache_blacklist.jsonl"
         logger.info(f"Initializing database at: {self.db_path}")
         self._init_database()
     
@@ -193,6 +200,39 @@ class DatabaseManager:
                         detection_count INTEGER DEFAULT 1
                     )
                 """)
+                
+                # 8. Таблица для локальной базы доверенных доменов (white-list)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS cached_whitelist (
+                        domain TEXT PRIMARY KEY,
+                        details TEXT,
+                        detection_ratio TEXT,
+                        confidence INTEGER,
+                        source TEXT DEFAULT 'external_apis',
+                        payload TEXT,
+                        first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        hit_count INTEGER DEFAULT 1
+                    )
+                """)
+                
+                # 9. Таблица для локальной базы известных угроз (black-list)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS cached_blacklist (
+                        url_hash TEXT PRIMARY KEY,
+                        url TEXT NOT NULL,
+                        domain TEXT NOT NULL,
+                        threat_type TEXT,
+                        details TEXT,
+                        source TEXT DEFAULT 'external_apis',
+                        payload TEXT,
+                        first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        hit_count INTEGER DEFAULT 1
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_cached_blacklist_domain ON cached_blacklist(domain)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_cached_blacklist_url ON cached_blacklist(url)")
                 
                 # 7. Таблица фоновых задач
                 cursor.execute("""
@@ -719,7 +759,6 @@ class DatabaseManager:
                          description: str = "", severity: str = "medium") -> bool:
         """Добавляет вредоносный URL в базу данных."""
         try:
-            from urllib.parse import urlparse
             domain = urlparse(url).netloc.lower()
             
             with self._get_connection() as conn:
@@ -737,6 +776,232 @@ class DatabaseManager:
             logger.error(f"Add URL error: {e}")
             return False
     
+    # ===== LOCAL SECURITY CACHE METHODS =====
+
+    def _extract_domain(self, value: str) -> Optional[str]:
+        if not value:
+            return None
+        try:
+            parsed = urlparse(value if value.startswith(('http://', 'https://')) else f"https://{value}")
+            hostname = parsed.hostname or parsed.netloc
+            return hostname.lower() if hostname else None
+        except Exception:
+            return None
+
+    def _hash_url(self, url: str) -> str:
+        normalized = url.strip().lower()
+        return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+
+    def _append_cache_file(self, path: Path, entry: Dict[str, Any]):
+        try:
+            with path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception as e:
+            logger.warning(f"Failed to append cache entry to {path}: {e}")
+
+    def get_cached_security(self, url: str) -> Optional[Dict[str, Any]]:
+        """Возвращает сохраненный результат (whitelist/blacklist) для URL."""
+        domain = self._extract_domain(url)
+        url_hash = self._hash_url(url)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                if domain:
+                    cursor.execute("SELECT * FROM cached_whitelist WHERE domain = ?", (domain,))
+                    row = cursor.fetchone()
+                    if row:
+                        cursor.execute("""
+                            UPDATE cached_whitelist
+                            SET hit_count = hit_count + 1,
+                                last_seen = CURRENT_TIMESTAMP
+                            WHERE domain = ?
+                        """, (domain,))
+                        conn.commit()
+                        payload = json.loads(row["payload"]) if row["payload"] else None
+                        return {
+                            "safe": True,
+                            "threat_type": None,
+                            "details": row["details"],
+                            "source": row["source"] or "local_whitelist",
+                            "detection_ratio": row["detection_ratio"],
+                            "confidence": row["confidence"],
+                            "storage": "whitelist",
+                            "domain": row["domain"],
+                            "cached_at": row["last_seen"],
+                            "payload": payload
+                        }
+                cursor.execute("SELECT * FROM cached_blacklist WHERE url_hash = ?", (url_hash,))
+                row = cursor.fetchone()
+                if row:
+                    cursor.execute("""
+                        UPDATE cached_blacklist
+                        SET hit_count = hit_count + 1,
+                            last_seen = CURRENT_TIMESTAMP
+                        WHERE url_hash = ?
+                    """, (url_hash,))
+                    conn.commit()
+                    payload = json.loads(row["payload"]) if row["payload"] else None
+                    return {
+                        "safe": False,
+                        "threat_type": row["threat_type"] or "malicious",
+                        "details": row["details"],
+                        "source": row["source"] or "local_blacklist",
+                        "storage": "blacklist",
+                        "url": row["url"],
+                        "domain": row["domain"],
+                        "cached_at": row["last_seen"],
+                        "payload": payload
+                    }
+        except sqlite3.Error as e:
+            logger.error(f"Cache lookup error: {e}", exc_info=True)
+        except json.JSONDecodeError as json_error:
+            logger.warning(f"Cache payload decode issue: {json_error}")
+        return None
+
+    def save_whitelist_entry(self, domain: str, payload: Dict[str, Any]) -> bool:
+        domain = self._extract_domain(domain)
+        if not domain:
+            return False
+        details = payload.get("details")
+        detection_ratio = payload.get("detection_ratio")
+        confidence = payload.get("confidence")
+        source = payload.get("source", "external_apis")
+        serialized = json.dumps(payload, ensure_ascii=False)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO cached_whitelist (domain, details, detection_ratio, confidence, source, payload)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(domain) DO UPDATE SET
+                        details = excluded.details,
+                        detection_ratio = excluded.detection_ratio,
+                        confidence = excluded.confidence,
+                        source = excluded.source,
+                        payload = excluded.payload,
+                        last_seen = CURRENT_TIMESTAMP
+                """, (domain, details, detection_ratio, confidence, source, serialized))
+                conn.commit()
+                file_entry = {
+                    "domain": domain,
+                    "details": details,
+                    "detection_ratio": detection_ratio,
+                    "confidence": confidence,
+                    "source": source,
+                    "payload": payload,
+                    "saved_at": datetime.utcnow().isoformat()
+                }
+                self._append_cache_file(self.whitelist_file, file_entry)
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Save whitelist entry error: {e}")
+            return False
+
+    def save_blacklist_entry(self, url: str, payload: Dict[str, Any]) -> bool:
+        domain = self._extract_domain(url)
+        if not domain:
+            return False
+        url_hash = self._hash_url(url)
+        details = payload.get("details")
+        threat_type = payload.get("threat_type", "malicious")
+        source = payload.get("source", "external_apis")
+        serialized = json.dumps(payload, ensure_ascii=False)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO cached_blacklist (url_hash, url, domain, threat_type, details, source, payload)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(url_hash) DO UPDATE SET
+                        url = excluded.url,
+                        domain = excluded.domain,
+                        threat_type = excluded.threat_type,
+                        details = excluded.details,
+                        source = excluded.source,
+                        payload = excluded.payload,
+                        last_seen = CURRENT_TIMESTAMP
+                """, (url_hash, url, domain, threat_type, details, source, serialized))
+                conn.commit()
+                file_entry = {
+                    "url": url,
+                    "domain": domain,
+                    "threat_type": threat_type,
+                    "details": details,
+                    "source": source,
+                    "payload": payload,
+                    "saved_at": datetime.utcnow().isoformat()
+                }
+                self._append_cache_file(self.blacklist_file, file_entry)
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Save blacklist entry error: {e}")
+            return False
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Возвращает статистику локального кэша."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as count, SUM(hit_count) as hits FROM cached_whitelist")
+                whitelist_row = cursor.fetchone()
+                cursor.execute("SELECT COUNT(*) as count, SUM(hit_count) as hits FROM cached_blacklist")
+                blacklist_row = cursor.fetchone()
+                cursor.execute("""
+                    SELECT SUM(LENGTH(payload) + LENGTH(details) + LENGTH(url))
+                    FROM cached_blacklist
+                """)
+                blacklist_bytes = cursor.fetchone()[0] or 0
+                cursor.execute("""
+                    SELECT SUM(LENGTH(payload) + LENGTH(details) + LENGTH(domain))
+                    FROM cached_whitelist
+                """)
+                whitelist_bytes = cursor.fetchone()[0] or 0
+                total_entries = (whitelist_row["count"] or 0) + (blacklist_row["count"] or 0)
+                return {
+                    "whitelist_entries": whitelist_row["count"] or 0,
+                    "blacklist_entries": blacklist_row["count"] or 0,
+                    "whitelist_hits": whitelist_row["hits"] or 0,
+                    "blacklist_hits": blacklist_row["hits"] or 0,
+                    "bytes_estimated": int(whitelist_bytes + blacklist_bytes),
+                    "total_entries": total_entries
+                }
+        except sqlite3.Error as e:
+            logger.error(f"Cache stats error: {e}")
+            return {
+                "whitelist_entries": 0,
+                "blacklist_entries": 0,
+                "whitelist_hits": 0,
+                "blacklist_hits": 0,
+                "bytes_estimated": 0,
+                "total_entries": 0
+            }
+
+    def get_cached_entries(self, store: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Возвращает старейшие записи из whitelist/blacklist."""
+        table = 'cached_whitelist' if store == 'whitelist' else 'cached_blacklist'
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    f"SELECT * FROM {table} ORDER BY last_seen ASC LIMIT ?",
+                    (limit,)
+                )
+                rows = []
+                for row in cursor.fetchall():
+                    payload = None
+                    if row["payload"]:
+                        try:
+                            payload = json.loads(row["payload"])
+                        except json.JSONDecodeError:
+                            payload = None
+                    entry = dict(row)
+                    entry["payload"] = payload
+                    rows.append(entry)
+                return rows
+        except sqlite3.Error as e:
+            logger.error(f"Fetch cached entries error: {e}")
+            return []
+
     # ===== STATISTICS AND ADMIN METHODS =====
     
     def get_database_stats(self) -> Dict[str, Any]:
@@ -757,12 +1022,17 @@ class DatabaseManager:
                 cursor.execute("SELECT SUM(requests_total) as total FROM api_keys")
                 total_requests = cursor.fetchone()["total"] or 0
                 
+                cache_stats = self.get_cache_stats()
+                
                 return {
                     "malicious_hashes": hash_count,
                     "malicious_urls": url_count,
                     "total_threats": hash_count + url_count,
                     "active_api_keys": active_keys,
-                    "total_requests": total_requests
+                    "total_requests": total_requests,
+                    "whitelist_entries": cache_stats.get("whitelist_entries", 0),
+                    "blacklist_entries": cache_stats.get("blacklist_entries", 0),
+                    "cache_hits": (cache_stats.get("whitelist_hits", 0) or 0) + (cache_stats.get("blacklist_hits", 0) or 0)
                 }
         except sqlite3.Error as e:
             logger.error(f"Database stats error: {e}")

@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from typing import Optional
@@ -6,6 +7,7 @@ import os
 from datetime import datetime, timedelta
 
 from app.database import db_manager
+from app.services import analysis_service
 
 router = APIRouter(prefix="/admin/ui", tags=["Админ UI"])
 
@@ -73,9 +75,61 @@ def _layout(request: Request, title: str, body: str) -> str:
 """
 
 
+async def _refresh_cache_entries(target: str, limit: int):
+    limit = max(1, min(limit, 50))
+    targets = []
+    target = target.lower()
+    if target in ("whitelist", "all"):
+        targets.append("whitelist")
+    if target in ("blacklist", "all"):
+        targets.append("blacklist")
+    if not targets:
+        targets = ["all"]
+    if "all" in targets:
+        targets = ["whitelist", "blacklist"]
+
+    summary = {"processed": 0, "whitelist": 0, "blacklist": 0, "errors": 0}
+    entries = []
+    for store in targets:
+        entries.extend(db_manager.get_cached_entries(store, limit))
+
+    # Ограничиваем общее число обновлений
+    entries = entries[:limit]
+
+    for entry in entries:
+        url = entry.get("url")
+        payload = entry.get("payload") or {}
+        if not url:
+            url = payload.get("url")
+        if not url:
+            domain = entry.get("domain") or payload.get("domain")
+            if domain:
+                url = f"https://{domain}"
+        if not url:
+            summary["errors"] += 1
+            continue
+        try:
+            result = await analysis_service.analyze_url(url, use_external_apis=True)
+            summary["processed"] += 1
+            if result.get("safe") is True:
+                db_manager.save_whitelist_entry(url, result)
+                summary["whitelist"] += 1
+            elif result.get("safe") is False:
+                db_manager.save_blacklist_entry(url, result)
+                summary["blacklist"] += 1
+        except Exception as exc:
+            summary["errors"] += 1
+            logging.getLogger(__name__).warning(f"Cache refresh failed for {url}: {exc}")
+
+    return summary
+
+
 @router.get("", response_class=HTMLResponse)
 async def dashboard(request: Request):
     stats = db_manager.get_database_stats()
+    cache_stats = db_manager.get_cache_stats()
+    prefix = request.scope.get("root_path", "")
+    refresh_action = prefix + ("/admin/ui/cache/refresh" if not prefix.endswith("/") else "admin/ui/cache/refresh")
     body = f"""
     <div class="card">
       <h1>Панель администратора</h1>
@@ -84,6 +138,26 @@ async def dashboard(request: Request):
     <div class="row">
       <div class="card col"><h2>Угрозы</h2><div>Хэши: <b>{stats.get('malicious_hashes', 0)}</b></div><div>URL: <b>{stats.get('malicious_urls', 0)}</b></div><div>Всего угроз: <b>{stats.get('total_threats', 0)}</b></div></div>
       <div class="card col"><h2>API ключи</h2><div>Активных ключей: <b>{stats.get('active_api_keys', 0)}</b></div><div>Всего запросов: <b>{stats.get('total_requests', 0)}</b></div></div>
+    </div>
+    <div class="card">
+      <h2>Локальная база (hover-cache)</h2>
+      <div class="row">
+        <div class="col"><div>Белый список: <b>{cache_stats.get('whitelist_entries', 0)}</b></div></div>
+        <div class="col"><div>Чёрный список: <b>{cache_stats.get('blacklist_entries', 0)}</b></div></div>
+        <div class="col"><div>Хитов кэша: <b>{cache_stats.get('whitelist_hits', 0) + cache_stats.get('blacklist_hits', 0)}</b></div></div>
+      </div>
+      <form method="post" action="{refresh_action}" style="margin-top:12px; display:grid; gap:8px; max-width:400px;">
+        <label>Что обновить</label>
+        <select name="target">
+          <option value="all" selected>Белый и чёрный списки</option>
+          <option value="whitelist">Только белый список</option>
+          <option value="blacklist">Только чёрный список</option>
+        </select>
+        <label>Сколько записей пересканировать (старейшие)</label>
+        <input type="number" name="limit" min="1" max="50" value="10" />
+        <button type="submit">Обновить локальную базу</button>
+        <p class="muted" style="font-size:12px;">Обновление вручную: мы пересканируем N самых старых записей через VirusTotal и перезапишем их в базе.</p>
+      </form>
     </div>
     <div class="row">
       <div class="card col">
@@ -254,6 +328,20 @@ async def extend_key_action(
     prefix = request.scope.get("root_path", "")
     redirect = RedirectResponse(url=(prefix + ("/admin/ui/keys" if not prefix.endswith('/') else "admin/ui/keys")), status_code=303)
     msg = quote("Ключ продлён" if ok else "Ключ не найден или ошибка продления")
+    redirect.set_cookie("flash", msg, max_age=10)
+    return redirect
+
+
+@router.post("/cache/refresh")
+async def refresh_cache_action(
+    request: Request,
+    target: str = Form("all"),
+    limit: int = Form(10)
+):
+    summary = await _refresh_cache_entries(target, int(limit))
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui" if not prefix.endswith('/') else "admin/ui")), status_code=303)
+    msg = quote(f"Обновлено: {summary['processed']}, white: {summary['whitelist']}, black: {summary['blacklist']}, ошибок: {summary['errors']}")
     redirect.set_cookie("flash", msg, max_age=10)
     return redirect
 

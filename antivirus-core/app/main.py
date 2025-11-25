@@ -190,7 +190,15 @@ async def websocket_cleanup_task() -> None:
         except Exception as exc:
             logger.error(f"[WS] Cleanup task error: {exc}", exc_info=True)
         await asyncio.sleep(30)
-from app.schemas import CheckResponse, UrlCheckRequest, FileCheckRequest
+from app.schemas import (
+    CheckResponse,
+    UrlCheckRequest,
+    FileCheckRequest,
+    LocalCacheCheckRequest,
+    LocalCacheSaveRequest,
+    LocalCacheResponse,
+    LocalCacheStatsResponse
+)
 from app.validators import security_validator  # ← ДОБАВЬ
 from app.external_apis.manager import external_api_manager
 from app.admin_ui import router as admin_ui_router
@@ -957,6 +965,51 @@ async def check_uploaded_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"File analysis error: {str(e)}")
     finally:
         await file.close()
+
+# ==== LOCAL SECURITY CACHE ENDPOINTS ====
+
+@app.post("/local-cache/check", response_model=LocalCacheResponse)
+async def local_cache_check(request_data: LocalCacheCheckRequest):
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    url_str = str(request_data.url)
+    try:
+        cached = db_manager.get_cached_security(url_str)
+        if cached:
+            return {"status": "hit", **cached}
+        return {"status": "miss", "safe": None}
+    except Exception as e:
+        logger.error(f"Local cache check error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Local cache lookup failed")
+
+
+@app.post("/local-cache/save")
+async def local_cache_save(request_data: LocalCacheSaveRequest):
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    url_str = str(request_data.url)
+    payload = request_data.dict()
+    payload.pop("url", None)
+    try:
+        if request_data.safe:
+            success = db_manager.save_whitelist_entry(url_str, payload)
+        else:
+            success = db_manager.save_blacklist_entry(url_str, payload)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to persist cache entry")
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Local cache save error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Local cache save failed")
+
+
+@app.get("/local-cache/stats", response_model=LocalCacheStatsResponse)
+async def local_cache_stats():
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    return db_manager.get_cache_stats()
 
 @app.get("/check/domain/{domain}")
 async def check_domain(domain: str):
