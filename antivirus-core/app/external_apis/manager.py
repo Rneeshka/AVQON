@@ -243,19 +243,19 @@ class ExternalAPIManager:
         if unsafe_count > 0:
             is_safe = False
         elif safe_count > 0 and unsafe_count == 0:
-            # КРИТИЧНО: Если хотя бы один API подтвердил безопасность И нет угроз
-            # НО только если есть результаты от всех включенных API
-            # Если не все API вернули результат, считаем неизвестным
+            # КРИТИЧНО: Если хотя бы один API подтвердил безопасность И нет угроз - считаем безопасным
+            # Даже если не все API вернули результат, если хотя бы один вернул safe=True и нет угроз - безопасно
             enabled_count = sum(1 for enabled in self.enabled_apis.values() if enabled)
-            # КРИТИЧНО: Проверяем что все включенные API вернули валидные результаты
-            # total_checks должен быть равен количеству валидных результатов
-            # safe_count + unsafe_count должно быть равно количеству включенных API
             if enabled_count > 0 and safe_count == enabled_count and total_checks == enabled_count:
-                # Все включенные API вернули результат и все безопасны
+                # Все включенные API вернули результат и все безопасны - высокая уверенность
                 is_safe = True
+                logger.info(f"All APIs returned safe=True: enabled={enabled_count}, safe={safe_count}, total_checks={total_checks}")
+            elif safe_count > 0:
+                # Хотя бы один API вернул safe=True и нет угроз - считаем безопасным с пониженной уверенностью
+                is_safe = True
+                logger.info(f"At least one API returned safe=True (safe_count={safe_count}, enabled={enabled_count}, total_checks={total_checks}), treating as safe")
             else:
-                # Не все API вернули результат - неизвестно
-                logger.warning(f"Not all APIs returned results: enabled={enabled_count}, safe={safe_count}, total_checks={total_checks}")
+                # Нет безопасных результатов
                 is_safe = None
         else:
             # Нет результатов или все вернули None
