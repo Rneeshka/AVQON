@@ -1495,6 +1495,40 @@ async def get_current_user(request: Request):
 
 @app.on_event("startup")
 async def startup_event():
+    """Инициализация при старте сервера"""
+    logger.info("🚀 AEGIS Server starting up...")
+    
+    # КРИТИЧНО: Проверяем что база данных инициализирована и таблицы созданы
+    if db_manager:
+        try:
+            # Проверяем что таблицы существуют
+            with db_manager._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cached_whitelist'")
+                whitelist_exists = cursor.fetchone() is not None
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cached_blacklist'")
+                blacklist_exists = cursor.fetchone() is not None
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='api_keys'")
+                api_keys_exists = cursor.fetchone() is not None
+                
+                if not whitelist_exists or not blacklist_exists or not api_keys_exists:
+                    logger.warning("⚠️ Some database tables missing, reinitializing...")
+                    db_manager._init_database()
+                    logger.info("✅ Database tables reinitialized")
+                else:
+                    logger.info("✅ Database tables verified")
+        except Exception as e:
+            logger.error(f"❌ Database verification failed: {e}", exc_info=True)
+            # Пытаемся переинициализировать
+            try:
+                db_manager._init_database()
+                logger.info("✅ Database reinitialized after error")
+            except Exception as reinit_error:
+                logger.critical(f"❌ CRITICAL: Database initialization failed: {reinit_error}", exc_info=True)
+    else:
+        logger.error("❌ CRITICAL: db_manager is None!")
+    
+    logger.info("✅ AEGIS Server startup complete")
     """Запуск приложения."""
     try:
         # Проверяем подключение к базе

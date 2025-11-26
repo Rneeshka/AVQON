@@ -20,6 +20,23 @@ class AnalysisService:
     Улучшенный сервис анализа с интеграцией внешних API
     """
     
+    # КРИТИЧНО: Whitelist доверенных доменов для немедленного определения как безопасных
+    TRUSTED_DOMAINS = {
+        'google.com', 'youtube.com', 'github.com', 'microsoft.com',
+        'apple.com', 'mozilla.org', 'wikipedia.org', 'stackoverflow.com',
+        'amazon.com', 'facebook.com', 'twitter.com', 'linkedin.com',
+        'reddit.com', 'netflix.com', 'spotify.com', 'discord.com',
+        'cloudflare.com', 'akamai.com', 'fastly.com'
+    }
+    
+    # Доверенные поддомены (любой поддомен этих доменов также доверенный)
+    TRUSTED_DOMAIN_SUFFIXES = [
+        '.google.com', '.youtube.com', '.github.com', '.microsoft.com',
+        '.apple.com', '.mozilla.org', '.wikipedia.org', '.stackoverflow.com',
+        '.amazon.com', '.facebook.com', '.twitter.com', '.linkedin.com',
+        '.cloudflare.com', '.akamai.com', '.fastly.com'
+    ]
+    
     def __init__(self, use_external_apis: bool = True):
         self.use_external_apis = use_external_apis
         # Простой in-memory кэш: ключ -> (истекает_в_мс, результат)
@@ -32,6 +49,20 @@ class AnalysisService:
             logger.warning(f"Failed to clean old cache entries: {e}")
         # YARA правила (простые сигнатуры)
         self._yara_rules = self._load_yara_rules()
+    
+    def _is_trusted_domain(self, domain: str) -> bool:
+        """Проверяет, является ли домен доверенным"""
+        if not domain:
+            return False
+        domain_lower = domain.lower()
+        # Прямое совпадение
+        if domain_lower in self.TRUSTED_DOMAINS:
+            return True
+        # Проверка поддоменов
+        for suffix in self.TRUSTED_DOMAIN_SUFFIXES:
+            if domain_lower.endswith(suffix):
+                return True
+        return False
 
     # ---------------------- Утилиты нормализации и защиты ----------------------
 
@@ -267,20 +298,18 @@ class AnalysisService:
             parsed_url = urlparse(url)
             domain = parsed_url.netloc.lower()
             
-            # КРИТИЧНО: НЕ используем кэш clean-доменов, так как это может пропускать опасные URL
-            # Кэш clean-доменов отключен для более точной проверки
-            # domain_cache_key = f"domain-clean:{domain}"
-            # recently_clean = self._cache_get(domain_cache_key)
-            # if recently_clean:
-            #     result = {
-            #         "safe": True,
-            #         "threat_type": None,
-            #         "details": "Domain recently verified as clean",
-            #         "source": "cache",
-            #         "confidence": 80
-            #     }
-            #     self._cache_set(cache_key, result)
-            #     return result
+            # КРИТИЧНО: Проверка доверенных доменов - немедленное определение как безопасных
+            if self._is_trusted_domain(domain):
+                logger.info(f"✅ Trusted domain detected: {domain} - marking as safe immediately")
+                result = {
+                    "safe": True,
+                    "threat_type": None,
+                    "details": f"Trusted domain: {domain}",
+                    "source": "trusted_domain",
+                    "confidence": 95
+                }
+                self._cache_set(cache_key, result)
+                return result
             
             try:
                 domain_threats = db_manager.check_domain(domain)
