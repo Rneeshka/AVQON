@@ -328,14 +328,27 @@ class AnalysisService:
             # 3. Блокировка приватных/внутренних URL для внешних API (защита от утечек)
             if self._is_private_or_internal_url(url):
                 logger.warning(f"⚠️ Private/internal URL detected, skipping external APIs: {url}")
-                result = {
-                    "safe": None,
-                    "threat_type": None,
-                    "details": "Private/internal URL - not sent to external security services",
-                    "source": "internal_only",
-                    "confidence": 0,
-                    "external_scans": {}
-                }
+                # Для внутренних URL используем эвристику с консервативным подходом
+                heuristic_safe = self._url_heuristic_analysis(url, domain).get("safe")
+                if heuristic_safe is False:
+                    result = {
+                        "safe": False,
+                        "threat_type": "suspicious",
+                        "details": "Private/internal URL with suspicious indicators",
+                        "source": "internal_heuristic",
+                        "confidence": 60,
+                        "external_scans": {}
+                    }
+                else:
+                    # Консервативный подход: внутренние URL без четких данных - считаем безопасными (они не отправляются наружу)
+                    result = {
+                        "safe": True,
+                        "threat_type": None,
+                        "details": "Private/internal URL - not sent to external security services",
+                        "source": "internal_only",
+                        "confidence": 70,
+                        "external_scans": {}
+                    }
                 self._cache_set(cache_key, result)
                 return result
 
@@ -387,35 +400,33 @@ class AnalysisService:
             # 5. Объединяем результаты - ПРИОРИТЕТ ВНЕШНИМ API
             # КРИТИЧНО: Проверяем safe явно, не используя default True
             
-            # КРИТИЧНО: Если внешние API не использовались (should_use_external = False), 
-            # НЕ возвращаем результат из эвристики - всегда возвращаем safe: None
-            if not should_use_external:
-                logger.warning(f"External APIs disabled for {url}, returning unknown")
-                result = {
-                    "safe": None,
-                    "threat_type": None,
-                    "details": "External APIs disabled - unable to determine safety",
-                    "source": "unknown",
-                    "confidence": 0,
-                    "external_scans": {}
-                }
-                self._cache_set(cache_key, result)
-                return result
-            
-            # КРИТИЧНО: Если внешние API не вернули результат (external_result is None), 
-            # НЕ возвращаем результат из эвристики - всегда возвращаем safe: None
-            if not external_result:
-                logger.warning(f"External APIs did not return result for {url}, returning unknown")
-                result = {
-                    "safe": None,
-                    "threat_type": None,
-                    "details": "External APIs did not return result - unable to determine safety",
-                    "source": "unknown",
-                    "confidence": 0,
-                    "external_scans": {}
-                }
-                self._cache_set(cache_key, result)
-                return result
+            # КРИТИЧНО: Если внешние API не использовались или не вернули результат,
+            # используем эвристику с консервативным подходом (по умолчанию - опасно)
+            if not should_use_external or not external_result:
+                logger.warning(f"External APIs {'disabled' if not should_use_external else 'did not return result'} for {url}, using heuristic with conservative approach")
+                heuristic_safe = heuristic_result.get("safe")
+                if heuristic_safe is False:
+                    # Эвристика обнаружила угрозу - считаем опасным
+                    result = {
+                        **heuristic_result,
+                        "source": "heuristic",
+                        "external_scans": {},
+                        "confidence": min(heuristic_result.get("confidence", 50), 70)
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+                else:
+                    # Консервативный подход: если нет данных от внешних API - считаем опасным
+                    result = {
+                        "safe": False,
+                        "threat_type": "suspicious",
+                        "details": f"External APIs {'disabled' if not should_use_external else 'unavailable'} - conservative security approach (treating as unsafe)",
+                        "source": "conservative",
+                        "confidence": 40,
+                        "external_scans": {}
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
             
             # КРИТИЧНО: Обрабатываем результат внешних API
             external_safe = external_result.get("safe")
@@ -474,31 +485,43 @@ class AnalysisService:
                     return result
             
             # КРИТИЧНО: Если external_result есть, но safe не True и не False - это None или ошибка
-            # В этом случае НЕ возвращаем результат из эвристики - возвращаем safe: None
+            # Консервативный подход: считаем опасным, если нет четких данных о безопасности
             if external_result and external_result.get("safe") is None:
-                logger.warning(f"External APIs returned None for {url}, treating as unknown")
-                result = {
-                    "safe": None,
-                    "threat_type": None,
-                    "details": "External APIs returned unclear result",
-                    "source": "unknown",
-                    "confidence": 0,
-                    "external_scans": external_result.get("external_scans", {})
-                }
-                self._cache_set(cache_key, result)
-                return result
+                logger.warning(f"External APIs returned None for {url}, using conservative approach (unsafe)")
+                heuristic_safe = heuristic_result.get("safe")
+                if heuristic_safe is False:
+                    # Эвристика обнаружила угрозу - считаем опасным
+                    result = {
+                        **heuristic_result,
+                        "source": "heuristic",
+                        "external_scans": external_result.get("external_scans", {}),
+                        "confidence": min(heuristic_result.get("confidence", 50), 70)
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
+                else:
+                    # Консервативный подход: нет четких данных - считаем опасным
+                    result = {
+                        "safe": False,
+                        "threat_type": "suspicious",
+                        "details": f"External APIs returned unclear result - conservative security approach (treating as unsafe): {external_result.get('details', '')}",
+                        "source": "conservative",
+                        "confidence": 50,
+                        "external_scans": external_result.get("external_scans", {})
+                    }
+                    self._cache_set(cache_key, result)
+                    return result
             
             # КРИТИЧНО: Эвристика не должна возвращать safe=True без внешних API
-            # Если внешние API не использовались или не вернули результат, считаем неизвестным
+            # Консервативный подход: если нет четких данных - считаем опасным
             if not external_result or external_result.get("safe") is None:
-                # КРИТИЧНО: Если внешние API не использовались или не вернули результат, НЕ считаем безопасным
-                # Всегда возвращаем safe: None (неизвестно), а НЕ safe: True
+                # Консервативный подход: нет четких данных от внешних API - считаем опасным
                 result = {
-                    "safe": None,  # КРИТИЧНО: НЕ True, а None!
-                    "threat_type": None,
-                    "details": "Unable to determine safety (external APIs unavailable or returned unclear result)",
-                    "source": "unknown",
-                    "confidence": 0,
+                    "safe": False,  # КРИТИЧНО: Консервативный подход - опасно по умолчанию
+                    "threat_type": "suspicious",
+                    "details": "Unable to determine safety (external APIs unavailable or returned unclear result) - conservative security approach",
+                    "source": "conservative",
+                    "confidence": 40,
                     "external_scans": external_result.get("external_scans", {}) if external_result else {}
                 }
                 self._cache_set(cache_key, result)
@@ -538,18 +561,18 @@ class AnalysisService:
                     self._cache_set(cache_key, result)
                     return result
             
-            # КРИТИЧНО: Если ничего не определено, возвращаем None (неизвестно)
-            # НИКОГДА не возвращаем safe: True по умолчанию!
+            # КРИТИЧНО: Если ничего не определено, используем консервативный подход
+            # Консервативный подход: нет четких данных - считаем опасным
             result = {
-                "safe": None,  # КРИТИЧНО: Всегда None, никогда True!
-                "threat_type": None,
-                "details": "Unable to determine safety - external API verification required",
-                "source": "unknown",
-                "confidence": 0,
+                "safe": False,  # КРИТИЧНО: Консервативный подход - опасно по умолчанию
+                "threat_type": "suspicious",
+                "details": "Unable to determine safety - conservative security approach (treating as unsafe)",
+                "source": "conservative",
+                "confidence": 40,
                 "external_scans": external_result.get("external_scans", {}) if external_result else {}
             }
             self._cache_set(cache_key, result)
-            logger.warning(f"Final fallback for {url}: returning safe=None (unknown)")
+            logger.warning(f"Final fallback for {url}: returning safe=False (conservative approach)")
             return result
                 
         except Exception as e:

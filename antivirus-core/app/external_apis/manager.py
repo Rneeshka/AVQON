@@ -239,7 +239,7 @@ class ExternalAPIManager:
                 total_checks += 1
         
         # КРИТИЧНО: Если хотя бы один API обнаружил угрозу - считаем опасным
-        # Если нет проверок или все вернули None - возвращаем None (неизвестно)
+        # Консервативный подход: если нет четких данных - считаем опасным
         if unsafe_count > 0:
             is_safe = False
         elif safe_count > 0 and unsafe_count == 0:
@@ -255,11 +255,13 @@ class ExternalAPIManager:
                 is_safe = True
                 logger.info(f"At least one API returned safe=True (safe_count={safe_count}, enabled={enabled_count}, total_checks={total_checks}), treating as safe")
             else:
-                # Нет безопасных результатов
-                is_safe = None
+                # Нет безопасных результатов - консервативный подход
+                is_safe = False
+                logger.warning(f"No safe results but no threats either - conservative approach (unsafe)")
         else:
-            # Нет результатов или все вернули None
-            is_safe = None
+            # Нет результатов или все вернули None - консервативный подход
+            is_safe = False
+            logger.warning(f"No results from APIs - conservative approach (unsafe)")
         
         # КРИТИЧНО: Определяем threat_type только если точно известно, что небезопасно
         threat_type = None
@@ -269,15 +271,16 @@ class ExternalAPIManager:
             threat_type = None  # Неизвестно
         
         # КРИТИЧНО: Если parsed_results пустой, значит нет валидных результатов
+        # Консервативный подход: нет данных - считаем опасным
         if not parsed_results:
-            logger.warning(f"No valid parsed results for {original_url}, returning unknown")
+            logger.warning(f"No valid parsed results for {original_url}, using conservative approach (unsafe)")
             return {
-                "safe": None,
-                "threat_type": None,
-                "details": "No valid external API results",
+                "safe": False,
+                "threat_type": "suspicious",
+                "details": "No valid external API results - conservative security approach",
                 "source": "external_apis",
                 "external_scans": {},
-                "confidence": 0
+                "confidence": 40
             }
         
         final_result = {
