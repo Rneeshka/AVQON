@@ -7,7 +7,7 @@ import os
 import tempfile
 import subprocess
 from typing import Dict, Any, Optional, List
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit, urlunsplit, parse_qsl, urlencode
 
 from app.database import db_manager
 from app.external_apis.manager import external_api_manager
@@ -32,6 +32,89 @@ class AnalysisService:
             logger.warning(f"Failed to clean old cache entries: {e}")
         # YARA правила (простые сигнатуры)
         self._yara_rules = self._load_yara_rules()
+
+    # ---------------------- Утилиты нормализации и защиты ----------------------
+
+    @staticmethod
+    def _is_private_or_internal_url(url: str) -> bool:
+        """Блокируем отправку приватных/внутренних URL во внешние API (VT, GSB и т.д.)."""
+        try:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            path = (parsed.path or "").lower()
+
+            if not host:
+                return False
+
+            # Локальные и приватные сети
+            private_hosts_prefixes = ("127.", "10.", "192.168.", "172.16.", "172.17.", "172.18.", "172.19.",
+                                      "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.",
+                                      "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.")
+            if host == "localhost" or host.startswith(private_hosts_prefixes):
+                return True
+
+            # Явно приватные пути
+            private_path_fragments = [
+                "/admin", "/internal", "/dashboard", "/keys",
+                "/auth", "/config", "/api"
+            ]
+            if any(fragment in path for fragment in private_path_fragments):
+                return True
+
+            return False
+        except Exception:
+            return False
+
+    @staticmethod
+    def _normalize_url_for_analysis(url: str) -> str:
+        """
+        Нормализуем URL для анализа и кэша:
+        - приведение домена к нижнему регистру
+        - удаление фрагмента (#...)
+        - удаление UTM/трекерных параметров
+        - доменно-специфические правила (Google, YouTube и т.п.)
+        """
+        try:
+            parts = urlsplit(url)
+            scheme = parts.scheme
+            netloc = parts.netloc.lower()
+            path = parts.path or ""
+            query = parts.query or ""
+
+            # Парсим параметры
+            query_pairs = parse_qsl(query, keep_blank_values=True)
+
+            # Общие трекинг-параметры
+            tracking_prefixes = ("utm_",)
+            tracking_exact = {
+                "gclid", "fbclid", "yclid", "mc_cid", "mc_eid",
+                "utm_referrer", "_hsenc", "_hsmi", "spm"
+            }
+
+            def is_tracking_param(name: str) -> bool:
+                return name.startswith(tracking_prefixes) or name in tracking_exact
+
+            domain = netloc
+
+            # Google search: удаляем все параметры, анализируем только домен и путь
+            if "google." in domain:
+                filtered_pairs: List = []
+            # YouTube: для watch-ссылок оставляем только v (id видео)
+            elif "youtube.com" in domain or domain == "youtu.be":
+                keep_names = {"v"}
+                filtered_pairs = [(k, v) for (k, v) in query_pairs if k in keep_names]
+            else:
+                # Удаляем трекинг-параметры
+                filtered_pairs = [(k, v) for (k, v) in query_pairs if not is_tracking_param(k)]
+
+            normalized_query = urlencode(filtered_pairs, doseq=True)
+
+            # Фрагмент всегда удаляем
+            normalized = urlunsplit((scheme, netloc, path, normalized_query, ""))
+            return normalized
+        except Exception:
+            # В случае ошибки возвращаем исходный URL
+            return url
 
     def _cache_get(self, key: str) -> Optional[Dict[str, Any]]:
         # Сначала проверяем in-memory кэш
@@ -142,13 +225,7 @@ class AnalysisService:
         try:
             logger.info(f"🔍 Analyzing URL: {url}")
             # Нормализация URL
-            try:
-                from urllib.parse import urlsplit, urlunsplit
-                parts = urlsplit(url)
-                normalized_netloc = parts.netloc.lower()
-                url = urlunsplit((parts.scheme, normalized_netloc, parts.path, parts.query, ""))
-            except Exception:
-                pass
+            url = self._normalize_url_for_analysis(url)
             
             # КРИТИЧНО: Кэш - но НЕ возвращаем кэшированные результаты с safe: True
             # если они были созданы без проверки внешних API
@@ -217,7 +294,21 @@ class AnalysisService:
             except Exception as db_error:
                 logger.warning(f"Database domain check failed: {db_error}")
             
-            # 3. Проверка через внешние API (если включено)
+            # 3. Блокировка приватных/внутренних URL для внешних API (защита от утечек)
+            if self._is_private_or_internal_url(url):
+                logger.warning(f"⚠️ Private/internal URL detected, skipping external APIs: {url}")
+                result = {
+                    "safe": None,
+                    "threat_type": None,
+                    "details": "Private/internal URL - not sent to external security services",
+                    "source": "internal_only",
+                    "confidence": 0,
+                    "external_scans": {}
+                }
+                self._cache_set(cache_key, result)
+                return result
+
+            # 4. Проверка через внешние API (если включено)
             external_result = None
             should_use_external = use_external_apis if use_external_apis is not None else self.use_external_apis
             if should_use_external:
