@@ -123,10 +123,24 @@ async def handle_ws_message(client: ClientConnection, message: Dict[str, Any]) -
             await ws_manager.send_error(client, request_id, "Hover analysis requires premium API key", code="forbidden")
             return
 
+        # КРИТИЧНО: Отправляем статус "scan_started" перед началом анализа
         try:
+            await ws_manager.send_json(client, {
+                "type": "scan_started",
+                "requestId": request_id,
+                "url": url,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        except Exception as e:
+            logger.warning(f"[WS] Failed to send scan_started status: {e}")
+
+        try:
+            logger.info(f"[WS] Starting URL analysis for: {url} (context: {context})")
             result = await analysis_service.analyze_url(url, use_external_apis=use_external)
             if not isinstance(result, dict):
                 raise ValueError("Invalid response from analysis service")
+            
+            logger.info(f"[WS] URL analysis completed for {url}: safe={result.get('safe')}, source={result.get('source')}")
         except Exception as exc:
             logger.error(f"[WS] URL analysis failed ({url}): {exc}", exc_info=True)
             await ws_manager.send_error(client, request_id, f"URL analysis error: {type(exc).__name__}", code="analysis_error")
@@ -138,12 +152,18 @@ async def handle_ws_message(client: ClientConnection, message: Dict[str, Any]) -
             "context": context,
             **result
         }
-        await ws_manager.send_json(client, {
-            "type": "analysis_result",
-            "requestId": request_id,
-            "payload": response_payload,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        
+        # КРИТИЧНО: Отправляем результат анализа
+        try:
+            await ws_manager.send_json(client, {
+                "type": "analysis_result",
+                "requestId": request_id,
+                "payload": response_payload,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            logger.info(f"[WS] Sent analysis_result for {url} to client {client.id}")
+        except Exception as send_error:
+            logger.error(f"[WS] Failed to send analysis_result for {url}: {send_error}", exc_info=True)
         return
 
     if msg_type == "analyze_file_hash":

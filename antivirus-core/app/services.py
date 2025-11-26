@@ -54,13 +54,15 @@ class AnalysisService:
         """Проверяет, является ли домен доверенным"""
         if not domain:
             return False
-        domain_lower = domain.lower()
+        domain_lower = domain.lower().strip()
         # Прямое совпадение
         if domain_lower in self.TRUSTED_DOMAINS:
+            logger.debug(f"Trusted domain match (exact): {domain_lower}")
             return True
-        # Проверка поддоменов
+        # Проверка поддоменов (например, www.google.com, mail.google.com)
         for suffix in self.TRUSTED_DOMAIN_SUFFIXES:
             if domain_lower.endswith(suffix):
+                logger.debug(f"Trusted domain match (suffix): {domain_lower} ends with {suffix}")
                 return True
         return False
 
