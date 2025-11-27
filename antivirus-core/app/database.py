@@ -1641,6 +1641,44 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.error(f"Get all cached blacklist error: {e}")
             return []
+    
+    def clear_all_database_data(self) -> Dict[str, int]:
+        """ПОЛНАЯ ОЧИСТКА базы данных - удаляет все данные из всех таблиц (кроме системных).
+        ВНИМАНИЕ: Это удалит ВСЕ угрозы, кэш, IP репутацию, но сохранит API ключи и аккаунты.
+        """
+        results = {}
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Очищаем все таблицы с данными
+                tables_to_clear = [
+                    "malicious_urls",
+                    "malicious_hashes",
+                    "cached_whitelist",
+                    "cached_blacklist",
+                    "ip_reputation",
+                    "request_logs",
+                    "background_jobs"
+                ]
+                
+                for table in tables_to_clear:
+                    try:
+                        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                        count = cursor.fetchone()[0]
+                        cursor.execute(f"DELETE FROM {table}")
+                        results[table] = count
+                        logger.info(f"Cleared {count} records from {table}")
+                    except sqlite3.Error as e:
+                        logger.error(f"Error clearing {table}: {e}")
+                        results[table] = 0
+                
+                conn.commit()
+                logger.warning("⚠️ FULL DATABASE CLEAR completed - all data tables cleared")
+                return results
+        except sqlite3.Error as e:
+            logger.error(f"Clear all database data error: {e}")
+            return {}
 
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
