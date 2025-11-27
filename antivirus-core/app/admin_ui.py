@@ -62,6 +62,7 @@ def _layout(request: Request, title: str, body: str) -> str:
       <a href=\"{p('admin/ui')}\">Обзор</a>
       <a href=\"{p('admin/ui/keys')}\">Ключи API</a>
       <a href=\"{p('admin/ui/threats')}\">Угрозы</a>
+      <a href=\"{p('admin/ui/cache')}\">Кэш URL</a>
       <a href=\"{p('admin/ui/ip')}\">IP репутация</a>
       <a href=\"{p('admin/ui/logs')}\">Логи</a>
       <a href=\"{p('docs')}\" style=\"float:right\">Документация</a>
@@ -348,29 +349,29 @@ async def refresh_cache_action(
 
 @router.get("/threats", response_class=HTMLResponse)
 async def threats_page(request: Request):
-    # Получаем все угрозы из универсальной таблицы
+    # Получаем все угрозы из реальных таблиц
     threats = db_manager.get_all_threats()
     
     # Группируем по типам
-    hash_threats = [t for t in threats if t['type'] == 'hash']
-    url_threats = [t for t in threats if t['type'] == 'url']
-    ip_threats = [t for t in threats if t['type'] == 'ip']
-    domain_threats = [t for t in threats if t['type'] == 'domain']
+    hash_threats = [t for t in threats if t.get('type') == 'hash']
+    url_threats = [t for t in threats if t.get('type') == 'url']
+    ip_threats = [t for t in threats if t.get('type') == 'ip']
+    domain_threats = [t for t in threats if t.get('type') == 'domain']
 
     hash_rows = "".join([
-        f"<tr><td><code>{h['value']}</code></td><td>{h['threat_level']}</td><td>{h['source']}</td><td>{h['created_at']}</td></tr>"
+        f"<tr><td><code>{h['value'][:64]}...</code></td><td>{h.get('threat_type', '-')}</td><td>{h.get('threat_level', '-')}</td><td>{h.get('source', '-')}</td><td>{h.get('detection_count', 0)}</td><td class=\"muted\">{h.get('created_at', '-')}</td></tr>"
         for h in hash_threats
     ])
     url_rows = "".join([
-        f"<tr><td>{u['value']}</td><td>{u['threat_level']}</td><td>{u['source']}</td><td>{u['created_at']}</td></tr>"
+        f"<tr><td><a href=\"{u['value']}\" target=\"_blank\">{u['value'][:80]}{'...' if len(u['value']) > 80 else ''}</a></td><td>{u.get('threat_type', '-')}</td><td>{u.get('threat_level', '-')}</td><td>{u.get('source', '-')}</td><td>{u.get('detection_count', 0)}</td><td class=\"muted\">{u.get('created_at', '-')}</td></tr>"
         for u in url_threats
     ])
     ip_rows = "".join([
-        f"<tr><td>{i['value']}</td><td>{i['threat_level']}</td><td>{i['source']}</td><td>{i['created_at']}</td></tr>"
+        f"<tr><td>{i['value']}</td><td>{i.get('threat_level', '-')}</td><td>{i.get('source', '-')}</td><td class=\"muted\">{i.get('created_at', '-')}</td></tr>"
         for i in ip_threats
     ])
     domain_rows = "".join([
-        f"<tr><td>{d['value']}</td><td>{d['threat_level']}</td><td>{d['source']}</td><td>{d['created_at']}</td></tr>"
+        f"<tr><td>{d['value']}</td><td>{d.get('threat_level', '-')}</td><td>{d.get('source', '-')}</td><td class=\"muted\">{d.get('created_at', '-')}</td></tr>"
         for d in domain_threats
     ])
 
@@ -419,18 +420,45 @@ async def threats_page(request: Request):
       </div>
     </div>
     <div class="card">
-      <h2>Все угрозы</h2>
+      <h2>Вредоносные URL</h2>
       <div style=\"max-height:400px;overflow:auto\">
         <table>
-          <thead><tr><th>Тип</th><th>Значение</th><th>Уровень</th><th>Источник</th><th>Дата</th></tr></thead>
-          <tbody>
-            {hash_rows}
-            {url_rows}
-            {ip_rows}
-            {domain_rows}
-          </tbody>
+          <thead><tr><th>URL</th><th>Тип угрозы</th><th>Уровень</th><th>Источник</th><th>Обнаружений</th><th>Дата</th></tr></thead>
+          <tbody>{url_rows or '<tr><td colspan=6 class="muted">Нет вредоносных URL</td></tr>'}</tbody>
         </table>
       </div>
+    </div>
+    <div class="card">
+      <h2>Вредоносные хэши</h2>
+      <div style=\"max-height:400px;overflow:auto\">
+        <table>
+          <thead><tr><th>Хэш</th><th>Тип угрозы</th><th>Уровень</th><th>Источник</th><th>Обнаружений</th><th>Дата</th></tr></thead>
+          <tbody>{hash_rows or '<tr><td colspan=6 class="muted">Нет вредоносных хэшей</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Поиск и удаление URL</h2>
+      <p class="muted">Найдите конкретный URL и удалите его из базы данных, если он ошибочно помечен как опасный</p>
+      <form method="get" action="{request.scope.get('root_path','') + ('/admin/ui/threats/search' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/search')}" style="margin-top:12px; display:grid; gap:8px;">
+        <label>Поиск URL или домена</label>
+        <input name="q" type="text" placeholder="Введите URL или домен для поиска" required />
+        <button type="submit">Найти</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Очистка базы данных</h2>
+      <p class="muted" style="color: #dc2626; font-weight: 600;">⚠️ ВНИМАНИЕ: Эти действия необратимы!</p>
+      <form method="post" action="{request.scope.get('root_path','') + ('/admin/ui/threats/clear' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/clear')}" style="margin-top:12px; display:grid; gap:8px;">
+        <label>Что очистить</label>
+        <select name="target" required>
+          <option value="urls">Только вредоносные URL</option>
+          <option value="hashes">Только вредоносные хэши</option>
+          <option value="all_urls">Все URL данные (URL + кэш)</option>
+          <option value="all">ВСЕ угрозы (URL + хэши)</option>
+        </select>
+        <button type="submit" style="background: #dc2626;">Очистить</button>
+      </form>
     </div>
     """
     return _layout(request, "Админ панель – угрозы", body)
@@ -445,11 +473,205 @@ async def add_threat_action(
     source: str = Form("manual"),
 ):
     """Универсальный обработчик для добавления угроз"""
-    success = db_manager.add_threat(type, value, threat_level, source)
+    try:
+        if type == "url":
+            threat_type = "malware" if threat_level == "malicious" else "phishing"
+            severity = "high" if threat_level == "malicious" else "medium"
+            success = db_manager.add_malicious_url(value, threat_type, f"Manual addition: {threat_level}", severity)
+        elif type == "hash":
+            threat_type = "malware" if threat_level == "malicious" else "trojan"
+            severity = "high" if threat_level == "malicious" else "medium"
+            success = db_manager.add_malicious_hash(value, threat_type, f"Manual addition: {threat_level}", severity)
+        else:
+            success = False
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Add threat error: {e}")
+        success = False
+    
     prefix = request.scope.get("root_path", "")
     redirect = RedirectResponse(url=(prefix + ("/admin/ui/threats" if not prefix.endswith('/') else "admin/ui/threats")), status_code=303)
     msg = quote("Угроза добавлена" if success else "Ошибка добавления угрозы")
     redirect.set_cookie("flash", msg, max_age=10)
+    return redirect
+
+
+@router.get("/threats/search", response_class=HTMLResponse)
+async def search_urls_page(request: Request, q: str = ""):
+    """Страница поиска URL в базе данных"""
+    results = {"malicious_urls": [], "cached_blacklist": [], "cached_whitelist": []}
+    
+    if q:
+        try:
+            results = db_manager.search_urls_in_database(q, limit=50)
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Search URLs error: {e}")
+    
+    malicious_rows = "".join([
+        f"<tr><td><a href=\"{m['url']}\" target=\"_blank\">{m['url'][:80]}{'...' if len(m['url']) > 80 else ''}</a></td>"
+        f"<td>{m.get('domain', '-')}</td>"
+        f"<td>{m.get('threat_type', '-')}</td>"
+        f"<td>{m.get('severity', '-')}</td>"
+        f"<td>{m.get('detection_count', 0)}</td>"
+        f"<td class=\"muted\">{m.get('last_updated', '-')}</td>"
+        f"<td><form method=\"post\" action=\"{request.scope.get('root_path','') + ('/admin/ui/threats/remove' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/remove')}\" style=\"display:inline;\">"
+        f"<input type=\"hidden\" name=\"url\" value=\"{m['url']}\" />"
+        f"<input type=\"hidden\" name=\"type\" value=\"malicious\" />"
+        f"<button type=\"submit\" style=\"background: #dc2626; padding: 4px 8px; font-size: 12px;\">Удалить</button>"
+        f"</form>"
+        f"<form method=\"post\" action=\"{request.scope.get('root_path','') + ('/admin/ui/threats/recheck' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/recheck')}\" style=\"display:inline; margin-left:4px;\">"
+        f"<input type=\"hidden\" name=\"url\" value=\"{m['url']}\" />"
+        f"<button type=\"submit\" style=\"background: #059669; padding: 4px 8px; font-size: 12px;\">Перепроверить</button>"
+        f"</form></td></tr>"
+        for m in results["malicious_urls"]
+    ])
+    
+    blacklist_rows = "".join([
+        f"<tr><td><a href=\"{b['url']}\" target=\"_blank\">{b['url'][:80]}{'...' if len(b['url']) > 80 else ''}</a></td>"
+        f"<td>{b.get('domain', '-')}</td>"
+        f"<td>{b.get('threat_type', '-')}</td>"
+        f"<td>{b.get('hit_count', 0)}</td>"
+        f"<td class=\"muted\">{b.get('last_seen', '-')}</td>"
+        f"<td><form method=\"post\" action=\"{request.scope.get('root_path','') + ('/admin/ui/threats/remove' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/remove')}\" style=\"display:inline;\">"
+        f"<input type=\"hidden\" name=\"url\" value=\"{b['url']}\" />"
+        f"<input type=\"hidden\" name=\"type\" value=\"blacklist\" />"
+        f"<button type=\"submit\" style=\"background: #dc2626; padding: 4px 8px; font-size: 12px;\">Удалить</button>"
+        f"</form>"
+        f"<form method=\"post\" action=\"{request.scope.get('root_path','') + ('/admin/ui/threats/recheck' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats/recheck')}\" style=\"display:inline; margin-left:4px;\">"
+        f"<input type=\"hidden\" name=\"url\" value=\"{b['url']}\" />"
+        f"<button type=\"submit\" style=\"background: #059669; padding: 4px 8px; font-size: 12px;\">Перепроверить</button>"
+        f"</form></td></tr>"
+        for b in results["cached_blacklist"]
+    ])
+    
+    body = f"""
+    <div class="card">
+      <h1>Поиск URL в базе данных</h1>
+      <p class="muted">Найдите URL, который ошибочно помечен как опасный, и удалите его</p>
+    </div>
+    <div class="card">
+      <form method="get" style="display:grid; gap:8px;">
+        <label>Поиск URL или домена</label>
+        <input name="q" type="text" value="{q}" placeholder="Введите URL или домен" required />
+        <button type="submit">Найти</button>
+      </form>
+    </div>
+    {f'''
+    <div class="card">
+      <h2>Найдено в malicious_urls: {len(results["malicious_urls"])}</h2>
+      <div style="max-height:400px;overflow:auto;">
+        <table>
+          <thead><tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Уровень</th><th>Обнаружений</th><th>Обновлено</th><th>Действие</th></tr></thead>
+          <tbody>{malicious_rows or '<tr><td colspan=7 class="muted">Не найдено</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Найдено в cached_blacklist: {len(results["cached_blacklist"])}</h2>
+      <div style="max-height:400px;overflow:auto;">
+        <table>
+          <thead><tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Хитов</th><th>Последний раз</th><th>Действие</th></tr></thead>
+          <tbody>{blacklist_rows or '<tr><td colspan=6 class="muted">Не найдено</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    ''' if q else ''}
+    """
+    return _layout(request, "Поиск URL", body)
+
+
+@router.post("/threats/remove")
+async def remove_url_action(
+    request: Request,
+    url: str = Form(...),
+    type: str = Form(...),
+):
+    """Удаление конкретного URL из базы данных"""
+    try:
+        if type == "malicious":
+            success = db_manager.remove_malicious_url(url)
+            msg = f"URL удален из malicious_urls" if success else "URL не найден в malicious_urls"
+        elif type == "blacklist":
+            success = db_manager.remove_cached_blacklist_url(url)
+            msg = f"URL удален из blacklist кэша" if success else "URL не найден в blacklist кэша"
+        elif type == "all":
+            success = db_manager.mark_url_as_safe(url)
+            msg = f"URL помечен как безопасный (удален из всех списков)" if success else "URL не найден"
+        else:
+            msg = "Неверный тип"
+            success = False
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Remove URL error: {e}")
+        msg = f"Ошибка удаления: {str(e)}"
+        success = False
+    
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/threats/search?q=" + quote(url) if not prefix.endswith('/') else "admin/ui/threats/search?q=" + quote(url))), status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
+    return redirect
+
+
+@router.post("/threats/recheck")
+async def recheck_url_action(
+    request: Request,
+    url: str = Form(...),
+):
+    """Принудительная перепроверка URL (игнорирует БД)"""
+    try:
+        # Удаляем из БД и кэша
+        db_manager.mark_url_as_safe(url)
+        
+        # Делаем новый анализ, игнорируя БД
+        result = await analysis_service.analyze_url(url, use_external_apis=True, ignore_database=True)
+        
+        if result.get("safe") is True:
+            # Если URL безопасен, сохраняем в whitelist
+            db_manager.save_whitelist_entry(url, result)
+            msg = f"✅ URL перепроверен и помечен как безопасный"
+        elif result.get("safe") is False:
+            # Если все еще опасен, сохраняем обратно в blacklist (но не в malicious_urls)
+            db_manager.save_blacklist_entry(url, result)
+            msg = f"⚠️ URL перепроверен и все еще помечен как опасный: {result.get('threat_type', 'unknown')}"
+        else:
+            msg = f"❓ URL перепроверен, результат неопределенный"
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Recheck URL error: {e}")
+        msg = f"Ошибка перепроверки: {str(e)}"
+    
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/threats/search?q=" + quote(url) if not prefix.endswith('/') else "admin/ui/threats/search?q=" + quote(url))), status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
+    return redirect
+
+
+@router.post("/threats/clear")
+async def clear_threats_action(
+    request: Request,
+    target: str = Form(...),
+):
+    """Очистка базы данных угроз"""
+    try:
+        if target == "urls":
+            count = db_manager.clear_malicious_urls()
+            msg = f"Очищено {count} вредоносных URL"
+        elif target == "hashes":
+            count = db_manager.clear_malicious_hashes()
+            msg = f"Очищено {count} вредоносных хэшей"
+        elif target == "all_urls":
+            result = db_manager.clear_all_url_data()
+            msg = f"Очищено: {result['malicious_urls']} URL, {result['cached_whitelist']} whitelist, {result['cached_blacklist']} blacklist"
+        elif target == "all":
+            url_count = db_manager.clear_malicious_urls()
+            hash_count = db_manager.clear_malicious_hashes()
+            msg = f"Очищено {url_count} URL и {hash_count} хэшей"
+        else:
+            msg = "Неверный параметр"
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Clear threats error: {e}")
+        msg = f"Ошибка очистки: {str(e)}"
+    
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/threats" if not prefix.endswith('/') else "admin/ui/threats")), status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
     return redirect
 
 
@@ -488,6 +710,116 @@ async def logs_page(request: Request):
     </div>
     """
     return _layout(request, "Админ панель – логи", body)
+
+
+@router.get("/cache", response_class=HTMLResponse)
+async def cache_page(request: Request):
+    """Страница для просмотра всех URL из кэша (whitelist и blacklist)"""
+    try:
+        whitelist_entries = db_manager.get_all_cached_whitelist(limit=500)
+        blacklist_entries = db_manager.get_all_cached_blacklist(limit=500)
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Get cache entries error: {e}")
+        whitelist_entries = []
+        blacklist_entries = []
+    
+    whitelist_rows = "".join([
+        f"<tr><td><a href=\"https://{w['domain']}\" target=\"_blank\">{w['domain']}</a></td>"
+        f"<td>{w.get('confidence', '-')}</td>"
+        f"<td>{w.get('detection_ratio', '-')}</td>"
+        f"<td>{w.get('source', '-')}</td>"
+        f"<td>{w.get('hit_count', 0)}</td>"
+        f"<td class=\"muted\">{w.get('last_seen', '-')}</td></tr>"
+        for w in whitelist_entries
+    ])
+    
+    blacklist_rows = "".join([
+        f"<tr><td><a href=\"{b['url']}\" target=\"_blank\">{b['url'][:80]}{'...' if len(b['url']) > 80 else ''}</a></td>"
+        f"<td>{b.get('domain', '-')}</td>"
+        f"<td>{b.get('threat_type', '-')}</td>"
+        f"<td>{b.get('source', '-')}</td>"
+        f"<td>{b.get('hit_count', 0)}</td>"
+        f"<td class=\"muted\">{b.get('last_seen', '-')}</td></tr>"
+        for b in blacklist_entries
+    ])
+    
+    body = f"""
+    <div class="card">
+      <h1>Кэш URL</h1>
+      <p class="muted">Все URL, проанализированные системой и сохраненные в кэш</p>
+    </div>
+    <div class="row">
+      <div class="card col">
+        <h2>Статистика</h2>
+        <div>
+          <div><strong>Whitelist записей:</strong> {len(whitelist_entries)}</div>
+          <div><strong>Blacklist записей:</strong> {len(blacklist_entries)}</div>
+          <div><strong>Всего:</strong> {len(whitelist_entries) + len(blacklist_entries)}</div>
+        </div>
+      </div>
+      <div class="card col">
+        <h2>Очистка кэша</h2>
+        <p class="muted" style="color: #dc2626; font-weight: 600;">⚠️ ВНИМАНИЕ: Действие необратимо!</p>
+        <form method="post" action="{request.scope.get('root_path','') + ('/admin/ui/cache/clear' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/cache/clear')}" style="margin-top:12px; display:grid; gap:8px;">
+          <label>Что очистить</label>
+          <select name="target" required>
+            <option value="whitelist">Только whitelist</option>
+            <option value="blacklist">Только blacklist</option>
+            <option value="all">Весь кэш</option>
+          </select>
+          <button type="submit" style="background: #dc2626;">Очистить кэш</button>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Whitelist (безопасные домены)</h2>
+      <div style=\"max-height:400px;overflow:auto\">
+        <table>
+          <thead><tr><th>Домен</th><th>Уверенность</th><th>Соотношение</th><th>Источник</th><th>Хитов</th><th>Последний раз</th></tr></thead>
+          <tbody>{whitelist_rows or '<tr><td colspan=6 class="muted">Whitelist пуст</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Blacklist (опасные URL)</h2>
+      <div style=\"max-height:400px;overflow:auto\">
+        <table>
+          <thead><tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Источник</th><th>Хитов</th><th>Последний раз</th></tr></thead>
+          <tbody>{blacklist_rows or '<tr><td colspan=6 class="muted">Blacklist пуст</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    """
+    return _layout(request, "Админ панель – кэш URL", body)
+
+
+@router.post("/cache/clear")
+async def clear_cache_action(
+    request: Request,
+    target: str = Form(...),
+):
+    """Очистка кэша URL"""
+    try:
+        if target == "whitelist":
+            count = db_manager.clear_cached_whitelist()
+            msg = f"Очищено {count} записей из whitelist"
+        elif target == "blacklist":
+            count = db_manager.clear_cached_blacklist()
+            msg = f"Очищено {count} записей из blacklist"
+        elif target == "all":
+            whitelist_count = db_manager.clear_cached_whitelist()
+            blacklist_count = db_manager.clear_cached_blacklist()
+            msg = f"Очищено {whitelist_count} whitelist и {blacklist_count} blacklist записей"
+        else:
+            msg = "Неверный параметр"
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Clear cache error: {e}")
+        msg = f"Ошибка очистки: {str(e)}"
+    
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/cache" if not prefix.endswith('/') else "admin/ui/cache")), status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
+    return redirect
 
 
 @router.get("/ip", response_class=HTMLResponse)

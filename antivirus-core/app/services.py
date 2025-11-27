@@ -253,10 +253,16 @@ class AnalysisService:
             "is_suspicious": total_threat_score > 50
         }
     
-    async def analyze_url(self, url: str, use_external_apis: bool = None) -> Dict[str, Any]:
-        """Улучшенный анализ URL с внешними API"""
+    async def analyze_url(self, url: str, use_external_apis: bool = None, ignore_database: bool = False) -> Dict[str, Any]:
+        """Улучшенный анализ URL с внешними API
+        
+        Args:
+            url: URL для анализа
+            use_external_apis: Использовать ли внешние API
+            ignore_database: Если True, игнорирует записи в БД и делает новый анализ
+        """
         try:
-            logger.info(f"🔍 Analyzing URL: {url}")
+            logger.info(f"🔍 Analyzing URL: {url} (ignore_db={ignore_database})")
             # Нормализация URL
             url = self._normalize_url_for_analysis(url)
             
@@ -264,7 +270,7 @@ class AnalysisService:
             # если они были созданы без проверки внешних API
             cache_key = f"url:{url}"
             cached = self._cache_get(cache_key)
-            if cached is not None:
+            if cached is not None and not ignore_database:
                 # КРИТИЧНО: Если кэшированный результат имеет safe: True, но source не "combined" или "external_apis",
                 # значит он был создан без проверки внешних API - игнорируем его
                 # Также игнорируем любые результаты с source: "local_only" (старые данные)
@@ -283,18 +289,22 @@ class AnalysisService:
                 else:
                     return cached
             
-            # 1. Проверка в локальной базе данных
-            try:
-                url_threat = db_manager.check_url(url)
-                if url_threat:
-                    return {
-                        "safe": False,
-                        "threat_type": url_threat["threat_type"],
-                        "details": f"Local database: {url_threat['description']}",
-                        "source": "local_db"
-                    }
-            except Exception as db_error:
-                logger.warning(f"Database check failed: {db_error}")
+            # 1. Проверка в локальной базе данных (пропускаем если ignore_database=True)
+            if not ignore_database:
+                try:
+                    url_threat = db_manager.check_url(url)
+                    if url_threat:
+                        logger.info(f"⚠️ URL found in database as malicious: {url}")
+                        return {
+                            "safe": False,
+                            "threat_type": url_threat["threat_type"],
+                            "details": f"Local database: {url_threat['description']}",
+                            "source": "local_db"
+                        }
+                except Exception as db_error:
+                    logger.warning(f"Database check failed: {db_error}")
+            else:
+                logger.info(f"🔄 Ignoring database check for {url} (forced re-analysis)")
             
             # 2. Проверка домена в локальной базе
             parsed_url = urlparse(url)

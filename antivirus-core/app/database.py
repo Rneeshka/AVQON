@@ -1159,16 +1159,50 @@ class DatabaseManager:
         return []
     
     def get_all_threats(self) -> List[Dict[str, Any]]:
-        """Получает все угрозы из универсальной таблицы threats"""
+        """Получает все угрозы из реальных таблиц (malicious_urls и malicious_hashes)"""
+        threats = []
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
+                # Получаем URL угрозы
                 cursor.execute("""
-                    SELECT type, value, threat_level, source, created_at
-                    FROM threats
-                    ORDER BY created_at DESC
+                    SELECT url as value, threat_type, severity, description, 
+                           source, first_detected as created_at, detection_count
+                    FROM malicious_urls
+                    ORDER BY first_detected DESC
                 """)
-                return [dict(row) for row in cursor.fetchall()]
+                for row in cursor.fetchall():
+                    threats.append({
+                        "type": "url",
+                        "value": row["value"],
+                        "threat_level": row["severity"],
+                        "threat_type": row["threat_type"],
+                        "description": row["description"],
+                        "source": row["source"] or "unknown",
+                        "created_at": row["created_at"],
+                        "detection_count": row["detection_count"]
+                    })
+                
+                # Получаем хэш угрозы
+                cursor.execute("""
+                    SELECT hash as value, threat_type, severity, description,
+                           source, first_detected as created_at, detection_count
+                    FROM malicious_hashes
+                    ORDER BY first_detected DESC
+                """)
+                for row in cursor.fetchall():
+                    threats.append({
+                        "type": "hash",
+                        "value": row["value"],
+                        "threat_level": row["severity"],
+                        "threat_type": row["threat_type"],
+                        "description": row["description"],
+                        "source": row["source"] or "unknown",
+                        "created_at": row["created_at"],
+                        "detection_count": row["detection_count"]
+                    })
+                
+                return threats
         except sqlite3.Error as e:
             logger.error(f"Get all threats error: {e}")
             return []
@@ -1397,6 +1431,216 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.error(f"Reset password error: {e}")
             return False
+    
+    # ===== DATABASE CLEANUP METHODS =====
+    
+    def clear_malicious_urls(self) -> int:
+        """Очищает все вредоносные URL из базы данных. Возвращает количество удаленных записей."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM malicious_urls")
+                count = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM malicious_urls")
+                conn.commit()
+                logger.info(f"Cleared {count} malicious URLs from database")
+                return count
+        except sqlite3.Error as e:
+            logger.error(f"Clear malicious URLs error: {e}")
+            return 0
+    
+    def clear_malicious_hashes(self) -> int:
+        """Очищает все вредоносные хэши из базы данных. Возвращает количество удаленных записей."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM malicious_hashes")
+                count = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM malicious_hashes")
+                conn.commit()
+                logger.info(f"Cleared {count} malicious hashes from database")
+                return count
+        except sqlite3.Error as e:
+            logger.error(f"Clear malicious hashes error: {e}")
+            return 0
+    
+    def clear_cached_whitelist(self) -> int:
+        """Очищает весь whitelist кэш. Возвращает количество удаленных записей."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM cached_whitelist")
+                count = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM cached_whitelist")
+                conn.commit()
+                logger.info(f"Cleared {count} whitelist entries from cache")
+                return count
+        except sqlite3.Error as e:
+            logger.error(f"Clear whitelist cache error: {e}")
+            return 0
+    
+    def clear_cached_blacklist(self) -> int:
+        """Очищает весь blacklist кэш. Возвращает количество удаленных записей."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM cached_blacklist")
+                count = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM cached_blacklist")
+                conn.commit()
+                logger.info(f"Cleared {count} blacklist entries from cache")
+                return count
+        except sqlite3.Error as e:
+            logger.error(f"Clear blacklist cache error: {e}")
+            return 0
+    
+    def clear_all_url_data(self) -> Dict[str, int]:
+        """Очищает все данные, связанные с URL (malicious_urls, cached_whitelist, cached_blacklist)."""
+        return {
+            "malicious_urls": self.clear_malicious_urls(),
+            "cached_whitelist": self.clear_cached_whitelist(),
+            "cached_blacklist": self.clear_cached_blacklist()
+        }
+    
+    def remove_malicious_url(self, url: str) -> bool:
+        """Удаляет конкретный URL из таблицы malicious_urls."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM malicious_urls WHERE url = ?", (url.lower(),))
+                conn.commit()
+                deleted = cursor.rowcount > 0
+                if deleted:
+                    logger.info(f"Removed malicious URL from database: {url}")
+                return deleted
+        except sqlite3.Error as e:
+            logger.error(f"Remove malicious URL error: {e}")
+            return False
+    
+    def remove_cached_blacklist_url(self, url: str) -> bool:
+        """Удаляет конкретный URL из cached_blacklist."""
+        try:
+            url_hash = self._hash_url(url)
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM cached_blacklist WHERE url_hash = ?", (url_hash,))
+                conn.commit()
+                deleted = cursor.rowcount > 0
+                if deleted:
+                    logger.info(f"Removed URL from blacklist cache: {url}")
+                return deleted
+        except sqlite3.Error as e:
+            logger.error(f"Remove cached blacklist URL error: {e}")
+            return False
+    
+    def mark_url_as_safe(self, url: str) -> bool:
+        """Помечает URL как безопасный: удаляет из malicious_urls и cached_blacklist."""
+        removed_malicious = self.remove_malicious_url(url)
+        removed_blacklist = self.remove_cached_blacklist_url(url)
+        return removed_malicious or removed_blacklist
+    
+    def search_urls_in_database(self, search_term: str, limit: int = 100) -> Dict[str, List[Dict[str, Any]]]:
+        """Ищет URL в базе данных по частичному совпадению."""
+        results = {
+            "malicious_urls": [],
+            "cached_blacklist": [],
+            "cached_whitelist": []
+        }
+        search_lower = search_term.lower()
+        
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Поиск в malicious_urls
+                cursor.execute("""
+                    SELECT url, domain, threat_type, severity, description, 
+                           source, first_detected, last_updated, detection_count
+                    FROM malicious_urls
+                    WHERE url LIKE ? OR domain LIKE ?
+                    ORDER BY last_updated DESC
+                    LIMIT ?
+                """, (f"%{search_lower}%", f"%{search_lower}%", limit))
+                results["malicious_urls"] = [dict(row) for row in cursor.fetchall()]
+                
+                # Поиск в cached_blacklist
+                cursor.execute("""
+                    SELECT url_hash, url, domain, threat_type, details, source,
+                           first_seen, last_seen, hit_count
+                    FROM cached_blacklist
+                    WHERE url LIKE ? OR domain LIKE ?
+                    ORDER BY last_seen DESC
+                    LIMIT ?
+                """, (f"%{search_lower}%", f"%{search_lower}%", limit))
+                results["cached_blacklist"] = [dict(row) for row in cursor.fetchall()]
+                
+                # Поиск в cached_whitelist
+                cursor.execute("""
+                    SELECT domain, details, detection_ratio, confidence, source,
+                           first_seen, last_seen, hit_count
+                    FROM cached_whitelist
+                    WHERE domain LIKE ?
+                    ORDER BY last_seen DESC
+                    LIMIT ?
+                """, (f"%{search_lower}%", limit))
+                results["cached_whitelist"] = [dict(row) for row in cursor.fetchall()]
+                
+        except sqlite3.Error as e:
+            logger.error(f"Search URLs error: {e}")
+        
+        return results
+    
+    def get_all_cached_whitelist(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Возвращает все записи из whitelist кэша."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT domain, details, detection_ratio, confidence, source, 
+                           first_seen, last_seen, hit_count, payload
+                    FROM cached_whitelist
+                    ORDER BY last_seen DESC
+                    LIMIT ?
+                """, (limit,))
+                rows = []
+                for row in cursor.fetchall():
+                    entry = dict(row)
+                    if entry["payload"]:
+                        try:
+                            entry["payload"] = json.loads(entry["payload"])
+                        except json.JSONDecodeError:
+                            entry["payload"] = None
+                    rows.append(entry)
+                return rows
+        except sqlite3.Error as e:
+            logger.error(f"Get all cached whitelist error: {e}")
+            return []
+    
+    def get_all_cached_blacklist(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Возвращает все записи из blacklist кэша."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT url_hash, url, domain, threat_type, details, source,
+                           first_seen, last_seen, hit_count, payload
+                    FROM cached_blacklist
+                    ORDER BY last_seen DESC
+                    LIMIT ?
+                """, (limit,))
+                rows = []
+                for row in cursor.fetchall():
+                    entry = dict(row)
+                    if entry["payload"]:
+                        try:
+                            entry["payload"] = json.loads(entry["payload"])
+                        except json.JSONDecodeError:
+                            entry["payload"] = None
+                    rows.append(entry)
+                return rows
+        except sqlite3.Error as e:
+            logger.error(f"Get all cached blacklist error: {e}")
+            return []
 
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
