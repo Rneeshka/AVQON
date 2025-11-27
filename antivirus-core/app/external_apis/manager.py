@@ -239,7 +239,7 @@ class ExternalAPIManager:
                 total_checks += 1
         
         # КРИТИЧНО: Если хотя бы один API обнаружил угрозу - считаем опасным
-        # Консервативный подход: если нет четких данных - считаем опасным
+        # Сбалансированный подход: если нет угроз, но есть безопасные результаты - безопасно
         if unsafe_count > 0:
             is_safe = False
         elif safe_count > 0 and unsafe_count == 0:
@@ -255,13 +255,13 @@ class ExternalAPIManager:
                 is_safe = True
                 logger.info(f"At least one API returned safe=True (safe_count={safe_count}, enabled={enabled_count}, total_checks={total_checks}), treating as safe")
             else:
-                # Нет безопасных результатов - консервативный подход
-                is_safe = False
-                logger.warning(f"No safe results but no threats either - conservative approach (unsafe)")
+                # Нет безопасных результатов, но и нет угроз - возвращаем None для эвристики
+                is_safe = None
+                logger.info(f"No safe results but no threats either - returning None for heuristic fallback")
         else:
-            # Нет результатов или все вернули None - консервативный подход
-            is_safe = False
-            logger.warning(f"No results from APIs - conservative approach (unsafe)")
+            # Нет результатов или все вернули None - возвращаем None для эвристики
+            is_safe = None
+            logger.info(f"No results from APIs - returning None for heuristic fallback")
         
         # КРИТИЧНО: Определяем threat_type только если точно известно, что небезопасно
         threat_type = None
@@ -271,16 +271,16 @@ class ExternalAPIManager:
             threat_type = None  # Неизвестно
         
         # КРИТИЧНО: Если parsed_results пустой, значит нет валидных результатов
-        # Консервативный подход: нет данных - считаем опасным
+        # Возвращаем None для использования эвристики (не автоматически "опасно")
         if not parsed_results:
-            logger.warning(f"No valid parsed results for {original_url}, using conservative approach (unsafe)")
+            logger.warning(f"No valid parsed results for {original_url}, returning None for heuristic fallback")
             return {
-                "safe": False,
-                "threat_type": "suspicious",
-                "details": "No valid external API results - conservative security approach",
+                "safe": None,
+                "threat_type": None,
+                "details": "No valid external API results",
                 "source": "external_apis",
                 "external_scans": {},
-                "confidence": 40
+                "confidence": 0
             }
         
         final_result = {

@@ -7,11 +7,29 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, WebSocket, WebSocketDisconnect
-from app.logger import logger
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from app.security import api_key_auth  # этот импорт должен быть
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from pydantic import BaseModel
+
+from app.logger import logger
+from app.security import api_key_auth
 from app.websocket_manager import WebSocketManager, ClientConnection
+from app.schemas import (
+    CheckResponse,
+    UrlCheckRequest,
+    FileCheckRequest,
+    LocalCacheCheckRequest,
+    LocalCacheSaveRequest,
+    LocalCacheResponse,
+    LocalCacheStatsResponse
+)
+from app.validators import security_validator
+from app.external_apis.manager import external_api_manager
+from app.admin_ui import router as admin_ui_router
+from app.background_jobs import background_job_manager
+from app.auth import auth_manager
 
 # КРИТИЧНО: Безопасный импорт сервисов с обработкой ошибок
 try:
@@ -210,24 +228,6 @@ async def websocket_cleanup_task() -> None:
         except Exception as exc:
             logger.error(f"[WS] Cleanup task error: {exc}", exc_info=True)
         await asyncio.sleep(30)
-from app.schemas import (
-    CheckResponse,
-    UrlCheckRequest,
-    FileCheckRequest,
-    LocalCacheCheckRequest,
-    LocalCacheSaveRequest,
-    LocalCacheResponse,
-    LocalCacheStatsResponse
-)
-from app.validators import security_validator  # ← ДОБАВЬ
-from app.external_apis.manager import external_api_manager
-from app.admin_ui import router as admin_ui_router
-from app.background_jobs import background_job_manager
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from app.auth import auth_manager
-from pydantic import BaseModel
-from app.websocket_manager import WebSocketManager, ClientConnection
 
 # Схемы для аутентификации
 class RegisterRequest(BaseModel):
@@ -1548,29 +1548,39 @@ async def startup_event():
     else:
         logger.error("❌ CRITICAL: db_manager is None!")
     
-    logger.info("✅ AEGIS Server startup complete")
-    """Запуск приложения."""
+    # Проверяем подключение к базе
+    if db_manager:
+        try:
+            conn = db_manager._get_connection()
+            conn.close()
+            logger.info("Database connection established successfully")
+        except Exception as db_conn_error:
+            logger.error(f"Database connection check failed: {db_conn_error}")
+    
+    # Сбрасываем лимиты при запуске
+    if db_manager:
+        try:
+            db_manager.reset_rate_limits()
+            logger.info("Rate limits reset")
+        except Exception as reset_error:
+            logger.warning(f"Failed to reset rate limits: {reset_error}")
+    
+    # Запускаем фоновый менеджер задач
     try:
-        # Проверяем подключение к базе
-        conn = db_manager._get_connection()
-        conn.close()
-        logger.info("Database connection established successfully")
-        
-        # Сбрасываем лимиты при запуске
-        db_manager.reset_rate_limits()
-        logger.info("Rate limits reset")
-        
-        # Запускаем фоновый менеджер задач
         await background_job_manager.start()
         logger.info("Background job manager started")
+    except Exception as bg_error:
+        logger.error(f"Failed to start background job manager: {bg_error}")
 
-        if not app.state.ws_cleanup_task:
+    # Запускаем WebSocket cleanup task
+    try:
+        if not hasattr(app.state, 'ws_cleanup_task') or not app.state.ws_cleanup_task:
             app.state.ws_cleanup_task = asyncio.create_task(websocket_cleanup_task())
             logger.info("WebSocket cleanup task started")
-        
-    except Exception as e:
-        logger.error(f"Startup error: {e}")
-        raise
+    except Exception as ws_error:
+        logger.error(f"Failed to start WebSocket cleanup task: {ws_error}", exc_info=True)
+    
+    logger.info("✅ AEGIS Server startup complete")
 
 @app.on_event("shutdown")
 async def shutdown_event():

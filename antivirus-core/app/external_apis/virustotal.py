@@ -149,8 +149,9 @@ class VirusTotalClient(BaseAPIClient):
         )
         
         # КРИТИЧНО: Если нет данных (total == 0), возвращаем None (неизвестно)
+        # Это позволит использовать эвристику вместо автоматического "опасно"
         if total == 0:
-            logger.warning("[VirusTotal] No analysis stats available for result: %s", result)
+            logger.warning("[VirusTotal] No analysis stats available for result: %s, returning None for heuristic fallback", result)
             return {
                 "safe": None,
                 "threat_type": None,
@@ -180,23 +181,32 @@ class VirusTotalClient(BaseAPIClient):
             # Если не можем определить возраст, просто игнорируем этот признак
             is_young = False
 
-        # Правила:
-        # - malicious >= 1 или suspicious >= 1 → UNSAFE
-        # - undetected > 30% → UNSAFE
-        # - очень молодой ресурс (<90 дней) → UNSAFE
-        # - только если harmless >= 80% и нет детекций → SAFE
+        # Правила (сбалансированный подход с легкой паранойей):
+        # - malicious >= 1 или suspicious >= 1 → UNSAFE (явные угрозы)
+        # - undetected > 50% → UNSAFE (слишком много неизвестного - легкая паранойя)
+        # - очень молодой ресурс (<60 дней) + undetected > 30% → UNSAFE (подозрительно)
+        # - если harmless >= 60% и нет детекций → SAFE (более мягкий порог)
+        # - иначе → SAFE с низкой уверенностью (если нет явных угроз)
 
-        if has_detection or undetected_ratio > 0.3 or is_young:
+        if has_detection:
+            # Явные детекции - всегда опасно
             safe = False
             threat_type = "malicious"
-            if not has_detection and (undetected_ratio > 0.3 or is_young):
-                threat_type = "suspicious"
-        elif harmless_ratio >= 0.8 and not has_detection:
+        elif undetected_ratio > 0.5:
+            # Слишком много неизвестного - легкая паранойя
+            safe = False
+            threat_type = "suspicious"
+        elif is_young and undetected_ratio > 0.3:
+            # Молодой ресурс с большим процентом неизвестного - подозрительно
+            safe = False
+            threat_type = "suspicious"
+        elif harmless_ratio >= 0.6 and not has_detection:
+            # Достаточно "чистых" результатов - безопасно
             safe = True
             threat_type = None
         else:
-            # Не достаточно сигналов для уверенного SAFE -> считаем неизвестным
-            safe = None
+            # Нет явных угроз, но и недостаточно данных - считаем безопасным с низкой уверенностью
+            safe = True
             threat_type = None
 
         if has_detection:
