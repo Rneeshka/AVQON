@@ -169,6 +169,11 @@ async def dashboard(request: Request):
           <button onclick=\"nav('{request.scope.get('root_path','') + ('/admin/ui/threats' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats')}')\">Добавить угрозу</button>
         </div>
       </div>
+      <div class="card col" style="border: 2px solid #dc2626;">
+        <h2 style="color: #dc2626;">⚠️ Опасная зона</h2>
+        <p class="muted" style="color: #dc2626;">Полная очистка базы данных</p>
+        <button onclick=\"nav('{request.scope.get('root_path','') + ('/admin/ui/danger' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/danger')}')\" style=\"background: #dc2626; margin-top: 8px;\">Открыть опасную зону</button>
+      </div>
     </div>
     """
     return _layout(request, "Админ панель – обзор", body)
