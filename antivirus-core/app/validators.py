@@ -5,6 +5,7 @@ from typing import Dict, Any, Optional, List
 from .base_client import BaseAPIClient
 from app.config import config
 from app.logger import logger
+from app.external_apis.base_client import BaseAPIClient
 
 class VirusTotalClient(BaseAPIClient):
     """Клиент для VirusTotal API"""
