@@ -99,19 +99,23 @@ class AuthManager:
         return True, user_id, None
     
     @staticmethod
-    def login(username: str, password: str) -> Tuple[bool, Optional[dict], Optional[str]]:
+    def login(username: str, password: str, device_id: str = None) -> Tuple[bool, Optional[dict], Optional[str], Optional[str]]:
         """
         Авторизует пользователя.
+        КРИТИЧНО: При входе на новом устройстве старая сессия автоматически удаляется.
+        Старое устройство автоматически выйдет из аккаунта.
         
         Args:
             username (str): Имя пользователя или email
             password (str): Пароль
+            device_id (str, optional): Уникальный идентификатор устройства
             
         Returns:
-            Tuple[bool, Optional[dict], Optional[str]]: (success, account_data, error_message)
+            Tuple[bool, Optional[dict], Optional[str], Optional[str]]: 
+            (success, account_data, session_token, error_message)
         """
         if not username or not password:
-            return False, None, "Username и password обязательны"
+            return False, None, None, "Username и password обязательны"
         
         # Ищем аккаунт по username или email
         account = db_manager.get_account_by_username(username)
@@ -119,14 +123,29 @@ class AuthManager:
             account = db_manager.get_account_by_email(username)
         
         if not account:
-            return False, None, "Неверный username или пароль"
+            return False, None, None, "Неверный username или пароль"
         
         if not account["is_active"]:
-            return False, None, "Аккаунт деактивирован"
+            return False, None, None, "Аккаунт деактивирован"
         
         # Проверяем пароль
         if not AuthManager.verify_password(password, account["password_hash"]):
-            return False, None, "Неверный username или пароль"
+            return False, None, None, "Неверный username или пароль"
+        
+        # Генерируем device_id если не передан
+        if not device_id:
+            import secrets
+            device_id = secrets.token_hex(16)
+        
+        # Генерируем новый session_token
+        import secrets
+        session_token = secrets.token_urlsafe(32)
+        
+        # КРИТИЧНО: Устанавливаем новую сессию (старая автоматически удаляется через INSERT OR REPLACE)
+        # Это означает, что старое устройство потеряет доступ
+        if not db_manager.set_active_session(account["id"], session_token, device_id, expires_hours=720):
+            logger.error(f"Failed to set active session for user_id={account['id']}")
+            return False, None, None, "Ошибка создания сессии"
         
         # Обновляем время последнего входа
         db_manager.update_last_login(account["id"])
@@ -140,8 +159,8 @@ class AuthManager:
             "last_login": account["last_login"]
         }
         
-        logger.info(f"User logged in: username={username}, user_id={account['id']}")
-        return True, account_data, None
+        logger.info(f"User logged in: username={username}, user_id={account['id']}, device_id={device_id}")
+        return True, account_data, session_token, None
     
     @staticmethod
     def get_user_from_api_key(api_key: str) -> Optional[dict]:

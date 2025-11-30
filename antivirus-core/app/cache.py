@@ -133,6 +133,21 @@ class DiskCache:
         except Exception as e:
             logger.error(f"Cache stats error: {e}")
             return {"total_entries": 0, "active_entries": 0, "expired_entries": 0}
+    
+    def clear_all(self) -> int:
+        """Очищает весь кэш. Возвращает количество удаленных записей."""
+        try:
+            with sqlite3.connect(self.cache_db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM cache")
+                count = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM cache")
+                conn.commit()
+                logger.info(f"Cleared {count} entries from disk cache")
+                return count
+        except Exception as e:
+            logger.error(f"Clear all cache error: {e}")
+            return 0
 
 # Глобальный экземпляр диск-кэша
 disk_cache = DiskCache()

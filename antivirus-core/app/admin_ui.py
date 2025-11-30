@@ -866,6 +866,22 @@ async def danger_zone_page(request: Request):
           🗑️ ПОЛНОСТЬЮ ОЧИСТИТЬ БАЗУ ДАННЫХ
         </button>
       </form>
+      <div style="margin-top: 20px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+        <p style="margin: 0; font-size: 13px; color: #92400e;">
+          <strong>Примечание:</strong> Эта операция также очистит:
+          <ul style="margin: 8px 0 0 20px; padding: 0;">
+            <li>JSONL файлы кэша (cache_whitelist.jsonl, cache_blacklist.jsonl)</li>
+            <li>Диск-кэш (cache.db)</li>
+            <li>In-memory кэш сервиса анализа</li>
+          </ul>
+          <strong style="color: #dc2626;">ВНИМАНИЕ:</strong> Кэш в браузерном расширении нужно очищать отдельно:
+          <ol style="margin: 8px 0 0 20px; padding: 0;">
+            <li>Откройте расширение Aegis</li>
+            <li>Перейдите в настройки</li>
+            <li>Найдите опцию "Очистить кэш" или выполните в консоли браузера: <code style="background: #fff; padding: 2px 4px; border-radius: 3px;">chrome.storage.local.clear()</code></li>
+          </ol>
+        </p>
+      </div>
     </div>
     """
     return _layout(request, "⚠️ Опасная зона", body)
@@ -894,10 +910,18 @@ async def clear_all_database_action(
         return redirect
     
     try:
+        # Очищаем in-memory кэш сервиса анализа
+        try:
+            analysis_service.clear_cache()
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to clear in-memory cache: {e}")
+        
         results = db_manager.clear_all_database_data()
-        total_deleted = sum(results.values())
-        msg = f"✅ База данных полностью очищена! Удалено записей: {total_deleted}"
-        logging.getLogger(__name__).warning(f"FULL DATABASE CLEAR executed by admin - {total_deleted} records deleted")
+        total_deleted = sum([v for k, v in results.items() if k not in ['cache_whitelist.jsonl', 'cache_blacklist.jsonl']])
+        files_deleted = sum([1 for k in ['cache_whitelist.jsonl', 'cache_blacklist.jsonl'] if results.get(k, 0) > 0])
+        
+        msg = f"✅ База данных полностью очищена! Удалено записей: {total_deleted}, файлов: {files_deleted}, кэш: {results.get('cache.db', 0)}"
+        logging.getLogger(__name__).warning(f"FULL DATABASE CLEAR executed by admin - {total_deleted} records, {files_deleted} files, {results.get('cache.db', 0)} cache entries deleted")
     except Exception as e:
         logging.getLogger(__name__).error(f"Clear all database error: {e}")
         msg = f"❌ Ошибка очистки: {str(e)}"

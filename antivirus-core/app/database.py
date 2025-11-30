@@ -248,6 +248,18 @@ class DatabaseManager:
                     )
                 """)
                 
+                # 10. Таблица активных сессий (один аккаунт - одна активная сессия)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS active_sessions (
+                        user_id INTEGER PRIMARY KEY,
+                        session_token TEXT UNIQUE NOT NULL,
+                        device_id TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
+                    )
+                """)
+                
                 # Миграции схемы для совместимости со старыми базами (до индексов)
                 self._migrate_schema(conn)
 
@@ -272,6 +284,7 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_ip_reputation_score ON ip_reputation(reputation_score)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_status ON background_jobs(status)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_created ON background_jobs(created_at)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_active_sessions_token ON active_sessions(session_token)")
 
                 # Добавляем тестовые данные
                 self._add_test_data(cursor)
@@ -1359,6 +1372,79 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.error(f"Update last login error: {e}")
     
+    # ===== SESSION MANAGEMENT METHODS =====
+    
+    def get_active_session_token(self, user_id: int) -> Optional[str]:
+        """Получает активный session_token пользователя."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT session_token FROM active_sessions 
+                    WHERE user_id = ? 
+                    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                """, (user_id,))
+                result = cursor.fetchone()
+                return result[0] if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Get active session token error: {e}")
+            return None
+    
+    def set_active_session(self, user_id: int, session_token: str, device_id: str = None, expires_hours: int = 720) -> bool:
+        """
+        Устанавливает активную сессию для пользователя.
+        КРИТИЧНО: Если уже есть сессия - она перезаписывается (старое устройство автоматически выйдет).
+        """
+        try:
+            expires_at = (datetime.now() + timedelta(hours=expires_hours)).isoformat()
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Используем INSERT OR REPLACE для автоматической замены старой сессии
+                cursor.execute("""
+                    INSERT OR REPLACE INTO active_sessions 
+                    (user_id, session_token, device_id, expires_at)
+                    VALUES (?, ?, ?, ?)
+                """, (user_id, session_token, device_id, expires_at))
+                
+                conn.commit()
+                logger.info(f"Active session set for user_id={user_id}, device_id={device_id}")
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Set active session error: {e}")
+            return False
+    
+    def validate_session_token(self, session_token: str) -> Optional[int]:
+        """
+        Проверяет валидность session_token.
+        Возвращает user_id если сессия валидна, иначе None.
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT user_id FROM active_sessions 
+                    WHERE session_token = ? 
+                    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                """, (session_token,))
+                result = cursor.fetchone()
+                return result[0] if result else None
+        except sqlite3.Error as e:
+            logger.error(f"Validate session token error: {e}")
+            return None
+    
+    def delete_session(self, session_token: str) -> bool:
+        """Удаляет сессию по токену."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM active_sessions WHERE session_token = ?", (session_token,))
+                conn.commit()
+                return cursor.rowcount > 0
+        except sqlite3.Error as e:
+            logger.error(f"Delete session error: {e}")
+            return False
+    
     def generate_reset_code(self, email: str) -> Optional[str]:
         """Генерирует код восстановления для email."""
         try:
@@ -1645,6 +1731,7 @@ class DatabaseManager:
     def clear_all_database_data(self) -> Dict[str, int]:
         """ПОЛНАЯ ОЧИСТКА базы данных - удаляет все данные из всех таблиц (кроме системных).
         ВНИМАНИЕ: Это удалит ВСЕ угрозы, кэш, IP репутацию, но сохранит API ключи и аккаунты.
+        Также очищает JSONL файлы и диск-кэш.
         """
         results = {}
         try:
@@ -1674,7 +1761,31 @@ class DatabaseManager:
                         results[table] = 0
                 
                 conn.commit()
-                logger.warning("⚠️ FULL DATABASE CLEAR completed - all data tables cleared")
+                
+                # Очищаем JSONL файлы
+                try:
+                    if self.whitelist_file.exists():
+                        self.whitelist_file.unlink()
+                        logger.info("Deleted cache_whitelist.jsonl")
+                        results["cache_whitelist.jsonl"] = 1
+                    if self.blacklist_file.exists():
+                        self.blacklist_file.unlink()
+                        logger.info("Deleted cache_blacklist.jsonl")
+                        results["cache_blacklist.jsonl"] = 1
+                except Exception as e:
+                    logger.error(f"Error deleting JSONL files: {e}")
+                
+                # Очищаем диск-кэш
+                try:
+                    from app.cache import disk_cache
+                    cache_count = disk_cache.clear_all()
+                    results["cache.db"] = cache_count
+                    logger.info(f"Cleared {cache_count} entries from cache.db")
+                except Exception as e:
+                    logger.error(f"Error clearing disk cache: {e}")
+                    results["cache.db"] = 0
+                
+                logger.warning("⚠️ FULL DATABASE CLEAR completed - all data tables, JSONL files and cache cleared")
                 return results
         except sqlite3.Error as e:
             logger.error(f"Clear all database data error: {e}")

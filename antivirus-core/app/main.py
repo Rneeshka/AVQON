@@ -1447,15 +1447,22 @@ async def register_account(request: RegisterRequest):
     }
 
 @app.post("/auth/login")
-async def login_account(request: LoginRequest):
+async def login_account(request: LoginRequest, http_request: Request):
     """
     Авторизация в существующем аккаунте.
     
-    Возвращает информацию об аккаунте и привязанных API ключах.
+    КРИТИЧНО: При входе на новом устройстве старая сессия автоматически удаляется.
+    Старое устройство автоматически выйдет из аккаунта.
+    
+    Возвращает информацию об аккаунте, привязанных API ключах и session_token.
     """
-    success, account_data, error_msg = auth_manager.login(
+    # Извлекаем device_id из заголовков
+    device_id = http_request.headers.get("X-Device-ID")
+    
+    success, account_data, session_token, error_msg = auth_manager.login(
         username=request.username,
-        password=request.password
+        password=request.password,
+        device_id=device_id
     )
     
     if not success:
@@ -1471,8 +1478,43 @@ async def login_account(request: LoginRequest):
         "status": "success",
         "message": "Успешная авторизация",
         "account": account_data,
-        "api_keys": api_keys
+        "api_keys": api_keys,
+        "session_token": session_token
     }
+
+@app.post("/auth/validate-session")
+async def validate_session(request: Request):
+    """
+    Проверка валидности session_token.
+    Используется для автоматического выхода при входе на другом устройстве.
+    """
+    try:
+        body = await request.json()
+        session_token = body.get("session_token")
+        
+        if not session_token:
+            raise HTTPException(status_code=400, detail="session_token is required")
+        
+        # Проверяем валидность сессии
+        user_id = db_manager.validate_session_token(session_token)
+        
+        if not user_id:
+            # Сессия невалидна
+            return {
+                "status": "invalid",
+                "valid": False
+            }
+        
+        return {
+            "status": "valid",
+            "valid": True,
+            "user_id": user_id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Validate session error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/auth/me")
 async def get_current_user(request: Request):
