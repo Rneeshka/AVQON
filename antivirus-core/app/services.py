@@ -50,6 +50,11 @@ class AnalysisService:
         # YARA правила (простые сигнатуры)
         self._yara_rules = self._load_yara_rules()
     
+    def clear_cache(self):
+        """Очищает in-memory кэш анализа URL"""
+        self._cache.clear()
+        logger.info("In-memory cache cleared")
+    
     def _is_trusted_domain(self, domain: str) -> bool:
         """Проверяет, является ли домен доверенным"""
         if not domain:

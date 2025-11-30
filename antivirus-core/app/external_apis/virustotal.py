@@ -181,31 +181,32 @@ class VirusTotalClient(BaseAPIClient):
             # Если не можем определить возраст, просто игнорируем этот признак
             is_young = False
 
-        # Правила (сбалансированный подход с легкой паранойей):
+        # Правила (исправленная логика - приоритет harmless над undetected):
         # - malicious >= 1 или suspicious >= 1 → UNSAFE (явные угрозы)
-        # - undetected > 50% → UNSAFE (слишком много неизвестного - легкая паранойя)
-        # - очень молодой ресурс (<60 дней) + undetected > 30% → UNSAFE (подозрительно)
-        # - если harmless >= 60% и нет детекций → SAFE (более мягкий порог)
-        # - иначе → SAFE с низкой уверенностью (если нет явных угроз)
+        # - если harmless >= 60% и нет детекций → SAFE (даже если молодой или много undetected)
+        # - undetected > 70% И harmless < 30% → UNSAFE (слишком много неизвестного при малом количестве безопасных)
+        # - очень молодой ресурс (<90 дней) + undetected > 50% И harmless < 40% → UNSAFE (подозрительно)
+        # - иначе → SAFE (если нет явных угроз, считаем безопасным)
 
         if has_detection:
             # Явные детекции - всегда опасно
             safe = False
             threat_type = "malicious"
-        elif undetected_ratio > 0.5:
-            # Слишком много неизвестного - легкая паранойя
-            safe = False
-            threat_type = "suspicious"
-        elif is_young and undetected_ratio > 0.3:
-            # Молодой ресурс с большим процентом неизвестного - подозрительно
-            safe = False
-            threat_type = "suspicious"
         elif harmless_ratio >= 0.6 and not has_detection:
-            # Достаточно "чистых" результатов - безопасно
+            # КРИТИЧНО: Если большинство говорит "безопасно" - считаем безопасным
+            # Даже если ресурс молодой или есть undetected
             safe = True
             threat_type = None
+        elif undetected_ratio > 0.7 and harmless_ratio < 0.3:
+            # Слишком много неизвестного при малом количестве безопасных - подозрительно
+            safe = False
+            threat_type = "suspicious"
+        elif is_young and undetected_ratio > 0.5 and harmless_ratio < 0.4:
+            # Молодой ресурс с большим процентом неизвестного И малым количеством безопасных - подозрительно
+            safe = False
+            threat_type = "suspicious"
         else:
-            # Нет явных угроз, но и недостаточно данных - считаем безопасным с низкой уверенностью
+            # Нет явных угроз - считаем безопасным
             safe = True
             threat_type = None
 
@@ -218,14 +219,23 @@ class VirusTotalClient(BaseAPIClient):
         else:
             confidence = 0
 
+        # КРИТИЧНО: Формируем детали на русском, без упоминания VirusTotal
         if has_detection:
-            details = f"VirusTotal detections: {detection_ratio} malicious, {suspicious} suspicious"
+            if malicious > 0:
+                details = f"Обнаружено вредоносное ПО ({malicious} антивирусов)"
+            elif suspicious > 0:
+                details = f"Обнаружены подозрительные признаки ({suspicious} антивирусов)"
+            else:
+                details = "Обнаружены угрозы безопасности"
         elif safe is True:
-            details = f"VirusTotal clean (harmless={harmless}, undetected={undetected}, ratio={detection_ratio})"
+            details = f"Проверено {total} антивирусами, угроз не обнаружено"
         elif safe is False:
-            details = f"VirusTotal uncertain but treated as unsafe (undetected_ratio={undetected_ratio:.2f}, young={is_young})"
+            if is_young:
+                details = "Новый ресурс с недостаточным количеством проверок"
+            else:
+                details = "Недостаточно данных для подтверждения безопасности"
         else:
-            details = "VirusTotal result unclear, treated as unknown"
+            details = "Результат проверки неопределенный"
 
         parsed = {
             "safe": safe,
