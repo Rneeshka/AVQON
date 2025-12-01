@@ -37,7 +37,12 @@
   const state = {
     settings: { ...DEFAULTS },
     connectionTimer: null,
-    hoverTheme: 'classic'
+    hoverTheme: 'classic',
+    // КРИТИЧНО: Раздельные состояния для подключения и сканирования
+    isServerConnected: null, // null = checking, true = connected, false = disconnected
+    isScanning: false,
+    scanResult: null, // null = no result, { safe: true/false/null, ... } = scan result
+    sessionValidationTimer: null // Таймер для проверки валидности сессии
   };
 
   /**
@@ -85,36 +90,195 @@
   /**
    * UI state updates
    */
+  /**
+   * Обновляет badge в header (верхний правый угол)
+   * КРИТИЧНО: Этот badge показывает общий статус системы, не статус сканирования
+   */
   function setBadgeState(stateName) {
     const badge = elements.statusBadge;
-    const analysisBadge = elements.analysisBadge;
     const text = BADGE_TEXT[stateName] || stateName?.toUpperCase() || 'READY';
     if (badge) {
       badge.className = `badge ${stateName || 'ready'}`;
       badge.textContent = text;
     }
-    if (analysisBadge) {
-      analysisBadge.className = `badge ${stateName || 'ready'}`;
-      analysisBadge.textContent = text;
-    }
+    // КРИТИЧНО: analysisBadge управляется через setScanState(), не здесь
   }
 
+  /**
+   * Обновляет ТОЛЬКО статус подключения к серверу (верхняя карточка)
+   * НЕ должен влиять на статус сканирования
+   */
   function setConnectionState(isOnline, message) {
+    // Сохраняем состояние подключения
+    state.isServerConnected = isOnline;
+    
     const dot = elements.statusDot;
     if (dot) {
       dot.classList.remove('online', 'offline', 'checking');
-      dot.classList.add(isOnline ? 'online' : 'offline');
+      if (isOnline === null || isOnline === undefined) {
+        // Проверка подключения в процессе
+        dot.classList.add('checking');
+      } else {
+        dot.classList.add(isOnline ? 'online' : 'offline');
+      }
     }
+    
+    // КРИТИЧНО: Обновляем ТОЛЬКО connection text и status headline (верхняя карточка)
     if (elements.connectionText) {
-      elements.connectionText.textContent = message || (isOnline ? 'Подключено' : 'Нет подключения');
+      if (isOnline === null || isOnline === undefined) {
+        elements.connectionText.textContent = 'Подключение к серверу...';
+      } else {
+        elements.connectionText.textContent = message || (isOnline ? 'Подключено' : 'Нет подключения');
+      }
     }
+    
+    // КРИТИЧНО: Верхняя карточка показывает только статус подключения
+    if (elements.statusHeadline) {
+      if (isOnline === true) {
+        elements.statusHeadline.textContent = 'Готово';
+      } else if (isOnline === false) {
+        elements.statusHeadline.textContent = 'Не готово';
+      } else {
+        elements.statusHeadline.textContent = 'Проверка подключения...';
+      }
+    }
+  }
+
+  /**
+   * Обновляет ТОЛЬКО статус сканирования (средняя карточка)
+   * НЕ влияет на статус подключения
+   */
+  function setScanState(isScanning, scanResult) {
+    state.isScanning = isScanning;
+    state.scanResult = scanResult;
+    
+    // КРИТИЧНО: Обновляем ТОЛЬКО statusText и analysisBadge (средняя карточка)
+    if (isScanning) {
+      // Сканирование в процессе
+      if (elements.statusText) {
+        elements.statusText.textContent = 'Проверяем...';
+      }
+      if (elements.analysisBadge) {
+        elements.analysisBadge.className = 'badge scanning';
+        elements.analysisBadge.textContent = 'SCANNING';
+      }
+    } else if (scanResult) {
+      // Есть результат сканирования
+      const verdict = resolveVerdict(scanResult);
+      const map = {
+        malicious: 'Опасно',
+        suspicious: 'Подозрительно',
+        safe: 'Безопасно',
+        clean: 'Безопасно',
+        unknown: 'Неизвестно'
+      };
+      
+      if (elements.statusText) {
+        elements.statusText.textContent = map[verdict] || 'Готово';
+      }
+      
+      if (elements.analysisBadge) {
+        const badgeState = verdict === 'malicious' ? 'malicious' : verdict || 'ready';
+        elements.analysisBadge.className = `badge ${badgeState}`;
+        elements.analysisBadge.textContent = BADGE_TEXT[badgeState] || 'READY';
+      }
+    } else {
+      // Нет результата
+      if (elements.statusText) {
+        elements.statusText.textContent = 'Готово';
+      }
+      if (elements.analysisBadge) {
+        elements.analysisBadge.className = 'badge ready';
+        elements.analysisBadge.textContent = 'READY';
+      }
+    }
+  }
+
+  function showInternalNotification(message, type = 'info') {
+    // Создаем элемент уведомления внутри расширения
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#F59E0B'};
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    // Добавляем стиль для анимации
+    if (!document.getElementById('notification-styles')) {
+      const style = document.createElement('style');
+      style.id = 'notification-styles';
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
   }
 
   function toggleWarning(show, text) {
     if (!elements.warningCard) return;
     elements.warningCard.classList.toggle('hidden', !show);
     if (show && elements.warningText) {
-      elements.warningText.textContent = text || 'Обнаружены угрозы';
+      // КРИТИЧНО: Форматируем текст деталей - убираем упоминания VirusTotal, переводим на русский
+      let formattedText = text || 'Обнаружены угрозы';
+      
+      // Убираем упоминания VirusTotal и технические детали
+      formattedText = formattedText.replace(/VirusTotal[^.]*/gi, '');
+      formattedText = formattedText.replace(/Local database:[^.]*/gi, '');
+      formattedText = formattedText.replace(/undetected_ratio[^.]*/gi, '');
+      formattedText = formattedText.replace(/young[^.]*/gi, '');
+      formattedText = formattedText.replace(/uncertain[^.]*/gi, '');
+      formattedText = formattedText.replace(/treated as unsafe/gi, '');
+      formattedText = formattedText.replace(/\([^)]*\)/g, ''); // Убираем все в скобках
+      
+      // Переводим на русский
+      formattedText = formattedText.replace(/Detected by external scan/gi, 'Обнаружено внешними системами безопасности');
+      formattedText = formattedText.replace(/Detected by/gi, 'Обнаружено');
+      formattedText = formattedText.replace(/malware/gi, 'вредоносное ПО');
+      formattedText = formattedText.replace(/phishing/gi, 'фишинг');
+      formattedText = formattedText.replace(/suspicious/gi, 'подозрительный');
+      formattedText = formattedText.replace(/scam/gi, 'мошенничество');
+      formattedText = formattedText.replace(/fraud/gi, 'мошенничество');
+      
+      // Очищаем от лишних пробелов и точек
+      formattedText = formattedText.replace(/\s+/g, ' ').trim();
+      formattedText = formattedText.replace(/^[.,\s]+|[.,\s]+$/g, '');
+      
+      // Если текст пустой после очистки, используем стандартный
+      if (!formattedText || formattedText.length < 5) {
+        formattedText = 'Обнаружены угрозы безопасности';
+      }
+      
+      elements.warningText.textContent = formattedText;
     }
   }
 
@@ -151,27 +315,53 @@
   /**
    * Rendering logic
    */
+  // КРИТИЧНО: Храним последний вердикт, чтобы не менять безопасный на опасный
+  let lastVerdict = null;
+  let lastUrl = null;
+  let lastSafeResult = null;
+
   function renderResult(url, response) {
     if (!elements.resultEl) return;
     const res = response || {};
     const verdict = resolveVerdict(res);
 
-    applyAnalysisVerdict(verdict);
-    setBadgeState(verdict === 'malicious' ? 'malicious' : verdict || 'ready');
+    // КРИТИЧНО: Не меняем вердикт с безопасного на опасный для того же URL
+    // Это предотвращает ситуацию, когда сайт сначала показывается как безопасный,
+    // а потом меняется на опасный из-за устаревших данных в БД
+    if (url === lastUrl) {
+      if (lastVerdict === 'safe' && verdict === 'malicious') {
+        console.warn('[Aegis Popup] Ignoring malicious verdict change from safe for same URL:', url);
+        // Используем последний безопасный результат
+        if (lastSafeResult) {
+          renderResultInternal(url, lastSafeResult);
+        }
+        return;
+      }
+      // Если новый результат безопасный, сохраняем его
+      if (verdict === 'safe' || verdict === 'clean') {
+        lastSafeResult = res;
+      }
+    }
+    
+    // Обновляем последний вердикт и URL
+    lastVerdict = verdict;
+    lastUrl = url;
+    
+    renderResultInternal(url, res);
+  }
 
-    if (elements.statusHeadline) {
-      const map = {
-        malicious: 'Опасно',
-        suspicious: 'Подозрительно',
-        safe: 'Безопасно',
-        clean: 'Безопасно',
-        unknown: 'Неизвестно'
-      };
-      elements.statusHeadline.textContent = map[verdict] || 'Готово';
-    }
-    if (elements.statusText) {
-      elements.statusText.textContent = elements.statusHeadline ? elements.statusHeadline.textContent : 'Готово';
-    }
+  function renderResultInternal(url, response) {
+    if (!elements.resultEl) return;
+    const res = response || {};
+    const verdict = resolveVerdict(res);
+
+    // КРИТИЧНО: Обновляем только состояние сканирования (средняя карточка)
+    setScanState(false, res); // Сканирование завершено
+    
+    applyAnalysisVerdict(verdict);
+    
+    // КРИТИЧНО: НЕ обновляем statusHeadline (верхняя карточка) - она только для подключения
+    // statusHeadline управляется только через setConnectionState()
 
     // Функция для извлечения домена из URL
     function extractDomain(url) {
@@ -395,6 +585,25 @@
     }
   }
 
+  /**
+   * Получает или создает уникальный идентификатор устройства
+   */
+  async function getDeviceId() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['device_id'], (result) => {
+        if (result.device_id) {
+          resolve(result.device_id);
+        } else {
+          // Генерируем новый device_id
+          const deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          chrome.storage.local.set({ device_id: deviceId }, () => {
+            resolve(deviceId);
+          });
+        }
+      });
+    });
+  }
+
   async function handleLogin() {
     const usernameEl = document.getElementById('login-username');
     const passwordEl = document.getElementById('login-password');
@@ -406,7 +615,7 @@
     const password = passwordEl.value.trim();
     
     if (!username || !password) {
-      alert('Заполните логин и пароль');
+      showInternalNotification('⚠️ Заполните логин и пароль', 'warning');
       return;
     }
     
@@ -420,9 +629,15 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
       
+      // Получаем device_id
+      const deviceId = await getDeviceId();
+      
       const res = await fetch(`${apiBase}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId
+        },
         body: JSON.stringify({ username, password }),
         signal: controller.signal
       });
@@ -437,8 +652,12 @@
       const data = await res.json();
       const account = data.account;
       
+      // Сохраняем account и session_token
       await new Promise((resolve) => {
-        chrome.storage.sync.set({ account }, () => {
+        chrome.storage.sync.set({ 
+          account: account,
+          session_token: data.session_token 
+        }, () => {
           if (chrome.runtime?.lastError) {
             console.error('[Aegis] Failed to save account:', chrome.runtime.lastError);
           }
@@ -473,15 +692,75 @@
       if (accountInfo) accountInfo.style.display = 'block';
       if (document.body) document.body.setAttribute('data-account-mode', 'account');
       
-      alert('✅ Успешный вход!');
+      // Показываем уведомление внутри расширения, а не через alert
+      showInternalNotification('✅ Успешный вход!', 'success');
+      
+      // Запускаем проверку валидности сессии
+      startSessionValidation();
     } catch (error) {
       console.error('[Aegis] Login error:', error);
-      alert(error.message || 'Ошибка входа');
+      showInternalNotification('❌ ' + (error.message || 'Ошибка входа'), 'error');
     } finally {
       if (loginBtn) {
         loginBtn.disabled = false;
         loginBtn.textContent = 'Войти';
       }
+    }
+  }
+  
+  /**
+   * Проверяет валидность текущей сессии
+   */
+  async function checkSessionValidity() {
+    try {
+      const storage = await new Promise((resolve) => {
+        chrome.storage.sync.get(['session_token', 'account'], resolve);
+      });
+      
+      if (!storage.session_token || !storage.account) {
+        return true; // Нет сессии - не нужно проверять
+      }
+      
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const res = await fetch(`${apiBase}/auth/validate-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token: storage.session_token })
+      });
+      
+      if (!res.ok) {
+        // Сессия невалидна - автоматически выходим
+        console.warn('[Aegis] Session invalid, logging out');
+        await handleLogout();
+        showInternalNotification('⚠️ Вы вышли из аккаунта (вход выполнен на другом устройстве)', 'warning');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('[Aegis] Session validation error:', error);
+      return true; // При ошибке не выходим
+    }
+  }
+  
+  /**
+   * Запускает периодическую проверку валидности сессии
+   */
+  function startSessionValidation() {
+    // Проверяем каждые 30 секунд
+    if (state.sessionValidationTimer) {
+      clearInterval(state.sessionValidationTimer);
+    }
+    state.sessionValidationTimer = setInterval(checkSessionValidity, 30000);
+  }
+  
+  /**
+   * Останавливает проверку валидности сессии
+   */
+  function stopSessionValidation() {
+    if (state.sessionValidationTimer) {
+      clearInterval(state.sessionValidationTimer);
+      state.sessionValidationTimer = null;
     }
   }
 
@@ -500,12 +779,12 @@
     const apiKey = apiKeyEl ? apiKeyEl.value.trim() : '';
     
     if (!username || !email || !password) {
-      alert('Заполните все обязательные поля');
+      showInternalNotification('⚠️ Заполните все обязательные поля', 'warning');
       return;
     }
     
     if (password.length < 6) {
-      alert('Пароль должен содержать минимум 6 символов');
+      showInternalNotification('⚠️ Пароль должен содержать минимум 6 символов', 'warning');
       return;
     }
     
@@ -554,7 +833,7 @@
         }
       }
       
-      alert('✅ Аккаунт создан. Выполните вход.');
+      showInternalNotification('✅ Аккаунт создан. Выполните вход.', 'success');
       
       // Переключаемся на форму входа
       const loginForm = document.getElementById('login-form');
@@ -565,7 +844,7 @@
       
     } catch (error) {
       console.error('[Aegis] Register error:', error);
-      alert(error.message || 'Ошибка регистрации');
+      showInternalNotification('❌ ' + (error.message || 'Ошибка регистрации'), 'error');
     } finally {
       if (registerBtn) {
         registerBtn.disabled = false;
@@ -582,7 +861,7 @@
     
     const email = emailEl.value.trim();
     if (!email) {
-      alert('Введите email');
+      showInternalNotification('⚠️ Введите email', 'warning');
       return;
     }
     
@@ -613,10 +892,10 @@
       const resetCodeSection = document.getElementById('reset-code-section');
       if (resetCodeSection) resetCodeSection.style.display = 'block';
       
-      alert('✅ Письмо отправлено. Проверьте почту.');
+      showInternalNotification('✅ Письмо отправлено. Проверьте почту.', 'success');
     } catch (error) {
       console.error('[Aegis] Forgot password error:', error);
-      alert(error.message || 'Ошибка отправки');
+      showInternalNotification('❌ ' + (error.message || 'Ошибка отправки'), 'error');
     } finally {
       if (forgotBtn) {
         forgotBtn.disabled = false;
@@ -638,7 +917,7 @@
     const newPassword = newPasswordEl.value.trim();
     
     if (!email || !code || !newPassword) {
-      alert('Заполните все поля');
+      showInternalNotification('⚠️ Заполните все поля', 'warning');
       return;
     }
     
@@ -666,7 +945,7 @@
         throw new Error(error?.detail || 'Ошибка сброса');
       }
       
-      alert('✅ Пароль изменен. Войдите снова.');
+      showInternalNotification('✅ Пароль изменен. Войдите снова.', 'success');
       
       // Переключаемся на форму входа
       const loginForm = document.getElementById('login-form');
@@ -677,7 +956,7 @@
       
     } catch (error) {
       console.error('[Aegis] Reset password error:', error);
-      alert(error.message || 'Ошибка сброса');
+      showInternalNotification('❌ ' + (error.message || 'Ошибка сброса'), 'error');
     } finally {
       if (resetBtn) {
         resetBtn.disabled = false;
@@ -686,8 +965,12 @@
     }
   }
 
-  function handleLogout() {
-    chrome.storage.sync.remove(['account', 'apiKey'], () => {
+  async function handleLogout() {
+    // Останавливаем проверку сессии
+    stopSessionValidation();
+    
+    // Удаляем данные из хранилища
+    chrome.storage.sync.remove(['account', 'apiKey', 'session_token'], () => {
       const loginForm = document.getElementById('login-form');
       const accountInfo = document.getElementById('account-info');
       if (loginForm) loginForm.style.display = 'block';
@@ -699,7 +982,14 @@
   /**
    * Connection & scanning logic
    */
+  /**
+   * Проверяет статус подключения к серверу
+   * КРИТИЧНО: Обновляет ТОЛЬКО верхнюю карточку (connection status)
+   */
   async function checkConnectionStatus() {
+    // Устанавливаем состояние "проверка" перед проверкой
+    setConnectionState(null, null);
+    
     try {
       const response = await sendRuntimeMessage({ type: 'get_connection_status' });
       if (response && typeof response.isOnline === 'boolean') {
@@ -727,6 +1017,8 @@
 
   async function scanActiveTab() {
     if (!state.settings.antivirusEnabled) {
+      // КРИТИЧНО: Обновляем состояние сканирования
+      setScanState(false, { details: 'Защита отключена', safe: null });
       renderResult(null, { details: 'Защита отключена', safe: null });
       return;
     }
@@ -735,13 +1027,14 @@
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       const tab = tabs && tabs[0];
       if (!tab || !tab.url || tab.url.startsWith('chrome')) {
+        // КРИТИЧНО: Обновляем состояние сканирования
+        setScanState(false, { details: 'Нет доступного URL для проверки', safe: null });
         renderResult(null, { details: 'Нет доступного URL для проверки', safe: null });
         return;
       }
 
-      setBadgeState('suspicious');
-      if (elements.statusHeadline) elements.statusHeadline.textContent = 'Проверяем...';
-      if (elements.statusText) elements.statusText.textContent = 'Проверяем...';
+      // КРИТИЧНО: Обновляем только состояние сканирования (средняя карточка)
+      setScanState(true, null); // Начало сканирования
 
       const response = await sendRuntimeMessage({
         type: 'analyze_url',
@@ -765,7 +1058,8 @@
       renderResult(tab.url, result);
     } catch (error) {
       console.error('[Aegis Popup] scanActiveTab failed:', error);
-      setBadgeState('unknown');
+      // КРИТИЧНО: Обновляем состояние сканирования с ошибкой
+      setScanState(false, { safe: null, details: error?.message || 'Ошибка проверки' });
       renderResult(null, { safe: null, details: error?.message || 'Ошибка проверки' });
       toggleWarning(false);
     }
@@ -801,9 +1095,25 @@
       });
     });
 
+    // КРИТИЧНО: Инициализируем состояния отдельно
+    // 1. Проверяем подключение к серверу (верхняя карточка)
     await checkConnectionStatus();
     state.connectionTimer = setInterval(checkConnectionStatus, 30000);
+    
+    // 2. Инициализируем состояние сканирования (средняя карточка)
+    setScanState(false, null); // Нет активного сканирования
 
+    // 3. Проверяем, есть ли сохраненная сессия, и запускаем проверку валидности
+    const storage = await new Promise((resolve) => {
+      chrome.storage.sync.get(['session_token', 'account'], resolve);
+    });
+    if (storage.session_token && storage.account) {
+      startSessionValidation();
+      // Проверяем сразу при загрузке
+      checkSessionValidity();
+    }
+
+    // 4. Запускаем сканирование активной вкладки
     await scanActiveTab();
 
     // Дополнительно обновляем результат при фокусе окна
