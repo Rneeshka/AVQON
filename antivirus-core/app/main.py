@@ -899,7 +899,19 @@ async def check_url_secure(
                 "details": result.get("details", "Analysis completed"),
                 "source": result.get("source", "unknown")
             }
-        
+
+        # КРИТИЧНО: Фиксируем безопасные/опасные URL в локальной БД (whitelist/blacklist)
+        try:
+            if db_manager and url_str:
+                if response_data.get("safe") is True:
+                    # Безопасные URL -> cached_whitelist
+                    db_manager.save_whitelist_entry(url_str, response_data)
+                elif response_data.get("safe") is False:
+                    # Опасные URL -> cached_blacklist
+                    db_manager.save_blacklist_entry(url_str, response_data)
+        except Exception as persist_error:
+            logger.warning(f"Failed to persist URL verdict to cache DB for {url_str}: {persist_error}")
+
         return JSONResponse(
             content=response_data,
             headers={"Access-Control-Allow-Origin": "*"}

@@ -296,6 +296,21 @@ class AnalysisService:
             
             # 1. Проверка в локальной базе данных (пропускаем если ignore_database=True)
             if not ignore_database:
+                # 1.1. Сначала проверяем локальный кэш безопасных/опасных URL (whitelist/blacklist)
+                try:
+                    cached_local = db_manager.get_cached_security(url)
+                    if cached_local:
+                        logger.info(f"✅ URL found in local cache (whitelist/blacklist), skipping external APIs: {url}")
+                        return {
+                            "safe": cached_local.get("safe"),
+                            "threat_type": cached_local.get("threat_type"),
+                            "details": cached_local.get("details"),
+                            "source": cached_local.get("source") or cached_local.get("storage") or "local_cache",
+                        }
+                except Exception as cache_error:
+                    logger.warning(f"Local cache check failed for {url}: {cache_error}")
+
+                # 1.2. Проверяем таблицу malicious_urls
                 try:
                     url_threat = db_manager.check_url(url)
                     if url_threat:

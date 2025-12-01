@@ -596,23 +596,10 @@ async function loadFileAnalysisCache() {
 }
 
 async function persistFileAnalysisCache() {
-  if (!fileAnalysisCacheLoaded) return;
-  const payload = [];
-  const now = Date.now();
-  for (const [url, entry] of fileAnalysisCache.entries()) {
-    if (!entry) continue;
-    if (now - entry.timestamp > FILE_ANALYSIS_CACHE_TTL) {
-      fileAnalysisCache.delete(url);
-      continue;
-    }
-    const { timestamp, ...data } = entry;
-    payload.push({ url, timestamp, data });
-  }
-  try {
-    await new Promise((resolve) => chrome.storage.local.set({ [FILE_ANALYSIS_STORAGE_KEY]: payload }, resolve));
-  } catch (e) {
-    // Игнорируем ошибки сохранения
-  }
+  // КРИТИЧНО: Больше не сохраняем результаты анализа файлов в chrome.storage.local,
+  // чтобы вердикты хранились только на сервере (локальная БД).
+  // Кэш остается только в памяти текущего Service Worker.
+  return;
 }
 
 async function setFileAnalysisCache(url, data) {
@@ -1785,35 +1772,19 @@ if (chrome.downloads && chrome.downloads.onCreated) {
 // КРИТИЧНО: Сохранение состояния перед остановкой Service Worker
 // Это позволяет восстановить состояние после перезапуска
 chrome.runtime.onSuspend.addListener(() => {
-  // Сохраняем кэш и состояние перед остановкой
-  const cacheData = Array.from(cache.entries()).map(([url, data]) => ({
-    url,
-    data: data.data,
-    timestamp: data.timestamp
-  }));
+  // Сохраняем только состояние подключения, но НЕ сохраняем вердикты (hoverCache, анализ файлов)
   chrome.storage.local.set({
-    hoverCache: cacheData,
     connectionState: connectionState,
     suspendedAt: Date.now()
   }).catch(() => {});
+  // persistFileAnalysisCache больше не сохраняет данные в storage (только in-memory)
   persistFileAnalysisCache().catch(() => {});
 });
 
 // КРИТИЧНО: Восстановление состояния после перезапуска Service Worker
 async function restoreStateAfterRestart() {
   try {
-    const stored = await new Promise(r => chrome.storage.local.get(['hoverCache', 'connectionState', 'suspendedAt'], r));
-    
-    // Восстанавливаем кэш
-    if (stored.hoverCache && Array.isArray(stored.hoverCache)) {
-      const now = Date.now();
-      stored.hoverCache.forEach(({ url, data, timestamp }) => {
-        // Восстанавливаем только актуальные записи (не старше TTL)
-        if (now - timestamp < CACHE_TTL) {
-          cache.set(url, { data, timestamp });
-        }
-      });
-    }
+    const stored = await new Promise(r => chrome.storage.local.get(['connectionState', 'suspendedAt'], r));
     
     // Восстанавливаем состояние подключения
     if (stored.connectionState) {
