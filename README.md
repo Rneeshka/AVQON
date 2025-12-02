@@ -16,10 +16,10 @@ WebSocket‑связь с расширением
 
  Структура проекта
 Aegis/
-├─ aegis_start/        # Браузерное расширение
-├─ antivirus-core/     # FastAPI сервер ядра
-├─ data/               # SQLite базы
-└─ logs/               # Логи
+├── aegis_start/ # Браузерное расширение
+├── antivirus-core/ # FastAPI сервер ядра
+├── data/ # SQLite базы
+└── logs/ # Логи
  Быстрый старт
 1) Установка зависимостей
 python -m venv .venv
