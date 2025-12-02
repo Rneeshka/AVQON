@@ -16,11 +16,13 @@ WebSocket‑связь с расширением
 
  Структура проекта
 Aegis/
-├── aegis_start/ # Браузерное расширение
-├── antivirus-core/ # FastAPI сервер ядра
-├── data/ # SQLite базы
-└── logs/ # Логи
- Быстрый старт
+aegis_start/ — браузерное расширение (popup, background, native host)
+
+antivirus-core/ — FastAPI-сервер ядра и утилиты
+
+data/ — sqlite-базы и кэши
+
+logs/ — лог-файлы
 1) Установка зависимостей
 python -m venv .venv
 source .venv/bin/activate
