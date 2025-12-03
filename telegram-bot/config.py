@@ -25,6 +25,9 @@ TOTAL_LICENSES = 1000
 LICENSE_PRICE_LIFETIME = 500  # Вечная лицензия за 500₽
 LICENSE_PRICE_MONTHLY = 150  # Месячная подписка за 150₽
 
+# Совместимость со старой логикой
+LICENSE_PRICE = LICENSE_PRICE_LIFETIME
+
 # Ссылки (можно будет добавить позже)
 OWNERS_CHAT_LINK = os.getenv("OWNERS_CHAT_LINK", "https://t.me/aegis_owners")
 INSTALLATION_LINK = os.getenv("INSTALLATION_LINK", "https://chrome.google.com/webstore")
