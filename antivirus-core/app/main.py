@@ -1117,6 +1117,17 @@ async def validate_api_key(request: Request):
 async def create_api_key(request: Request):
     """Создание нового премиум API ключа."""
     try:
+        # Проверка авторизации через Bearer token (для Telegram-бота)
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+            import os
+            from dotenv import load_dotenv
+            load_dotenv("app/env.env")
+            admin_token = os.getenv("ADMIN_API_TOKEN", "")
+            if token != admin_token:
+                raise HTTPException(status_code=403, detail="Invalid authorization token")
+        
         # Получаем данные из JSON body
         body = await request.json()
         name = body.get("name")
@@ -1125,6 +1136,17 @@ async def create_api_key(request: Request):
         daily_limit = body.get("daily_limit", 1000)
         hourly_limit = body.get("hourly_limit", 100)
         expires_days = body.get("expires_days", 30)
+        
+        # Для Telegram-бота: если передан user_id, используем expires_days из запроса
+        user_id = body.get("user_id")
+        if user_id:
+            # expires_days уже установлен из body (36500 для вечной, 30 для месячной)
+            if not name:
+                name = f"Telegram User {user_id}"
+            if not description:
+                username = body.get("username", "")
+                license_type = "Lifetime" if expires_days >= 36500 else "Monthly"
+                description = f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else "")
         
         # Валидация обязательных полей
         if not name:
@@ -1136,7 +1158,7 @@ async def create_api_key(request: Request):
         
         api_key = db_manager.create_api_key(name, description, access_level, daily_limit, hourly_limit, expires_days)
         if api_key:
-            return {
+            response = {
                 "status": "success",
                 "api_key": api_key,
                 "name": name,
@@ -1146,6 +1168,14 @@ async def create_api_key(request: Request):
                 "expires_days": expires_days,
                 "features": "advanced_analysis,hover_analysis"
             }
+            # Для Telegram-бота возвращаем в формате license_key
+            if user_id:
+                response["success"] = True
+                response["license_key"] = api_key
+                # Для вечных лицензий expires_at = None
+                if expires_days >= 36500:
+                    response["expires_at"] = None
+            return response
         else:
             raise HTTPException(status_code=500, detail="Failed to create API key")
     except HTTPException:

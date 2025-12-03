@@ -529,7 +529,7 @@ class DatabaseManager:
             return None
     
     def _generate_formatted_key(self, access_level: str) -> str:
-        """Генерирует ключ в формате XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"""
+        """Генерирует ключ в формате PREMI-XXXXX-XXXXX-XXXXX-XXXXX (4 группы после префикса)"""
         import string
         import random
         
@@ -539,9 +539,9 @@ class DatabaseManager:
         # Генерируем случайные символы (буквы и цифры)
         chars = string.ascii_uppercase + string.digits
         
-        # Создаем 5 групп по 5 символов
+        # Создаем 4 группы по 5 символов (после префикса)
         groups = []
-        for i in range(5):
+        for i in range(4):
             if i == 0:
                 # Первая группа содержит префикс + 1 символ
                 group = prefix + random.choice(chars)
