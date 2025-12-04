@@ -1,18 +1,49 @@
 """Обработчики покупки"""
-import asyncio
+import uuid
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message, PreCheckoutQuery, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton
 from database import Database
 from api_client import generate_license_for_user
-from config import DB_PATH, TOTAL_LICENSES, LICENSE_PRICE_LIFETIME, LICENSE_PRICE_MONTHLY, OWNERS_CHAT_LINK, INSTALLATION_LINK, TEST_MODE
+from config import (
+    DB_PATH, LICENSE_PRICE_LIFETIME, LICENSE_PRICE_MONTHLY,
+    INSTALLATION_LINK, SUPPORT_TECH, YOOKASSA_PROVIDER_TOKEN
+)
 
 router = Router()
 db = Database(DB_PATH)
 
 
-@router.callback_query(F.data == "buy_license")
-async def buy_license(callback: CallbackQuery):
-    """Обработчик кнопки покупки лицензии"""
+async def create_invoice(amount: int, description: str, license_type: str):
+    """
+    Создает счет для оплаты через ЮKassa
+    В реальном режиме нужно будет заменить на вызов API ЮKassa
+    """
+    
+    # Параметры для платежа
+    prices = [LabeledPrice(label="AEGIS License", amount=amount * 100)]  # в копейках
+    
+    # В реальной версии здесь будет:
+    # 1. Создание платежа в ЮKassa через API
+    # 2. Получение confirmation_url
+    # 3. Возврат ссылки для оплаты
+    
+    # Заглушка для разработки (заменить на реальный provider_token)
+    return {
+        "title": "Оплата AEGIS",
+        "description": description,
+        "payload": f"payment_{license_type}_{uuid.uuid4().hex[:8]}",
+        "provider_token": YOOKASSA_PROVIDER_TOKEN or "TEST_PROVIDER_TOKEN",  # Заменить на реальный
+        "currency": "RUB",
+        "prices": prices,
+        "start_parameter": "aegis_payment",
+        "need_email": False,
+        "need_phone_number": False,
+    }
+
+
+@router.callback_query(F.data == "buy_forever")
+async def buy_forever(callback: CallbackQuery):
+    """Обработчик выбора постоянного доступа"""
     await callback.answer()
     
     user_id = callback.from_user.id
@@ -21,159 +52,228 @@ async def buy_license(callback: CallbackQuery):
     # Проверяем, не купил ли уже
     if user and user.get("has_license"):
         await callback.message.edit_text(
-            "У тебя уже есть лицензия! Используй команду /start чтобы увидеть свой ключ."
+            "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
         )
         return
     
-    stats = db.get_stats()
-    remaining = stats["remaining_licenses"]
-    
-    if remaining <= 0:
-        text = "😔 К сожалению, все 1000 лицензий уже разобраны! Следи за новостями — скоро будет подписка за 150₽/месяц."
-        await callback.message.edit_text(text)
+    # Проверяем лимит постоянных лицензий
+    available = db.get_available_forever_licenses()
+    if available <= 0:
+        text = """Постоянный доступ временно недоступен.
+
+Лимит в 1000 лицензий исчерпан. Мы выпускаем доступ ограниченными партиями для обеспечения стабильной работы системы.
+
+В данный момент доступна:
+• Проверка на месяц — 150₽
+
+Вы можете оставить контакт для уведомления о поступлении новых постоянных лицензий."""
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📅 Взять проверку на месяц", callback_data="buy_monthly")],
+            [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
+        ])
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
         return
     
-    text = f"""Отлично, хороший выбор! 🙌
+    text = f"""Вы выбрали постоянный доступ к AEGIS.
 
-Что ты получаешь за 500₽:
-🔹 Вечный доступ к AEGIS Premium (не подписка, а навсегда)
-🔹 Проверка ссылок по наведению курсора (главная фича!)
-🔹 Доступ к общей базе угроз (она пополняется каждым пользователем)
-🔹 Будущие обновления безопасности
-🔹 Доступ в закрытый чат владельцев (там делимся новыми угрозами)
+Стоимость: 500₽
+Доступ: не ограничен по времени
+Действует: на всех ваших устройствах с этим браузером
 
-Вот как будет выглядеть покупка:
-1. Ты жмешь «Оплатить» → переходишь в безопасную платежную систему
-2. Оплачиваешь 500₽ картой или криптой
-3. Через 10 секунд бот присылает тебе уникальный ключ
-4. Устанавливаешь расширение из Chrome Store, вводишь ключ
-5. Все, ты защищен!
+После оплаты вы получите:
+• Лицензионный ключ
+• Инструкцию по установке и активации
+• Доступ к обновлениям
 
-⚠️ Важно: это предложение ТОЛЬКО для первых 1000 человек.
-Сейчас осталось: {remaining} мест
+Осталось доступных лицензий: {available} из 1000
 
-Готов забирать свою лицензию?"""
+Перейти к оплате?"""
     
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💳 Оплатить 500₽ (перейти к оплате)", callback_data="proceed_payment")],
-        [InlineKeyboardButton(text="🤔 Есть вопросы", callback_data="faq")],
-        [InlineKeyboardButton(text="← Вернуться назад", callback_data="main_menu")]
+        [InlineKeyboardButton(text="💳 Перейти к оплате (500₽)", callback_data="proceed_payment_forever")],
+        [InlineKeyboardButton(text="← Назад к выбору", callback_data="main_menu")]
     ])
     
     await callback.message.edit_text(text, reply_markup=keyboard)
 
 
-@router.callback_query(F.data == "proceed_payment")
+@router.callback_query(F.data == "buy_monthly")
+async def buy_monthly(callback: CallbackQuery):
+    """Обработчик выбора проверки на месяц"""
+    await callback.answer()
+    
+    user_id = callback.from_user.id
+    user = db.get_user(user_id)
+    
+    # Проверяем, не купил ли уже
+    if user and user.get("has_license"):
+        await callback.message.edit_text(
+            "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
+        )
+        return
+    
+    text = """Вы выбрали проверку AEGIS на 30 дней.
+
+Стоимость: 150₽
+Срок действия: 30 дней с момента активации
+Автопродление: нет
+
+Что включено:
+• Все функции анализа ссылок
+• Обновления базы угроз
+• Поддержка
+
+Этот вариант подходит, если хотите оценить работу расширения перед покупкой постоянного доступа.
+
+Перейти к оплате?"""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Перейти к оплате (150₽)", callback_data="proceed_payment_monthly")],
+        [InlineKeyboardButton(text="← Назад к выбору", callback_data="main_menu")]
+    ])
+    
+    await callback.message.edit_text(text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith("proceed_payment_"))
 async def proceed_payment(callback: CallbackQuery):
     """Обработчик перехода к оплате"""
     await callback.answer()
     
-    if TEST_MODE:
-        text = """👌 Супер! Сейчас перенаправлю тебя в платежную систему...
+    license_type = "forever" if callback.data == "proceed_payment_forever" else "monthly"
+    amount = LICENSE_PRICE_LIFETIME if license_type == "forever" else LICENSE_PRICE_MONTHLY
+    
+    user_id = callback.from_user.id
+    
+    # Проверяем лимит для постоянных лицензий
+    if license_type == "forever":
+        available = db.get_available_forever_licenses()
+        if available <= 0:
+            await callback.message.edit_text(
+                "Постоянный доступ временно недоступен. Лимит исчерпан."
+            )
+            return
+    
+    description = f"Постоянный доступ к AEGIS" if license_type == "forever" else f"Проверка AEGIS на 30 дней"
+    
+    invoice_data = await create_invoice(amount, description, license_type)
+    
+    # Отправляем инвойс
+    bot = callback.bot
+    
+    try:
+        await bot.send_invoice(
+            chat_id=callback.message.chat.id,
+            title=invoice_data["title"],
+            description=invoice_data["description"],
+            payload=invoice_data["payload"],
+            provider_token=invoice_data["provider_token"],
+            currency=invoice_data["currency"],
+            prices=invoice_data["prices"],
+            start_parameter=invoice_data["start_parameter"],
+            need_email=invoice_data["need_email"],
+            need_phone_number=invoice_data["need_phone_number"]
+        )
+    except Exception as e:
+        # Если не поддерживается платеж через Telegram, используем альтернативный метод
+        # В реальной версии здесь будет ссылка на форму оплаты ЮKassa
+        text = f"""Оплата через ЮKassa.
 
-[Пауза 1 секунда]
+Сумма к оплате: {amount}₽
 
-Ах да, я же забыл сказать! Сейчас мы в режиме бета-теста, поэтому платежи идут в тестовом режиме.
+Для оплаты перейдите по ссылке:
+[Ссылка на форму оплаты ЮKassa будет здесь]
 
-Что это значит:
-• Ты можешь протестировать ВСЮ цепочку: оплату → получение ключа → активацию
-• Деньги НЕ списываются (это тестовый платеж)
-• Ключ ты получаешь НАСТОЯЩИЙ, рабочий
-• Потом, когда включим реальные платежи, первые тестеры получат скидку
+После успешной оплаты:
+1. Вы автоматически получите лицензионный ключ
+2. Ссылку на установку расширения
+3. Инструкцию по активации
 
-Хочешь протестировать и получить рабочий ключ прямо сейчас?"""
+Оплата защищена ЮKassa."""
         
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Да, протестировать! (получить тестовый ключ)", callback_data="test_payment")],
-            [InlineKeyboardButton(text="❌ Не сейчас, вернусь позже", callback_data="main_menu")]
+            [InlineKeyboardButton(text="← Назад", callback_data=f"buy_{license_type}")]
         ])
         
         await callback.message.edit_text(text, reply_markup=keyboard)
-    else:
-        # Здесь будет реальная интеграция с платежной системой
-        await callback.message.edit_text(
-            "Реальная оплата будет доступна после завершения бета-теста."
-        )
 
 
-@router.callback_query(F.data == "test_payment")
-async def test_payment(callback: CallbackQuery):
-    """Обработчик тестовой оплаты"""
-    await callback.answer()
+@router.pre_checkout_query()
+async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    """Обработка предварительного запроса оплаты"""
+    # В реальной версии здесь будет проверка платежа в ЮKassa
+    await pre_checkout_query.bot.answer_pre_checkout_query(
+        pre_checkout_query.id,
+        ok=True
+    )
+
+
+@router.message(F.successful_payment)
+async def process_successful_payment(message: Message):
+    """Обработка успешной оплаты"""
     
-    user_id = callback.from_user.id
-    username = callback.from_user.username
+    payment_info = message.successful_payment
+    amount = payment_info.total_amount // 100  # из копеек в рубли
+    
+    # Определяем тип лицензии по сумме
+    license_type = "forever" if amount == LICENSE_PRICE_LIFETIME else "monthly"
+    
+    user_id = message.from_user.id
+    username = message.from_user.username
     
     # Проверяем, не купил ли уже
     user = db.get_user(user_id)
     if user and user.get("has_license"):
-        await callback.message.edit_text(
-            "У тебя уже есть лицензия! Используй команду /start чтобы увидеть свой ключ."
+        await message.answer(
+            "У вас уже есть активная лицензия. Используйте команду /start чтобы увидеть свой ключ."
         )
         return
     
-    # Имитация процесса оплаты
-    await callback.message.edit_text("Имитирую процесс оплаты... 💸\n\n[Тип-топ, тип-топ... 3 секунды]")
-    await asyncio.sleep(3)
+    # Создаем запись о платеже
+    payment_id = payment_info.telegram_payment_charge_id or f"tg_{uuid.uuid4().hex[:8]}"
+    db.create_payment(payment_id, user_id, amount, license_type, "pending")
     
-    await callback.message.edit_text("✅ Отлично! «Оплата» прошла успешно!\n\nСейчас запрашиваю для тебя лицензионный ключ на нашем сервере...\n\n[Еще 2 секунды]")
-    await asyncio.sleep(2)
-    
-    # Запрашиваем ключ у API (вечная лицензия за 500₽)
-    license_key = await generate_license_for_user(user_id, username, is_lifetime=True)
+    # Генерируем ключ
+    is_lifetime = license_type == "forever"
+    license_key = await generate_license_for_user(user_id, username, is_lifetime=is_lifetime)
     
     if not license_key:
-        text = """Что-то пошло не так. Наши техники уже в курсе. Попробуй через 5 минут или напиши в поддержку."""
-        
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="👨💻 Написать в поддержку", callback_data="support")],
-            [InlineKeyboardButton(text="🔄 Попробовать снова", callback_data="test_payment")],
-            [InlineKeyboardButton(text="🏠 В главное меню", callback_data="main_menu")]
-        ])
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
+        await message.answer(
+            "Произошла ошибка при генерации ключа. Обратитесь в поддержку: " + SUPPORT_TECH
+        )
         return
     
     # Сохраняем лицензию в БД
     db.update_user_license(user_id, license_key)
+    db.update_payment_status(payment_id, "completed")
+    db.update_payment_license_key(payment_id, license_key)
     
-    # Создаем запись о платеже (тестовом)
-    import uuid
-    payment_id = f"test_{uuid.uuid4().hex[:8]}"
-    db.create_payment(payment_id, user_id, LICENSE_PRICE_LIFETIME, "completed")
-    
-    text = f"""🎉 ВОТ ТВОЙ КЛЮЧ:
+    # Отправляем ключ пользователю
+    text = f"""Оплата подтверждена.
+
+Ваш лицензионный ключ:
 
 `{license_key}`
 
-(сохрани его в надежном месте!)
+Ссылка для установки расширения:
+{INSTALLATION_LINK}
 
----
+Инструкция по активации:
+1. Установите расширение по ссылке выше
+2. Откройте настройки расширения
+3. Введите ваш лицензионный ключ
+4. Расширение активировано
 
-📋 **Как активировать:**
+Расширение начнет работать сразу после активации. Просто продолжайте пользоваться браузером как обычно.
 
-1. Установи расширение AEGIS из Chrome Web Store (бесплатно)
-2. Открой расширение (кликни на иконке в браузере)
-3. Найди поле «Активировать Premium версию»
-4. Введи ключ выше
-5. Готово! Теперь при наведении на ссылки будет появляться проверка
-
----
-
-🔒 **Важный момент:**
-Твой ключ привязан к твоему Telegram-аккаунту. Если что-то случится с расширением или браузером — просто напиши в поддержку, мы вышлем ключ повторно.
-
-Хочешь зайти в чат других владельцев AEGIS? Там мы обсуждаем новые угрозы и фишки."""
+При возникновении вопросов: {SUPPORT_TECH}"""
     
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💬 Войти в чат владельцев", url=OWNERS_CHAT_LINK)],
-        [InlineKeyboardButton(text="❓ Помощь с установкой", callback_data="help")],
-        [InlineKeyboardButton(text="🏠 В главное меню", callback_data="main_menu")]
+        [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
+        [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+        [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
     ])
     
-    await callback.message.edit_text(text, reply_markup=keyboard)
-
+    await message.answer(text, reply_markup=keyboard)

@@ -40,13 +40,33 @@ class Database:
         # Таблица платежей
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS payments (
-                payment_id TEXT PRIMARY KEY,
-                user_id BIGINT,
-                amount INTEGER,
-                status TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id BIGINT NOT NULL,
+                amount INTEGER NOT NULL,
+                license_type TEXT NOT NULL,
+                license_key TEXT,
+                payment_id TEXT UNIQUE,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
             )
         """)
+        
+        # Добавляем новые колонки если таблица уже существует
+        try:
+            cursor.execute("ALTER TABLE payments ADD COLUMN license_type TEXT")
+        except sqlite3.OperationalError:
+            pass  # Колонка уже существует
+        
+        try:
+            cursor.execute("ALTER TABLE payments ADD COLUMN license_key TEXT")
+        except sqlite3.OperationalError:
+            pass
+        
+        try:
+            cursor.execute("ALTER TABLE payments ADD COLUMN completed_at TIMESTAMP")
+        except sqlite3.OperationalError:
+            pass
         
         conn.commit()
         conn.close()
@@ -93,26 +113,44 @@ class Database:
         conn.close()
         logger.info(f"Обновлена лицензия для пользователя {user_id}")
     
-    def create_payment(self, payment_id: str, user_id: int, amount: int, status: str = "pending"):
+    def create_payment(self, payment_id: str, user_id: int, amount: int, license_type: str, status: str = "pending"):
         """Создать запись о платеже"""
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO payments (payment_id, user_id, amount, status) VALUES (?, ?, ?, ?)",
-            (payment_id, user_id, amount, status)
+            "INSERT INTO payments (payment_id, user_id, amount, license_type, status) VALUES (?, ?, ?, ?, ?)",
+            (payment_id, user_id, amount, license_type, status)
         )
         conn.commit()
         conn.close()
         logger.info(f"Создан платеж {payment_id} для пользователя {user_id}")
     
+    def update_payment_license_key(self, payment_id: str, license_key: str):
+        """Обновить лицензионный ключ в платеже"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE payments SET license_key = ? WHERE payment_id = ?",
+            (license_key, payment_id)
+        )
+        conn.commit()
+        conn.close()
+    
     def update_payment_status(self, payment_id: str, status: str):
         """Обновить статус платежа"""
         conn = self._get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE payments SET status = ? WHERE payment_id = ?",
-            (status, payment_id)
-        )
+        from datetime import datetime
+        if status == "completed":
+            cursor.execute(
+                "UPDATE payments SET status = ?, completed_at = ? WHERE payment_id = ?",
+                (status, datetime.now(), payment_id)
+            )
+        else:
+            cursor.execute(
+                "UPDATE payments SET status = ? WHERE payment_id = ?",
+                (status, payment_id)
+            )
         conn.commit()
         conn.close()
     
@@ -125,6 +163,22 @@ class Database:
         conn.close()
         return count
     
+    def get_forever_licenses_count(self) -> int:
+        """Получить количество выданных постоянных лицензий"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM payments WHERE license_type = 'forever' AND status = 'completed'"
+        )
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_available_forever_licenses(self) -> int:
+        """Получить количество оставшихся постоянных лицензий"""
+        issued = self.get_forever_licenses_count()
+        return max(0, 1000 - issued)
+    
     def get_total_users(self) -> int:
         """Получить общее количество пользователей"""
         conn = self._get_connection()
@@ -136,9 +190,11 @@ class Database:
     
     def get_stats(self) -> Dict:
         """Получить статистику"""
+        forever_count = self.get_forever_licenses_count()
         return {
             "total_users": self.get_total_users(),
             "licenses_count": self.get_licenses_count(),
-            "remaining_licenses": max(0, 1000 - self.get_licenses_count())
+            "forever_licenses_count": forever_count,
+            "remaining_forever_licenses": max(0, 1000 - forever_count)
         }
 
