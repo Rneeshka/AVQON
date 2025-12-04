@@ -1,18 +1,28 @@
 """Админ-команды"""
+import logging
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from database import Database
 from api_client import generate_license_for_user
 from config import ADMIN_ID, DB_PATH
 
+logger = logging.getLogger(__name__)
 router = Router()
 db = Database(DB_PATH)
+
+# ID главного администратора (для критических команд)
+MAIN_ADMIN_ID = 696019842
 
 
 def is_admin(user_id: int) -> bool:
     """Проверка, является ли пользователь админом"""
     return user_id == ADMIN_ID
+
+
+def is_main_admin(user_id: int) -> bool:
+    """Проверка, является ли пользователь главным админом"""
+    return user_id == MAIN_ADMIN_ID
 
 
 @router.message(Command("stats"))
@@ -30,6 +40,26 @@ async def cmd_stats(message: Message):
 🎫 Осталось лицензий: {stats['remaining_licenses']}"""
     
     await message.answer(text, parse_mode="Markdown")
+
+
+@router.message(Command("admin_stats"))
+async def cmd_admin_stats(message: Message):
+    """Детальная статистика по БД"""
+    if not is_admin(message.from_user.id):
+        await message.answer("Эта команда доступна только администратору.")
+        return
+    
+    stats = db.get_detailed_stats()
+    text = f"""📊 **Детальная статистика БД:**
+
+👥 Пользователей: {stats['users']}
+🔑 Лицензий выдано: {stats['licenses']}
+💳 Всего платежей: {stats['payments']}
+  ✅ Завершено: {stats['completed_payments']}
+  ⏳ В ожидании: {stats['pending_payments']}
+  ❌ Ошибок: {stats['failed_payments']}"""
+    
+    await message.answer(text)
 
 
 @router.message(Command("user"))
@@ -125,4 +155,61 @@ async def cmd_give_key(message: Message):
         )
     except Exception as e:
         await message.answer(f"⚠️ Ключ сохранен в БД, но не удалось отправить пользователю: {e}")
+
+
+@router.message(Command("admin_reset_all"))
+async def cmd_admin_reset_all(message: Message):
+    """Очистка всех данных из БД (только для главного админа)"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    # Показываем статистику перед очисткой
+    stats = db.get_detailed_stats()
+    text = f"""⚠️ **ВНИМАНИЕ! ОПАСНАЯ ОПЕРАЦИЯ!**
+
+Вы собираетесь удалить ВСЕ данные из базы данных:
+
+👥 Пользователей: {stats['users']}
+💳 Платежей: {stats['payments']}
+🔑 Лицензий: {stats['licenses']}
+
+Эта операция НЕОБРАТИМА!
+
+Вы уверены?"""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Да, удалить всё", callback_data="confirm_reset_all")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_reset_all")]
+    ])
+    
+    await message.answer(text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data == "confirm_reset_all")
+async def confirm_reset_all(callback: CallbackQuery):
+    """Подтверждение очистки БД"""
+    if not is_main_admin(callback.from_user.id):
+        await callback.answer("❌ У вас нет прав для выполнения этой операции.", show_alert=True)
+        return
+    
+    await callback.answer()
+    
+    try:
+        # Очищаем БД
+        db.reset_all_data()
+        
+        logger.warning(f"База данных очищена администратором {callback.from_user.id}")
+        
+        await callback.message.edit_text("✅ База полностью очищена")
+    except Exception as e:
+        logger.error(f"Ошибка при очистке БД: {e}", exc_info=True)
+        await callback.message.edit_text(f"❌ Ошибка при очистке БД: {e}")
+
+
+@router.callback_query(F.data == "cancel_reset_all")
+async def cancel_reset_all(callback: CallbackQuery):
+    """Отмена очистки БД"""
+    await callback.answer("Операция отменена")
+    await callback.message.edit_text("❌ Очистка базы данных отменена")
 

@@ -140,7 +140,6 @@ class Database:
         """Обновить статус платежа"""
         conn = self._get_connection()
         cursor = conn.cursor()
-        from datetime import datetime
         if status == "completed":
             cursor.execute(
                 "UPDATE payments SET status = ?, completed_at = ? WHERE payment_id = ?",
@@ -197,4 +196,55 @@ class Database:
             "forever_licenses_count": forever_count,
             "remaining_forever_licenses": max(0, 1000 - forever_count)
         }
+    
+    def get_detailed_stats(self) -> Dict:
+        """Получить детальную статистику по БД"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Подсчет записей в каждой таблице
+        cursor.execute("SELECT COUNT(*) FROM users")
+        users_count = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM payments")
+        payments_count = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM users WHERE has_license = TRUE")
+        licenses_count = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM payments WHERE status = 'completed'")
+        completed_payments = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM payments WHERE status = 'pending'")
+        pending_payments = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM payments WHERE status = 'failed'")
+        failed_payments = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return {
+            "users": users_count,
+            "payments": payments_count,
+            "licenses": licenses_count,
+            "completed_payments": completed_payments,
+            "pending_payments": pending_payments,
+            "failed_payments": failed_payments
+        }
+    
+    def reset_all_data(self):
+        """Очистить все данные из БД"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Очищаем таблицы
+        cursor.execute("DELETE FROM payments")
+        cursor.execute("DELETE FROM users")
+        
+        # Сбрасываем автоинкремент для payments
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='payments'")
+        
+        conn.commit()
+        conn.close()
+        logger.warning("База данных полностью очищена")
 
