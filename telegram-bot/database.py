@@ -237,14 +237,25 @@ class Database:
         conn = self._get_connection()
         cursor = conn.cursor()
         
-        # Очищаем таблицы
-        cursor.execute("DELETE FROM payments")
-        cursor.execute("DELETE FROM users")
+        # Получаем список всех таблиц в БД
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cursor.fetchall()]
         
-        # Сбрасываем автоинкремент для payments
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='payments'")
+        # Список таблиц для очистки (только пользовательские таблицы)
+        tables_to_clear = ['users', 'payments', 'licenses']
+        
+        # Очищаем только существующие таблицы
+        cleared_tables = []
+        for table in tables_to_clear:
+            if table in tables:
+                try:
+                    cursor.execute(f"DELETE FROM {table}")
+                    cleared_tables.append(table)
+                    logger.info(f"Очищена таблица: {table}")
+                except sqlite3.OperationalError as e:
+                    logger.error(f"Ошибка при очистке таблицы {table}: {e}")
         
         conn.commit()
         conn.close()
-        logger.warning("База данных полностью очищена")
+        logger.warning(f"База данных очищена. Очищены таблицы: {', '.join(cleared_tables)}")
 
