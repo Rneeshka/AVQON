@@ -72,9 +72,11 @@ async def buy_forever(callback: CallbackQuery):
         return
     
     description = f"Постоянный доступ к AEGIS - вечная лицензия"
+    logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_LIFETIME}₽")
     payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
     
     if not payment_result:
+        logger.error(f"Не удалось создать платеж для пользователя {user_id}")
         await callback.message.edit_text(
             "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
         )
@@ -133,9 +135,11 @@ async def buy_monthly(callback: CallbackQuery):
         return
     
     description = f"Проверка AEGIS на 30 дней - месячная подписка"
+    logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_MONTHLY}₽")
     payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
     
     if not payment_result:
+        logger.error(f"Не удалось создать платеж для пользователя {user_id}")
         await callback.message.edit_text(
             "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
         )

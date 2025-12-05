@@ -46,10 +46,21 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
         Dict с payment_id и confirmation_url или None при ошибке
     """
     if not YOOKASSA_AVAILABLE:
-        logger.error("ЮKassa недоступна: библиотека не установлена или не настроена")
+        logger.warning("ЮKassa недоступна: библиотека не установлена или не настроена")
+        return None
+    
+    if Payment is None:
+        logger.warning("Payment класс недоступен")
         return None
     
     try:
+        logger.info(f"Создание платежа: сумма {amount}₽, описание: {description}")
+        
+        # Проверяем, что Configuration настроена правильно
+        if not Configuration.account_id or not Configuration.secret_key:
+            logger.error("Configuration ЮKassa не настроена: отсутствуют account_id или secret_key")
+            return None
+        
         payment = Payment.create({
             "amount": {
                 "value": f"{amount:.2f}",
@@ -75,6 +86,7 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
         }
     except ApiError as e:
         logger.error(f"Ошибка API ЮKassa при создании платежа: {e}")
+        logger.error(f"Детали ошибки: {e.__dict__ if hasattr(e, '__dict__') else str(e)}")
         return None
     except Exception as e:
         logger.error(f"Неожиданная ошибка при создании платежа: {e}", exc_info=True)
