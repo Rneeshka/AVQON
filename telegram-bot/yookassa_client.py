@@ -1,0 +1,85 @@
+"""Клиент для работы с API ЮKassa"""
+import logging
+from typing import Optional, Dict
+from yookassa import Configuration, Payment
+from yookassa.domain.exceptions import ApiError
+from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY, YOOKASSA_TEST_MODE
+
+logger = logging.getLogger(__name__)
+
+# Настройка ЮKassa
+Configuration.account_id = YOOKASSA_SHOP_ID
+Configuration.secret_key = YOOKASSA_SECRET_KEY
+
+
+async def create_payment(amount: int, description: str, return_url: str = None) -> Optional[Dict]:
+    """
+    Создать платеж в ЮKassa
+    
+    Args:
+        amount: Сумма в рублях (будет конвертирована в копейки)
+        description: Описание платежа
+        return_url: URL для возврата после оплаты (опционально)
+    
+    Returns:
+        Dict с payment_id и confirmation_url или None при ошибке
+    """
+    try:
+        payment = Payment.create({
+            "amount": {
+                "value": f"{amount:.2f}",
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": return_url or "https://t.me"
+            },
+            "capture": True,
+            "description": description
+        })
+        
+        payment_id = payment.id
+        confirmation_url = payment.confirmation.confirmation_url
+        
+        logger.info(f"Создан платеж ЮKassa: {payment_id}, сумма: {amount}₽")
+        
+        return {
+            "payment_id": payment_id,
+            "confirmation_url": confirmation_url,
+            "status": payment.status
+        }
+    except ApiError as e:
+        logger.error(f"Ошибка API ЮKassa при создании платежа: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при создании платежа: {e}", exc_info=True)
+        return None
+
+
+async def get_payment_status(payment_id: str) -> Optional[Dict]:
+    """
+    Получить статус платежа из ЮKassa
+    
+    Args:
+        payment_id: ID платежа от ЮKassa
+    
+    Returns:
+        Dict с данными платежа или None при ошибке
+    """
+    try:
+        payment = Payment.find_one(payment_id)
+        
+        return {
+            "payment_id": payment.id,
+            "status": payment.status,
+            "amount": float(payment.amount.value),
+            "paid": payment.paid,
+            "cancelled": payment.cancelled
+        }
+    except ApiError as e:
+        logger.error(f"Ошибка API ЮKassa при получении статуса платежа {payment_id}: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при получении статуса платежа: {e}", exc_info=True)
+        return None
+
