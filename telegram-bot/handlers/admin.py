@@ -50,11 +50,39 @@ async def cmd_admin_stats(message: Message):
         return
     
     stats = db.get_detailed_stats()
+    
+    # Получаем статистику по платежам ЮKassa
+    conn = db._get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments")
+    yookassa_total = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments WHERE status = 'succeeded'")
+    yookassa_succeeded = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments WHERE status = 'pending'")
+    yookassa_pending = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments WHERE status = 'canceled'")
+    yookassa_canceled = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments WHERE license_type = 'forever' AND status = 'succeeded'")
+    forever_sold = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM yookassa_payments WHERE license_type = 'monthly' AND status = 'succeeded'")
+    monthly_sold = cursor.fetchone()[0]
+    conn.close()
+    
     text = f"""📊 **Детальная статистика БД:**
 
 👥 Пользователей: {stats['users']}
 🔑 Лицензий выдано: {stats['licenses']}
-💳 Всего платежей: {stats['payments']}
+
+💳 **Платежи ЮKassa:**
+  Всего: {yookassa_total}
+  ✅ Успешно: {yookassa_succeeded}
+    • Вечных: {forever_sold}
+    • Месячных: {monthly_sold}
+  ⏳ В ожидании: {yookassa_pending}
+  ❌ Отменено: {yookassa_canceled}
+
+💳 **Старые платежи:**
+  Всего: {stats['payments']}
   ✅ Завершено: {stats['completed_payments']}
   ⏳ В ожидании: {stats['pending_payments']}
   ❌ Ошибок: {stats['failed_payments']}"""

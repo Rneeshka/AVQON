@@ -1,11 +1,12 @@
 """Общие обработчики"""
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from database import Database
+from yookassa_client import get_payment_status
+from payment_utils import process_successful_payment_internal
 from config import (
-    DB_PATH, TOTAL_LICENSES, LICENSE_PRICE_LIFETIME, LICENSE_PRICE_MONTHLY,
-    OWNERS_CHAT_LINK, INSTALLATION_LINK, SUPPORT_TECH, SUPPORT_FINANCE, SUPPORT_PARTNERS
+    DB_PATH, INSTALLATION_LINK, SUPPORT_TECH
 )
 
 router = Router()
@@ -23,6 +24,33 @@ async def cmd_start(message: Message):
     if not user:
         db.create_user(user_id, username)
         user = db.get_user(user_id)
+    
+    # Проверяем pending платежи и автоматически проверяем статус последнего
+    pending_payments = db.get_pending_payments_by_user(user_id)
+    if pending_payments and not (user and user.get("has_license")):
+        # Проверяем статус последнего pending платежа
+        last_payment = pending_payments[0]
+        payment_id = last_payment["payment_id"]
+        
+        payment_status = await get_payment_status(payment_id)
+        if payment_status:
+            status = payment_status["status"]
+            db.update_yookassa_payment_status(payment_id, status)
+            
+            if status == "succeeded":
+                # Платеж успешен - выдаем ключ
+                license_key, text = await process_successful_payment_internal(
+                    db, last_payment, user_id, username or ""
+                )
+                
+                if license_key:
+                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
+                        [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+                        [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+                    ])
+                    await message.answer(text, reply_markup=keyboard)
+                    return
     
     # Если у пользователя уже есть лицензия
     if user and user.get("has_license"):
@@ -46,7 +74,6 @@ async def cmd_start(message: Message):
 
 При возникновении вопросов: {SUPPORT_TECH}"""
         
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
             [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],

@@ -37,7 +37,7 @@ class Database:
             )
         """)
         
-        # Таблица платежей
+        # Таблица платежей (старая, для совместимости)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +49,21 @@ class Database:
                 status TEXT DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 completed_at TIMESTAMP
+            )
+        """)
+        
+        # Таблица платежей ЮKassa
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS yookassa_payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                payment_id TEXT UNIQUE NOT NULL,
+                user_id BIGINT NOT NULL,
+                amount INTEGER NOT NULL,
+                license_type TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                license_key TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -175,7 +190,10 @@ class Database:
     
     def get_available_forever_licenses(self) -> int:
         """Получить количество оставшихся постоянных лицензий"""
-        issued = self.get_forever_licenses_count()
+        # Используем данные из yookassa_payments (приоритет) или из старой таблицы payments
+        issued_yookassa = self.get_forever_licenses_count_from_yookassa()
+        issued_old = self.get_forever_licenses_count()
+        issued = max(issued_yookassa, issued_old)
         return max(0, 1000 - issued)
     
     def get_total_users(self) -> int:
@@ -242,7 +260,7 @@ class Database:
         tables = [row[0] for row in cursor.fetchall()]
         
         # Список таблиц для очистки (только пользовательские таблицы)
-        tables_to_clear = ['users', 'payments', 'licenses']
+        tables_to_clear = ['users', 'payments', 'yookassa_payments', 'licenses']
         
         # Очищаем только существующие таблицы
         cleared_tables = []
@@ -258,4 +276,75 @@ class Database:
         conn.commit()
         conn.close()
         logger.warning(f"База данных очищена. Очищены таблицы: {', '.join(cleared_tables)}")
+    
+    def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
+        """Создать запись о платеже ЮKassa"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO yookassa_payments 
+               (payment_id, user_id, amount, license_type, status) 
+               VALUES (?, ?, ?, ?, 'pending')""",
+            (payment_id, user_id, amount, license_type)
+        )
+        conn.commit()
+        conn.close()
+        logger.info(f"Создан платеж ЮKassa {payment_id} для пользователя {user_id}")
+    
+    def get_yookassa_payment(self, payment_id: str) -> Optional[Dict]:
+        """Получить платеж ЮKassa по ID"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM yookassa_payments WHERE payment_id = ?", (payment_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    
+    def get_pending_payments_by_user(self, user_id: int) -> List[Dict]:
+        """Получить все pending платежи пользователя"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM yookassa_payments WHERE user_id = ? AND status = 'pending' ORDER BY created_at DESC",
+            (user_id,)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+    
+    def update_yookassa_payment_status(self, payment_id: str, status: str, license_key: Optional[str] = None):
+        """Обновить статус платежа ЮKassa"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        from datetime import datetime
+        if license_key:
+            cursor.execute(
+                """UPDATE yookassa_payments 
+                   SET status = ?, license_key = ?, updated_at = ? 
+                   WHERE payment_id = ?""",
+                (status, license_key, datetime.now(), payment_id)
+            )
+        else:
+            cursor.execute(
+                """UPDATE yookassa_payments 
+                   SET status = ?, updated_at = ? 
+                   WHERE payment_id = ?""",
+                (status, datetime.now(), payment_id)
+            )
+        conn.commit()
+        conn.close()
+        logger.info(f"Обновлен статус платежа {payment_id} на {status}")
+    
+    def get_forever_licenses_count_from_yookassa(self) -> int:
+        """Получить количество выданных постоянных лицензий из платежей ЮKassa"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM yookassa_payments WHERE license_type = 'forever' AND status = 'succeeded'"
+        )
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
 
