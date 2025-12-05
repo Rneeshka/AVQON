@@ -32,22 +32,23 @@ db = Database(DB_PATH)
 @router.callback_query(F.data == "buy_forever")
 async def buy_forever(callback: CallbackQuery):
     """Обработчик выбора постоянного доступа"""
-    await callback.answer()
-    
-    user_id = callback.from_user.id
-    user = db.get_user(user_id)
-    
-    # Проверяем, не купил ли уже
-    if user and user.get("has_license"):
-        await callback.message.edit_text(
-            "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
-        )
-        return
-    
-    # Проверяем лимит постоянных лицензий
-    available = db.get_available_forever_licenses()
-    if available <= 0:
-        text = """Постоянный доступ временно недоступен.
+    logger.info(f"Обработчик buy_forever вызван для пользователя {callback.from_user.id}")
+    try:
+        user_id = callback.from_user.id
+        logger.info(f"Обработка покупки forever для пользователя {user_id}")
+        user = db.get_user(user_id)
+        
+        # Проверяем, не купил ли уже
+        if user and user.get("has_license"):
+            await callback.message.edit_text(
+                "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
+            )
+            return
+        
+        # Проверяем лимит постоянных лицензий
+        available = db.get_available_forever_licenses()
+        if available <= 0:
+            text = """Постоянный доступ временно недоступен.
 
 Лимит в 1000 лицензий исчерпан. Мы выпускаем доступ ограниченными партиями для обеспечения стабильной работы системы.
 
@@ -55,53 +56,53 @@ async def buy_forever(callback: CallbackQuery):
 • Проверка на месяц — 150₽
 
 Вы можете оставить контакт для уведомления о поступлении новых постоянных лицензий."""
+            
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="📅 Взять проверку на месяц", callback_data="buy_monthly")],
+                [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
+            ])
+            
+            await callback.message.edit_text(text, reply_markup=keyboard)
+            return
         
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📅 Взять проверку на месяц", callback_data="buy_monthly")],
-            [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
-        ])
+        # Создаем платеж в ЮKassa
+        if not YOOKASSA_AVAILABLE or not create_payment:
+            await callback.message.edit_text(
+                "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
+            )
+            return
         
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        return
-    
-    # Создаем платеж в ЮKassa
-    if not YOOKASSA_AVAILABLE or not create_payment:
-        await callback.message.edit_text(
-            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
-        )
-        return
-    
-    description = f"Постоянный доступ к AEGIS - вечная лицензия"
-    logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_LIFETIME}₽")
-    payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
-    
-    if not payment_result:
-        logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
-        # Проверяем, доступна ли ЮKassa
-        try:
-            from yookassa_client import YOOKASSA_AVAILABLE
-            if not YOOKASSA_AVAILABLE:
-                error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
-            else:
+        description = f"Постоянный доступ к AEGIS - вечная лицензия"
+        logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_LIFETIME}₽")
+        payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
+        
+        if not payment_result:
+            logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
+            # Проверяем, доступна ли ЮKassa
+            try:
+                from yookassa_client import YOOKASSA_AVAILABLE
+                if not YOOKASSA_AVAILABLE:
+                    error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
+                else:
+                    error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+            except:
                 error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-        except:
-            error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+            
+            await callback.message.edit_text(error_msg)
+            return
         
-        await callback.message.edit_text(error_msg)
-        return
-    
-    payment_id = payment_result["payment_id"]
-    confirmation_url = payment_result["confirmation_url"]
-    
-    # Сохраняем платеж в БД
-    db.create_yookassa_payment(
-        payment_id=payment_id,
-        user_id=user_id,
-        amount=LICENSE_PRICE_LIFETIME * 100,  # в копейках
-        license_type="forever"
-    )
-    
-    text = f"""✅ Вы выбрали вечную лицензию AEGIS
+        payment_id = payment_result["payment_id"]
+        confirmation_url = payment_result["confirmation_url"]
+        
+        # Сохраняем платеж в БД
+        db.create_yookassa_payment(
+            payment_id=payment_id,
+            user_id=user_id,
+            amount=LICENSE_PRICE_LIFETIME * 100,  # в копейках
+            license_type="forever"
+        )
+        
+        text = f"""✅ Вы выбрали вечную лицензию AEGIS
 
 Цена: 500₽
 Доступ: бессрочный
@@ -111,68 +112,87 @@ async def buy_forever(callback: CallbackQuery):
 {confirmation_url}
 
 После оплаты нажмите кнопку ниже:"""
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
-        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
-    ])
-    
-    await callback.message.edit_text(text, reply_markup=keyboard)
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
+            [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
+        ])
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Критическая ошибка в buy_forever: {e}", exc_info=True)
+        try:
+            await callback.answer("❌ Произошла ошибка", show_alert=True)
+        except:
+            pass
+        try:
+            await callback.message.edit_text(
+                f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
+            )
+        except:
+            try:
+                await callback.message.answer(
+                    f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
+                )
+            except:
+                pass
 
 
 @router.callback_query(F.data == "buy_monthly")
 async def buy_monthly(callback: CallbackQuery):
     """Обработчик выбора проверки на месяц"""
-    await callback.answer()
-    
-    user_id = callback.from_user.id
-    user = db.get_user(user_id)
-    
-    # Проверяем, не купил ли уже
-    if user and user.get("has_license"):
-        await callback.message.edit_text(
-            "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
-        )
-        return
-    
-    # Создаем платеж в ЮKassa
-    if not YOOKASSA_AVAILABLE or not create_payment:
-        await callback.message.edit_text(
-            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
-        )
-        return
-    
-    description = f"Проверка AEGIS на 30 дней - месячная подписка"
-    logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_MONTHLY}₽")
-    payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
-    
-    if not payment_result:
-        logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
-        # Проверяем, доступна ли ЮKassa
-        try:
-            from yookassa_client import YOOKASSA_AVAILABLE
-            if not YOOKASSA_AVAILABLE:
-                error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
-            else:
-                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-        except:
-            error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+    logger.info(f"Обработчик buy_monthly вызван для пользователя {callback.from_user.id}")
+    try:
+        user_id = callback.from_user.id
+        logger.info(f"Обработка покупки monthly для пользователя {user_id}")
+        user = db.get_user(user_id)
         
-        await callback.message.edit_text(error_msg)
-        return
-    
-    payment_id = payment_result["payment_id"]
-    confirmation_url = payment_result["confirmation_url"]
-    
-    # Сохраняем платеж в БД
-    db.create_yookassa_payment(
-        payment_id=payment_id,
-        user_id=user_id,
-        amount=LICENSE_PRICE_MONTHLY * 100,  # в копейках
-        license_type="monthly"
-    )
-    
-    text = f"""✅ Вы выбрали проверку AEGIS на 30 дней
+        # Проверяем, не купил ли уже
+        if user and user.get("has_license"):
+            await callback.message.edit_text(
+                "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
+            )
+            return
+        
+        # Создаем платеж в ЮKassa
+        if not YOOKASSA_AVAILABLE or not create_payment:
+            await callback.message.edit_text(
+                "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
+            )
+            return
+        
+        description = f"Проверка AEGIS на 30 дней - месячная подписка"
+        logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_MONTHLY}₽")
+        payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
+        
+        if not payment_result:
+            logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
+            # Проверяем, доступна ли ЮKassa
+            try:
+                from yookassa_client import YOOKASSA_AVAILABLE
+                if not YOOKASSA_AVAILABLE:
+                    error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
+                else:
+                    error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+            except:
+                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+            
+            await callback.message.edit_text(error_msg)
+            return
+        
+        payment_id = payment_result["payment_id"]
+        confirmation_url = payment_result["confirmation_url"]
+        
+        # Сохраняем платеж в БД
+        db.create_yookassa_payment(
+            payment_id=payment_id,
+            user_id=user_id,
+            amount=LICENSE_PRICE_MONTHLY * 100,  # в копейках
+            license_type="monthly"
+        )
+        
+        text = f"""✅ Вы выбрали проверку AEGIS на 30 дней
 
 Цена: 150₽
 Срок действия: 30 дней с момента активации
@@ -187,13 +207,31 @@ async def buy_monthly(callback: CallbackQuery):
 {confirmation_url}
 
 После оплаты нажмите кнопку ниже:"""
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
-        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
-    ])
-    
-    await callback.message.edit_text(text, reply_markup=keyboard)
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
+            [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
+        ])
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Критическая ошибка в buy_monthly: {e}", exc_info=True)
+        try:
+            await callback.answer("❌ Произошла ошибка", show_alert=True)
+        except:
+            pass
+        try:
+            await callback.message.edit_text(
+                f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
+            )
+        except:
+            try:
+                await callback.message.answer(
+                    f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
+                )
+            except:
+                pass
 
 
 @router.callback_query(F.data.startswith("check_payment_"))

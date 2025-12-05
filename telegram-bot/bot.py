@@ -32,10 +32,29 @@ async def main():
     dp = Dispatcher()
     
     # Регистрируем роутеры
-    dp.include_router(common.router)
-    dp.include_router(purchase.router)
-    dp.include_router(info.router)
-    dp.include_router(admin.router)
+    try:
+        dp.include_router(common.router)
+        logger.info("Роутер common зарегистрирован")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации роутера common: {e}", exc_info=True)
+    
+    try:
+        dp.include_router(purchase.router)
+        logger.info("Роутер purchase зарегистрирован")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации роутера purchase: {e}", exc_info=True)
+    
+    try:
+        dp.include_router(info.router)
+        logger.info("Роутер info зарегистрирован")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации роутера info: {e}", exc_info=True)
+    
+    try:
+        dp.include_router(admin.router)
+        logger.info("Роутер admin зарегистрирован")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации роутера admin: {e}", exc_info=True)
     
     logger.info("Бот запущен!")
     
