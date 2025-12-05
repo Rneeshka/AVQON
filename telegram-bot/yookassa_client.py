@@ -1,5 +1,6 @@
 """Клиент для работы с API ЮKassa"""
 import logging
+import asyncio
 from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
@@ -46,11 +47,17 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
         Dict с payment_id и confirmation_url или None при ошибке
     """
     if not YOOKASSA_AVAILABLE:
-        logger.warning("ЮKassa недоступна: библиотека не установлена или не настроена")
+        logger.error("ЮKassa недоступна: библиотека не установлена или не настроена")
+        logger.error("Установите библиотеку: pip install yookassa")
+        try:
+            from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
+            logger.error(f"YOOKASSA_SHOP_ID: {YOOKASSA_SHOP_ID}, YOOKASSA_SECRET_KEY: {'установлен' if YOOKASSA_SECRET_KEY else 'не установлен'}")
+        except:
+            pass
         return None
     
     if Payment is None:
-        logger.warning("Payment класс недоступен")
+        logger.error("Payment класс недоступен - библиотека yookassa не импортирована")
         return None
     
     try:
@@ -59,9 +66,11 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
         # Проверяем, что Configuration настроена правильно
         if not Configuration.account_id or not Configuration.secret_key:
             logger.error("Configuration ЮKassa не настроена: отсутствуют account_id или secret_key")
+            logger.error(f"account_id: {Configuration.account_id}, secret_key: {'установлен' if Configuration.secret_key else 'не установлен'}")
             return None
         
-        payment = Payment.create({
+        # Payment.create() - синхронный метод, выполняем в отдельном потоке
+        payment_data = {
             "amount": {
                 "value": f"{amount:.2f}",
                 "currency": "RUB"
@@ -72,7 +81,26 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
             },
             "capture": True,
             "description": description
-        })
+        }
+        
+        # Выполняем синхронный вызов в отдельном потоке
+        # Payment.create() - синхронный метод, который делает HTTP запрос
+        def _create_payment_sync():
+            try:
+                logger.debug(f"Вызов Payment.create с данными: {payment_data}")
+                result = Payment.create(payment_data)
+                logger.debug(f"Payment.create вернул результат: {result.id if result else None}")
+                return result
+            except Exception as sync_error:
+                logger.error(f"Ошибка в синхронном вызове Payment.create: {sync_error}", exc_info=True)
+                raise
+        
+        loop = asyncio.get_event_loop()
+        payment = await loop.run_in_executor(None, _create_payment_sync)
+        
+        if not payment:
+            logger.error("Payment.create вернул None")
+            return None
         
         payment_id = payment.id
         confirmation_url = payment.confirmation.confirmation_url
@@ -86,10 +114,14 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
         }
     except ApiError as e:
         logger.error(f"Ошибка API ЮKassa при создании платежа: {e}")
+        logger.error(f"Тип ошибки: {type(e).__name__}")
         logger.error(f"Детали ошибки: {e.__dict__ if hasattr(e, '__dict__') else str(e)}")
+        if hasattr(e, 'response') and e.response:
+            logger.error(f"Ответ API: {e.response}")
         return None
     except Exception as e:
         logger.error(f"Неожиданная ошибка при создании платежа: {e}", exc_info=True)
+        logger.error(f"Тип ошибки: {type(e).__name__}")
         return None
 
 
@@ -108,7 +140,12 @@ async def get_payment_status(payment_id: str) -> Optional[Dict]:
         return None
     
     try:
-        payment = Payment.find_one(payment_id)
+        # Payment.find_one() - синхронный метод, выполняем в отдельном потоке
+        def _find_payment_sync():
+            return Payment.find_one(payment_id)
+        
+        loop = asyncio.get_event_loop()
+        payment = await loop.run_in_executor(None, _find_payment_sync)
         
         return {
             "payment_id": payment.id,

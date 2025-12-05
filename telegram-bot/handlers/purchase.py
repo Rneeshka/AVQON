@@ -76,10 +76,18 @@ async def buy_forever(callback: CallbackQuery):
     payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
     
     if not payment_result:
-        logger.error(f"Не удалось создать платеж для пользователя {user_id}")
-        await callback.message.edit_text(
-            "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-        )
+        logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
+        # Проверяем, доступна ли ЮKassa
+        try:
+            from yookassa_client import YOOKASSA_AVAILABLE
+            if not YOOKASSA_AVAILABLE:
+                error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
+            else:
+                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+        except:
+            error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+        
+        await callback.message.edit_text(error_msg)
         return
     
     payment_id = payment_result["payment_id"]
@@ -139,10 +147,18 @@ async def buy_monthly(callback: CallbackQuery):
     payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
     
     if not payment_result:
-        logger.error(f"Не удалось создать платеж для пользователя {user_id}")
-        await callback.message.edit_text(
-            "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-        )
+        logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
+        # Проверяем, доступна ли ЮKassa
+        try:
+            from yookassa_client import YOOKASSA_AVAILABLE
+            if not YOOKASSA_AVAILABLE:
+                error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
+            else:
+                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+        except:
+            error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
+        
+        await callback.message.edit_text(error_msg)
         return
     
     payment_id = payment_result["payment_id"]
