@@ -6,7 +6,6 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from config import BOT_TOKEN
-from handlers import common, purchase, info, admin
 
 # Настройка логирования
 logging.basicConfig(
@@ -14,6 +13,13 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Безопасный импорт обработчиков
+try:
+    from handlers import common, purchase, info, admin
+except Exception as e:
+    logger.error(f"Ошибка при импорте обработчиков: {e}", exc_info=True)
+    raise
 
 
 async def main():

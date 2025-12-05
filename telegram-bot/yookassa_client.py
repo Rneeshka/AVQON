@@ -1,15 +1,36 @@
 """Клиент для работы с API ЮKassa"""
 import logging
 from typing import Optional, Dict
-from yookassa import Configuration, Payment
-from yookassa.domain.exceptions import ApiError
-from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY, YOOKASSA_TEST_MODE
 
 logger = logging.getLogger(__name__)
 
-# Настройка ЮKassa
-Configuration.account_id = YOOKASSA_SHOP_ID
-Configuration.secret_key = YOOKASSA_SECRET_KEY
+# Безопасный импорт yookassa
+try:
+    from yookassa import Configuration, Payment
+    from yookassa.domain.exceptions import ApiError
+    from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY, YOOKASSA_TEST_MODE
+    
+    # Проверяем наличие ключей
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        logger.warning("Ключи ЮKassa не настроены. Платежи через ЮKassa не будут работать.")
+        YOOKASSA_AVAILABLE = False
+        Payment = None
+        ApiError = Exception
+    else:
+        # Настройка ЮKassa
+        Configuration.account_id = YOOKASSA_SHOP_ID
+        Configuration.secret_key = YOOKASSA_SECRET_KEY
+        YOOKASSA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Библиотека yookassa не установлена: {e}. Установите: pip install yookassa")
+    YOOKASSA_AVAILABLE = False
+    Payment = None
+    ApiError = Exception
+except Exception as e:
+    logger.error(f"Ошибка при инициализации ЮKassa: {e}", exc_info=True)
+    YOOKASSA_AVAILABLE = False
+    Payment = None
+    ApiError = Exception
 
 
 async def create_payment(amount: int, description: str, return_url: str = None) -> Optional[Dict]:
@@ -24,6 +45,10 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
     Returns:
         Dict с payment_id и confirmation_url или None при ошибке
     """
+    if not YOOKASSA_AVAILABLE:
+        logger.error("ЮKassa недоступна: библиотека не установлена или не настроена")
+        return None
+    
     try:
         payment = Payment.create({
             "amount": {
@@ -66,6 +91,10 @@ async def get_payment_status(payment_id: str) -> Optional[Dict]:
     Returns:
         Dict с данными платежа или None при ошибке
     """
+    if not YOOKASSA_AVAILABLE:
+        logger.error("ЮKassa недоступна: библиотека не установлена или не настроена")
+        return None
+    
     try:
         payment = Payment.find_one(payment_id)
         

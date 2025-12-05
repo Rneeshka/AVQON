@@ -4,14 +4,25 @@ import logging
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
 from database import Database
-from yookassa_client import create_payment, get_payment_status
-from payment_utils import process_successful_payment_internal
 from config import (
     DB_PATH, LICENSE_PRICE_LIFETIME, LICENSE_PRICE_MONTHLY,
     INSTALLATION_LINK, SUPPORT_TECH
 )
 
 logger = logging.getLogger(__name__)
+
+# Безопасный импорт yookassa
+try:
+    from yookassa_client import create_payment, get_payment_status
+    from payment_utils import process_successful_payment_internal
+    YOOKASSA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Модули ЮKassa недоступны: {e}. Платежи через ЮKassa не будут работать.")
+    YOOKASSA_AVAILABLE = False
+    create_payment = None
+    get_payment_status = None
+    process_successful_payment_internal = None
+
 router = Router()
 db = Database(DB_PATH)
 
@@ -54,6 +65,12 @@ async def buy_forever(callback: CallbackQuery):
         return
     
     # Создаем платеж в ЮKassa
+    if not YOOKASSA_AVAILABLE or not create_payment:
+        await callback.message.edit_text(
+            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
+        )
+        return
+    
     description = f"Постоянный доступ к AEGIS - вечная лицензия"
     payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
     
@@ -109,6 +126,12 @@ async def buy_monthly(callback: CallbackQuery):
         return
     
     # Создаем платеж в ЮKassa
+    if not YOOKASSA_AVAILABLE or not create_payment:
+        await callback.message.edit_text(
+            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
+        )
+        return
+    
     description = f"Проверка AEGIS на 30 дней - месячная подписка"
     payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
     
@@ -173,6 +196,12 @@ async def check_payment(callback: CallbackQuery):
         return
     
     # Запрашиваем статус у ЮKassa
+    if not YOOKASSA_AVAILABLE or not get_payment_status:
+        await callback.message.edit_text(
+            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
+        )
+        return
+    
     payment_status = await get_payment_status(payment_id)
     
     if not payment_status:
@@ -189,6 +218,12 @@ async def check_payment(callback: CallbackQuery):
     
     if status == "succeeded":
         # Платеж успешен - выдаем ключ
+        if not YOOKASSA_AVAILABLE or not process_successful_payment_internal:
+            await callback.message.edit_text(
+                "❌ Ошибка обработки платежа. Обратитесь в поддержку: " + SUPPORT_TECH
+            )
+            return
+        
         license_key, text = await process_successful_payment_internal(
             db, payment_db, user_id, username
         )

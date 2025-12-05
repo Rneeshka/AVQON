@@ -478,3 +478,4 @@
 2025-12-05 23:56:29,774 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/acts
 2025-12-05 23:56:29,775 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/acts: safe=True, source=external_apis
 2025-12-05 23:56:29,775 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/acts to client 823b6f20-dec3-4c19-bd7f-099f85f080a9
+2025-12-06 00:12:39,657 - app.logger - WARNING - Blocked suspicious path: /.env
