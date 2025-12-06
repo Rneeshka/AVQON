@@ -30,6 +30,7 @@ from app.external_apis.manager import external_api_manager
 from app.admin_ui import router as admin_ui_router
 from app.background_jobs import background_job_manager
 from app.auth import auth_manager
+from app.routes.payments import router as payments_router
 
 # КРИТИЧНО: Безопасный импорт сервисов с обработкой ошибок
 try:
@@ -267,7 +268,6 @@ app.add_middleware(
 # Include admin ui router to serve /admin/ui -> index.html
 app.include_router(admin_ui_router)
 
-from app.routes.payments import router as payments_router
 app.include_router(payments_router, prefix="/payments")
 
 # Сжатие ответов для ускорения отдачи (после CORS, чтобы не мешать заголовкам)
