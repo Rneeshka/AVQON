@@ -1,365 +1,235 @@
-"""Обработчики покупки"""
-import uuid
+"""Покупки через backend AEGIS (новая система)"""
+
 import logging
+import aiohttp
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
-from database import Database
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+
 from config import (
-    DB_PATH, LICENSE_PRICE_LIFETIME, LICENSE_PRICE_MONTHLY,
-    INSTALLATION_LINK, SUPPORT_TECH
+    BACKEND_URL,
+    SUPPORT_TECH,
+    INSTALLATION_LINK,
 )
 
 logger = logging.getLogger(__name__)
-
-# Безопасный импорт yookassa
-try:
-    from yookassa_client import create_payment, get_payment_status
-    from payment_utils import process_successful_payment_internal
-    YOOKASSA_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"Модули ЮKassa недоступны: {e}. Платежи через ЮKassa не будут работать.")
-    YOOKASSA_AVAILABLE = False
-    create_payment = None
-    get_payment_status = None
-    process_successful_payment_internal = None
-
 router = Router()
-db = Database(DB_PATH)
+
+# --------------------------
+# ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ
+# --------------------------
+
+async def backend_create_payment(amount: int, license_type: str, user_id: int, username: str):
+    """
+    Вызывает наш backend /payments/create
+    Возвращает: { payment_id, confirmation_url } или None
+    """
+
+    url = f"{BACKEND_URL}/payments/create"
+    payload = {
+        "amount": amount,
+        "license_type": license_type,
+        "telegram_id": user_id,
+        "username": username
+    }
+
+    logger.info(f"Отправляю запрос на backend: {url} | {payload}")
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, timeout=20) as resp:
+                if resp.status != 200:
+                    logger.error(f"Backend error: HTTP {resp.status}")
+                    return None
+                data = await resp.json()
+                logger.info(f"Ответ от backend: {data}")
+                return data
+    except Exception as e:
+        logger.error(f"Ошибка запроса на backend: {e}", exc_info=True)
+        return None
 
 
-
+# --------------------------
+# ВЕЧНАЯ ЛИЦЕНЗИЯ
+# --------------------------
 
 @router.callback_query(F.data == "buy_forever")
 async def buy_forever(callback: CallbackQuery):
-    """Обработчик выбора постоянного доступа"""
-    logger.info(f"Обработчик buy_forever вызван для пользователя {callback.from_user.id}")
-    try:
-        user_id = callback.from_user.id
-        username = callback.from_user.username or ""
-        logger.info(f"Обработка покупки forever для пользователя {user_id}")
-        user = db.get_user(user_id)
-        
-        # Проверяем, не купил ли уже
-        if user and user.get("has_license"):
-            await callback.message.edit_text(
-                "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
-            )
-            return
-        
-        # Проверяем лимит постоянных лицензий
-        available = db.get_available_forever_licenses()
-        if available <= 0:
-            text = """Постоянный доступ временно недоступен.
+    user_id = callback.from_user.id
+    username = callback.from_user.username or ""
 
-Лимит в 1000 лицензий исчерпан. Мы выпускаем доступ ограниченными партиями для обеспечения стабильной работы системы.
+    logger.info(f"Покупка FOREVER: user_id={user_id}")
 
-В данный момент доступна:
-• Проверка на месяц — 150₽
+    await callback.answer()
 
-Вы можете оставить контакт для уведомления о поступлении новых постоянных лицензий."""
-            
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="📅 Взять проверку на месяц", callback_data="buy_monthly")],
-                [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
-            ])
-            
-            await callback.message.edit_text(text, reply_markup=keyboard)
-            return
-        
-        # Создаем платеж в ЮKassa
-        if not YOOKASSA_AVAILABLE or not create_payment:
-            await callback.message.edit_text(
-                "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
-            )
-            return
-        
-        description = f"Постоянный доступ к AEGIS - вечная лицензия"
-        logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_LIFETIME}₽")
-        
-        # Создаем metadata (все значения должны быть строками!)
-        metadata = {
-            "user_id": str(user_id),
-            "license_type": "forever",
-            "telegram_username": username
-        }
-        
-        payment_result = await create_payment(
-            LICENSE_PRICE_LIFETIME, 
-            description,
-            metadata=metadata
+    # Здесь просто создаём заказ на backend
+    response = await backend_create_payment(
+        amount=500,
+        license_type="forever",
+        user_id=user_id,
+        username=username
+    )
+
+    if not response:
+        await callback.message.edit_text(
+            "❌ Платеж временно недоступен.\nОбратитесь в поддержку: " + SUPPORT_TECH
         )
-        
-        if not payment_result:
-            logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
-            # Проверяем, доступна ли ЮKassa
-            try:
-                from yookassa_client import YOOKASSA_AVAILABLE
-                if not YOOKASSA_AVAILABLE:
-                    error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
-                else:
-                    error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-            except:
-                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-            
-            await callback.message.edit_text(error_msg)
-            return
-        
-        payment_id = payment_result["payment_id"]
-        confirmation_url = payment_result["confirmation_url"]
-        
-        # Сохраняем платеж в БД
-        db.create_yookassa_payment(
-            payment_id=payment_id,
-            user_id=user_id,
-            amount=LICENSE_PRICE_LIFETIME * 100,  # в копейках
-            license_type="forever"
-        )
-        
-        text = f"""✅ Вы выбрали вечную лицензию AEGIS
+        return
 
-Цена: 500₽
-Доступ: бессрочный
-Осталось: {available} из 1000
+    payment_id = response.get("payment_id")
+    confirmation_url = response.get("confirmation_url")
+
+    text = f"""✅ Вы выбрали вечную лицензию AEGIS
+
+Цена: 500₽  
+Доступ: бессрочный  
 
 Ссылка для оплаты:
 {confirmation_url}
 
-После оплаты нажмите кнопку ниже:"""
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
-            [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
-        ])
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        await callback.answer()
-    except Exception as e:
-        logger.error(f"Критическая ошибка в buy_forever: {e}", exc_info=True)
-        try:
-            await callback.answer("❌ Произошла ошибка", show_alert=True)
-        except:
-            pass
-        try:
-            await callback.message.edit_text(
-                f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
-            )
-        except:
-            try:
-                await callback.message.answer(
-                    f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
-                )
-            except:
-                pass
+После оплаты нажмите кнопку ниже:
+"""
 
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔄 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
+        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
+    ])
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+
+
+# --------------------------
+# МЕСЯЧНАЯ ПОДПИСКА
+# --------------------------
 
 @router.callback_query(F.data == "buy_monthly")
 async def buy_monthly(callback: CallbackQuery):
-    """Обработчик выбора проверки на месяц"""
-    logger.info(f"Обработчик buy_monthly вызван для пользователя {callback.from_user.id}")
-    try:
-        user_id = callback.from_user.id
-        logger.info(f"Обработка покупки monthly для пользователя {user_id}")
-        user = db.get_user(user_id)
-        
-        # Проверяем, не купил ли уже
-        if user and user.get("has_license"):
-            await callback.message.edit_text(
-                "У вас уже есть лицензия. Используйте команду /start чтобы увидеть свой ключ."
-            )
-            return
-        
-        # Создаем платеж в ЮKassa
-        if not YOOKASSA_AVAILABLE or not create_payment:
-            await callback.message.edit_text(
-                "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
-            )
-            return
-        
-        description = f"Проверка AEGIS на 30 дней - месячная подписка"
-        logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_MONTHLY}₽")
-        
-        # Создаем metadata (все значения должны быть строками!)
-        username = callback.from_user.username or ""
-        metadata = {
-            "user_id": str(user_id),
-            "license_type": "monthly",
-            "telegram_username": username
-        }
-        
-        payment_result = await create_payment(
-            LICENSE_PRICE_MONTHLY, 
-            description,
-            metadata=metadata
-        )
-        
-        if not payment_result:
-            logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
-            # Проверяем, доступна ли ЮKassa
-            try:
-                from yookassa_client import YOOKASSA_AVAILABLE
-                if not YOOKASSA_AVAILABLE:
-                    error_msg = "❌ Платежная система временно недоступна. Проверьте настройки бота."
-                else:
-                    error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-            except:
-                error_msg = "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-            
-            await callback.message.edit_text(error_msg)
-            return
-        
-        payment_id = payment_result["payment_id"]
-        confirmation_url = payment_result["confirmation_url"]
-        
-        # Сохраняем платеж в БД
-        db.create_yookassa_payment(
-            payment_id=payment_id,
-            user_id=user_id,
-            amount=LICENSE_PRICE_MONTHLY * 100,  # в копейках
-            license_type="monthly"
-        )
-        
-        text = f"""✅ Вы выбрали проверку AEGIS на 30 дней
+    user_id = callback.from_user.id
+    username = callback.from_user.username or ""
 
-Цена: 150₽
-Срок действия: 30 дней с момента активации
-Автопродление: нет
+    logger.info(f"Покупка MONTHLY: user_id={user_id}")
 
-Что включено:
-• Все функции анализа ссылок
-• Обновления базы угроз
-• Поддержка
+    await callback.answer()
+
+    response = await backend_create_payment(
+        amount=150,
+        license_type="monthly",
+        user_id=user_id,
+        username=username
+    )
+
+    if not response:
+        await callback.message.edit_text(
+            "❌ Платеж временно недоступен.\nОбратитесь в поддержку: " + SUPPORT_TECH
+        )
+        return
+
+    payment_id = response.get("payment_id")
+    confirmation_url = response.get("confirmation_url")
+
+    text = f"""✅ Вы выбрали AEGIS на 30 дней
+
+Цена: 150₽  
+Срок: 30 дней  
+Автопродление: ❌  
 
 Ссылка для оплаты:
 {confirmation_url}
 
-После оплаты нажмите кнопку ниже:"""
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Проверить оплату", callback_data=f"check_payment_{payment_id}")],
-            [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
-        ])
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        await callback.answer()
+После оплаты нажмите кнопку ниже:
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔄 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
+        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
+    ])
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+
+
+# --------------------------
+# ПРОВЕРКА ПЛАТЕЖА (через backend)
+# --------------------------
+
+async def backend_check_payment(payment_id: str):
+    url = f"{BACKEND_URL}/payments/status/{payment_id}"
+
+    logger.info(f"Запрашиваю статус платежа: {url}")
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as resp:
+                if resp.status != 200:
+                    logger.error(f"Backend HTTP error: {resp.status}")
+                    return None
+                return await resp.json()
     except Exception as e:
-        logger.error(f"Критическая ошибка в buy_monthly: {e}", exc_info=True)
-        try:
-            await callback.answer("❌ Произошла ошибка", show_alert=True)
-        except:
-            pass
-        try:
-            await callback.message.edit_text(
-                f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
-            )
-        except:
-            try:
-                await callback.message.answer(
-                    f"❌ Произошла ошибка. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
-                )
-            except:
-                pass
+        logger.error(f"Ошибка запроса статуса: {e}", exc_info=True)
+        return None
 
 
 @router.callback_query(F.data.startswith("check_payment_"))
 async def check_payment(callback: CallbackQuery):
-    """Проверка статуса платежа"""
-    await callback.answer()
-    
     payment_id = callback.data.replace("check_payment_", "")
     user_id = callback.from_user.id
-    
-    # Получаем платеж из БД
-    payment_db = db.get_yookassa_payment(payment_id)
-    if not payment_db:
-        await callback.message.edit_text("❌ Платеж не найден в базе данных.")
-        return
-    
-    # Проверяем, что платеж принадлежит этому пользователю
-    if payment_db["user_id"] != user_id:
-        await callback.answer("❌ Это не ваш платеж!", show_alert=True)
-        return
-    
-    # Запрашиваем статус у ЮKassa
-    if not YOOKASSA_AVAILABLE or not get_payment_status:
-        await callback.message.edit_text(
-            "❌ Платежная система временно недоступна. Обратитесь в поддержку: " + SUPPORT_TECH
-        )
-        return
-    
-    payment_status = await get_payment_status(payment_id)
-    
-    if not payment_status:
-        await callback.message.edit_text(
-            "❌ Ошибка при проверке статуса платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
-        )
-        return
-    
-    status = payment_status["status"]
-    username = callback.from_user.username or ""
-    
-    # Обновляем статус в БД
-    db.update_yookassa_payment_status(payment_id, status)
-    
-    if status == "succeeded":
-        # Платеж успешен - выдаем ключ
-        if not YOOKASSA_AVAILABLE or not process_successful_payment_internal:
-            await callback.message.edit_text(
-                "❌ Ошибка обработки платежа. Обратитесь в поддержку: " + SUPPORT_TECH
-            )
-            return
-        
-        license_key, text = await process_successful_payment_internal(
-            db, payment_db, user_id, username
-        )
-        
-        if license_key:
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
-                [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
-                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
-            ])
-            await callback.message.edit_text(text, reply_markup=keyboard)
-        else:
-            await callback.message.edit_text(text)
-    
-    elif status == "pending":
-        await callback.message.edit_text(
-            "⏳ Платеж еще обрабатывается. Подождите 1-2 минуты и нажмите кнопку проверки снова.",
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🔄 Проверить снова", callback_data=f"check_payment_{payment_id}")],
-                [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
-            ])
-        )
-    
-    elif status == "canceled":
-        await callback.message.edit_text(
-            "❌ Платеж отменен.",
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
-            ])
-        )
-    
-    elif status == "waiting_for_capture":
-        await callback.message.edit_text(
-            "⏳ Платеж ожидает подтверждения. Обычно это занимает несколько минут.",
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🔄 Проверить снова", callback_data=f"check_payment_{payment_id}")],
-                [InlineKeyboardButton(text="← Назад", callback_data="main_menu")]
-            ])
-        )
-    
-    else:
-        await callback.message.edit_text(
-            f"❓ Неизвестный статус платежа: {status}. Обратитесь в поддержку: {SUPPORT_TECH}"
-        )
 
+    logger.info(f"Проверка платежа {payment_id} от user={user_id}")
+
+    await callback.answer()
+
+    status_data = await backend_check_payment(payment_id)
+
+    if not status_data:
+        await callback.message.edit_text(
+            "❌ Ошибка проверки платежа. Попробуйте позже."
+        )
+        return
+
+    status = status_data.get("status")
+
+    if status == "pending":
+        await callback.message.edit_text(
+            "⏳ Платеж ещё не подтвержден.\nПопробуйте позже.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔄 Проверить снова", callback_data=f"check_payment_{payment_id}")],
+                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+            ])
+        )
+        return
+
+    if status == "succeeded":
+        await callback.message.edit_text(
+            "🎉 Платёж успешно подтвержден!\n"
+            "Ваш доступ активирован.\n\n"
+            f"📦 Ссылка на установку:\n{INSTALLATION_LINK}",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+            ])
+        )
+        return
+
+    if status == "canceled":
+        await callback.message.edit_text(
+            "❌ Платёж отменён.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+            ])
+        )
+        return
+
+    await callback.message.edit_text(
+        f"❓ Неизвестный статус: {status}"
+    )
+
+
+# --------------------------
+# ОТМЕНА ПЛАТЕЖА
+# --------------------------
 
 @router.callback_query(F.data == "cancel_payment")
 async def cancel_payment(callback: CallbackQuery):
-    """Отмена платежа"""
-    await callback.answer("Платеж отменен")
+    await callback.answer()
     await callback.message.edit_text(
-        "❌ Платеж отменен.",
+        "❌ Платеж отменён.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
         ])

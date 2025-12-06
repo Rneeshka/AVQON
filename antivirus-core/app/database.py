@@ -1791,5 +1791,20 @@ class DatabaseManager:
             logger.error(f"Clear all database data error: {e}")
             return {}
 
+    async def get_yookassa_payment(self, payment_id: str):
+        """Получает платёж Юкассы по ID"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    "SELECT payment_id, user_id, amount, license_type, status, created_at "
+                    "FROM yookassa_payments WHERE payment_id = ?",
+                    (payment_id,)
+                )
+                row = cursor.fetchone()
+                return dict(row) if row else None
+        except Exception as e:
+            logger.error(f"Get payment error: {e}")
+            return None
+            
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
