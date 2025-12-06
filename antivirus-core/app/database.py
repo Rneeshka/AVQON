@@ -260,6 +260,24 @@ class DatabaseManager:
                     )
                 """)
                 
+                # 11. Таблица платежей ЮKassa
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS yookassa_payments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        payment_id TEXT UNIQUE NOT NULL,
+                        user_id BIGINT NOT NULL,
+                        amount INTEGER NOT NULL,
+                        license_type TEXT NOT NULL,
+                        status TEXT DEFAULT 'pending',
+                        license_key TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_user_id ON yookassa_payments(user_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id)")
+                
                 # Миграции схемы для совместимости со старыми базами (до индексов)
                 self._migrate_schema(conn)
 
@@ -1791,50 +1809,79 @@ class DatabaseManager:
             logger.error(f"Clear all database data error: {e}")
             return {}
 
+    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
+        """Создает запись о платеже ЮKassa"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """INSERT INTO yookassa_payments 
+                       (payment_id, user_id, amount, license_type, status) 
+                       VALUES (?, ?, ?, ?, 'pending')""",
+                    (payment_id, user_id, amount, license_type)
+                )
+                conn.commit()
+                logger.info(f"Created YooKassa payment {payment_id} for user {user_id}")
+                return True
+        except sqlite3.IntegrityError:
+            logger.warning(f"Payment {payment_id} already exists in database")
+            return False
+        except Exception as e:
+            logger.error(f"Create YooKassa payment error: {e}", exc_info=True)
+            return False
+    
     async def get_yookassa_payment(self, payment_id: str):
         """Получает платёж Юкассы по ID"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.execute(
-                    "SELECT id, user_id, amount, license_type, status, license_key, created_at, updated_at "
-                    "FROM yookassa_payments WHERE id = ?",
+                    "SELECT payment_id, user_id, amount, license_type, status, license_key, created_at, updated_at "
+                    "FROM yookassa_payments WHERE payment_id = ?",
                     (payment_id,)
                 )
                 row = cursor.fetchone()
-                return dict(row) if row else None
+                if row:
+                    return {
+                        "payment_id": row[0],
+                        "user_id": row[1],
+                        "amount": row[2],
+                        "license_type": row[3],
+                        "status": row[4],
+                        "license_key": row[5],
+                        "created_at": row[6],
+                        "updated_at": row[7]
+                    }
+                return None
         except Exception as e:
-            logger.error(f"Get payment error: {e}")
+            logger.error(f"Get payment error: {e}", exc_info=True)
             return None
-
-    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
-        """Создает запись платежа YooKassa"""
-        try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO yookassa_payments
-                    (id, user_id, amount, license_type, status, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))
-                """, (payment_id, user_id, amount, license_type))
-                conn.commit()
-        except Exception as e:
-            logger.error(f"[DB] Failed to create payment: {e}")
-            raise
-
+    
     async def update_yookassa_payment_status(self, payment_id: str, status: str, license_key: str = None):
-        """Обновляет статус платежа и сохраняет лицензионный ключ"""
+        """Обновляет статус платежа ЮKassa"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE yookassa_payments
-                    SET status = ?, license_key = ?, updated_at = datetime('now')
-                    WHERE id = ?
-                """, (status, license_key, payment_id))
+                from datetime import datetime
+                if license_key:
+                    cursor.execute(
+                        """UPDATE yookassa_payments 
+                           SET status = ?, license_key = ?, updated_at = ? 
+                           WHERE payment_id = ?""",
+                        (status, license_key, datetime.now(), payment_id)
+                    )
+                else:
+                    cursor.execute(
+                        """UPDATE yookassa_payments 
+                           SET status = ?, updated_at = ? 
+                           WHERE payment_id = ?""",
+                        (status, datetime.now(), payment_id)
+                    )
                 conn.commit()
+                logger.info(f"Updated YooKassa payment {payment_id} status to {status}")
+                return True
         except Exception as e:
-            logger.error(f"[DB] Failed to update payment status: {e}")
-            raise
+            logger.error(f"Update YooKassa payment status error: {e}", exc_info=True)
+            return False
             
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
