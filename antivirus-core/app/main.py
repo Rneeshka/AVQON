@@ -267,6 +267,9 @@ app.add_middleware(
 # Include admin ui router to serve /admin/ui -> index.html
 app.include_router(admin_ui_router)
 
+from app.routes.payments import router as payments_router
+app.include_router(payments_router, prefix="/payments")
+
 # Сжатие ответов для ускорения отдачи (после CORS, чтобы не мешать заголовкам)
 app.add_middleware(GZipMiddleware, minimum_size=500)
 

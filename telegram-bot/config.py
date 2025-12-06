@@ -50,3 +50,10 @@ if not API_URL or API_URL == "https://ваш-сервер.com/api/v1/generate-li
     import warnings
     warnings.warn("API_URL не установлен или использует значение по умолчанию. Генерация ключей не будет работать.")
 
+# Новый backend URL для оплаты
+BACKEND_URL = os.getenv("BACKEND_URL", "https://api.aegis.builders")
+
+# Эндпоинты платежей backend AEGIS
+PAYMENTS_CREATE_URL = f"{BACKEND_URL}/payments/create"
+PAYMENTS_STATUS_URL = f"{BACKEND_URL}/payments/status"
+

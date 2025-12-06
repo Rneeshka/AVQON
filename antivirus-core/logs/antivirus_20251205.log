@@ -1766,3 +1766,7 @@ aiohttp.client_exceptions.ServerDisconnectedError: Server disconnected
 2025-12-06 12:57:48,786 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
 2025-12-06 12:57:48,790 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
 2025-12-06 12:57:48,790 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client 5abfbf53-3279-4c66-a833-e6f1f99dca70
+2025-12-06 13:02:17,973 - app.logger - INFO - [WS] Client disconnected gracefully: 5abfbf53-3279-4c66-a833-e6f1f99dca70
+2025-12-06 13:02:17,976 - app.logger - INFO - [WS] Client disconnected: id=5abfbf53-3279-4c66-a833-e6f1f99dca70, reason=cleanup
+2025-12-06 13:26:48,634 - app.logger - INFO - Background job manager stopped
+2025-12-06 13:26:48,634 - app.logger - INFO - Background job manager stopped
