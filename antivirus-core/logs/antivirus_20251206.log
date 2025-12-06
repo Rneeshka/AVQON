@@ -171,3 +171,93 @@
 2025-12-06 23:40:25,029 - app.logger - INFO - Not all external APIs returned results for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1, but at least one returned safe=True, treating as safe
 2025-12-06 23:40:25,032 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1: safe=True, source=combined
 2025-12-06 23:40:25,033 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1 to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:48:41,536 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-06 23:48:41,782 - app.logger - INFO - [PAYMENTS] Payment created: 30c6aa69-000f-5000-b000-14098c06fbe3
+2025-12-06 23:48:41,783 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:48:41,785 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:48:41,786 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-06 23:48:43,632 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:48:43,635 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:48:43,636 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:49:28,333 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:49:28,336 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:49:28,338 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:51:22,736 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:51:22,740 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:51:22,742 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:51:25,379 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-06 23:51:25,583 - app.logger - INFO - [PAYMENTS] Payment created: 30c6ab0d-000f-5001-9000-102952c652ee
+2025-12-06 23:51:25,584 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:51:25,588 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:51:25,588 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-06 23:51:28,670 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:51:28,674 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:51:28,675 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:51:34,517 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:51:34,521 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:51:34,523 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:51:36,877 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-06 23:51:37,024 - app.logger - INFO - [PAYMENTS] Payment created: 30c6ab18-000f-5001-8000-1dd18c8fc231
+2025-12-06 23:51:37,025 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:51:37,028 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:51:37,029 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-06 23:52:06,620 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:06,624 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:06,626 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:52:09,634 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:09,636 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:09,637 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:52:11,396 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-06 23:52:11,561 - app.logger - INFO - [PAYMENTS] Payment created: 30c6ab3b-000f-5001-9000-1e5fcd0d20dc
+2025-12-06 23:52:11,561 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:11,564 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:11,565 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-06 23:52:27,598 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:27,601 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:27,603 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:52:29,905 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:29,908 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:29,910 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:52:32,464 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-06 23:52:32,695 - app.logger - INFO - [PAYMENTS] Payment created: 30c6ab50-000f-5001-8000-122a158412f5
+2025-12-06 23:52:32,696 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:32,698 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:32,699 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-06 23:52:35,740 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-06 23:52:35,743 - app.database - INFO - Database initialized successfully with all tables
+2025-12-06 23:52:35,745 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-06 23:58:52,261 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/analytics (context: hover)
+2025-12-06 23:58:52,262 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/analytics (ignore_db=False)
+2025-12-06 23:58:52,270 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/analytics
+2025-12-06 23:58:52,271 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/analytics: safe=True, source=external_apis
+2025-12-06 23:58:52,272 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/analytics to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:58:53,399 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/payments (context: hover)
+2025-12-06 23:58:53,399 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/payments (ignore_db=False)
+2025-12-06 23:58:53,403 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/payments
+2025-12-06 23:58:53,404 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/payments: safe=True, source=external_apis
+2025-12-06 23:58:53,404 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/payments to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:58:53,974 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/refund (context: hover)
+2025-12-06 23:58:53,974 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/refund (ignore_db=False)
+2025-12-06 23:58:53,979 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/refund
+2025-12-06 23:58:53,979 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/refund: safe=True, source=external_apis
+2025-12-06 23:58:53,980 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/refund to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:58:54,201 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/refund (context: link_check)
+2025-12-06 23:58:54,202 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/refund (ignore_db=False)
+2025-12-06 23:58:54,208 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/refund
+2025-12-06 23:58:54,208 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/refund: safe=True, source=external_apis
+2025-12-06 23:58:54,209 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/refund to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:59:17,250 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/finance (context: link_check)
+2025-12-06 23:59:17,253 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/finance (ignore_db=False)
+2025-12-06 23:59:17,260 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/finance
+2025-12-06 23:59:17,261 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/finance: safe=True, source=external_apis
+2025-12-06 23:59:17,262 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/finance to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:59:17,263 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/finance (context: hover)
+2025-12-06 23:59:17,263 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/finance (ignore_db=False)
+2025-12-06 23:59:17,268 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/finance
+2025-12-06 23:59:17,269 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/finance: safe=True, source=external_apis
+2025-12-06 23:59:17,270 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/finance to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-06 23:59:25,150 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/acts (context: hover)
+2025-12-06 23:59:25,151 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/acts (ignore_db=False)
+2025-12-06 23:59:25,158 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/acts
+2025-12-06 23:59:25,158 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/acts: safe=True, source=external_apis
+2025-12-06 23:59:25,159 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/acts to client fb21de14-eab2-4d22-8a71-65f9bc82457e

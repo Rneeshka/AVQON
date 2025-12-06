@@ -8,8 +8,9 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command
 from database import Database
 from api_client import generate_license_for_user
-from config import ADMIN_ID, DB_PATH, YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
+from config import ADMIN_ID, DB_PATH, YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY, BACKEND_URL, INSTALLATION_LINK, SUPPORT_TECH
 import aiohttp
+from typing import Optional, Dict, List
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -272,4 +273,457 @@ async def cmd_debug_payment(message: Message):
     except Exception as e:
         logger.error(f"Ошибка debug_payment: {e}", exc_info=True)
         await message.answer(f"❌ Ошибка при подключении к платежному серверу:\n{e}")
+
+
+# ==================== ОТЛАДКА ПЛАТЕЖЕЙ ====================
+
+async def backend_check_payment(payment_id: str) -> Optional[Dict]:
+    """Проверка статуса платежа через backend"""
+    url = f"{BACKEND_URL}/payments/status/{payment_id}"
+    logger.info(f"Запрашиваю статус платежа: {url}")
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as resp:
+                if resp.status != 200:
+                    logger.error(f"Backend HTTP error: {resp.status}")
+                    return None
+                return await resp.json()
+    except Exception as e:
+        logger.error(f"Ошибка запроса статуса: {e}", exc_info=True)
+        return None
+
+
+async def debug_payment_full_internal(payment_id: str) -> str:
+    """Внутренняя функция для полной отладки платежа"""
+    result = []
+    result.append(f"🔍 ПОЛНАЯ ОТЛАДКА ПЛАТЕЖА: `{payment_id}`\n")
+    
+    # 1. ИНФОРМАЦИЯ ИЗ БАЗЫ ДАННЫХ
+    result.append("📊 ИЗ БАЗЫ ДАННЫХ:")
+    payment_db = db.get_yookassa_payment(payment_id)
+    
+    if not payment_db:
+        result.append("❌ Нет записи в БД")
+        result.append("\n🎯 ВЫВОД:")
+        result.append("❌ ПРОБЛЕМА: Платеж не найден в базе данных бота")
+        result.append("💡 РЕШЕНИЕ: Проверьте правильность payment_id или создайте платеж заново")
+        return "\n".join(result)
+    
+    result.append(f"• ID: `{payment_db.get('payment_id', 'N/A')}`")
+    result.append(f"• Сумма: {payment_db.get('amount', 0) / 100}₽")
+    result.append(f"• Тип: {payment_db.get('license_type', 'N/A')}")
+    result.append(f"• Статус в БД: {payment_db.get('status', 'N/A')}")
+    result.append(f"• Ключ в БД: {payment_db.get('license_key', 'НЕТ')}")
+    result.append(f"• User ID (из БД): {payment_db.get('user_id', 'N/A')}")
+    result.append(f"• Создан: {payment_db.get('created_at', 'N/A')}")
+    result.append(f"• Обновлен: {payment_db.get('updated_at', 'N/A')}")
+    
+    user_id = payment_db.get('user_id')
+    license_type = payment_db.get('license_type', 'forever')
+    status_db = payment_db.get('status', 'pending')
+    
+    # 2. ИНФОРМАЦИЯ ИЗ BACKEND
+    result.append("\n🔄 ЗАПРОС К BACKEND:")
+    status_data = await backend_check_payment(payment_id)
+    
+    if not status_data:
+        result.append("❌ Backend не вернул данные или ошибка запроса")
+        result.append("\n🎯 ВЫВОД:")
+        result.append("❌ ПРОБЛЕМА: Backend не отвечает или возвращает ошибку")
+        result.append("💡 РЕШЕНИЕ: Проверьте доступность backend API и логи сервера")
+        return "\n".join(result)
+    
+    backend_status = status_data.get("status", "unknown")
+    result.append(f"• Статус от ЮKassa: {backend_status}")
+    
+    # Метаданные из backend (если есть)
+    metadata = status_data.get("metadata", {})
+    user_id_from_metadata = metadata.get("user_id") or metadata.get("telegram_id")
+    license_type_from_metadata = metadata.get("license_type")
+    
+    if user_id_from_metadata:
+        result.append(f"• User ID из метаданных: {user_id_from_metadata}")
+    else:
+        result.append("• User ID из метаданных: ❌ НЕТ")
+    
+    if license_type_from_metadata:
+        result.append(f"• License type из метаданных: {license_type_from_metadata}")
+    else:
+        result.append("• License type из метаданных: ❌ НЕТ")
+    
+    # Проверяем соответствие
+    if user_id_from_metadata and str(user_id_from_metadata) != str(user_id):
+        result.append(f"⚠️ ВНИМАНИЕ: User ID в БД ({user_id}) не совпадает с метаданными ({user_id_from_metadata})")
+    
+    if license_type_from_metadata and license_type_from_metadata != license_type:
+        result.append(f"⚠️ ВНИМАНИЕ: License type в БД ({license_type}) не совпадает с метаданными ({license_type_from_metadata})")
+    
+    # 3. ПРОВЕРКА ГЕНЕРАЦИИ КЛЮЧА
+    result.append("\n🔑 ГЕНЕРАЦИЯ КЛЮЧА:")
+    
+    if backend_status == "succeeded":
+        # Проверяем, есть ли уже ключ
+        existing_key = payment_db.get('license_key')
+        user = db.get_user(user_id) if user_id else None
+        
+        if existing_key or (user and user.get('has_license')):
+            key_to_show = existing_key or user.get('license_key', 'N/A')
+            result.append(f"✅ Ключ уже существует: `{key_to_show}`")
+        else:
+            # Пробуем сгенерировать ключ
+            result.append("Пробую сгенерировать ключ...")
+            try:
+                is_lifetime = license_type == "forever"
+                username = user.get('username', '') if user else ''
+                license_key = await generate_license_for_user(user_id, username, is_lifetime=is_lifetime)
+                
+                if license_key:
+                    result.append(f"✅ Ключ сгенерирован: `{license_key}`")
+                else:
+                    result.append("❌ Ошибка: Не удалось сгенерировать ключ через API")
+            except Exception as e:
+                result.append(f"❌ Ошибка генерации ключа: {str(e)}")
+                logger.error(f"Ошибка генерации ключа для payment {payment_id}: {e}", exc_info=True)
+    elif backend_status == "pending":
+        result.append("⏳ Статус pending - генерация ключа не требуется")
+    elif backend_status == "canceled":
+        result.append("❌ Платеж отменен - генерация ключа не требуется")
+    else:
+        result.append(f"❓ Неизвестный статус {backend_status} - генерация ключа не требуется")
+    
+    # 4. СТАТУС ОТПРАВКИ
+    result.append("\n📤 ОТПРАВКА ПОЛЬЗОВАТЕЛЮ:")
+    result.append(f"• User ID для отправки: {user_id}")
+    
+    if user_id:
+        user = db.get_user(user_id)
+        if user and user.get('has_license'):
+            result.append("✅ Пользователь имеет лицензию в БД")
+            result.append(f"• Ключ пользователя: `{user.get('license_key', 'N/A')}`")
+        else:
+            result.append("❌ Пользователь не имеет лицензии в БД")
+    else:
+        result.append("❌ User ID не найден")
+    
+    # 5. ВЫЯВЛЕНИЕ ПРОБЛЕМЫ
+    result.append("\n🎯 ВЫВОД:")
+    
+    problems = []
+    solutions = []
+    
+    if not payment_db:
+        problems.append("Нет записи в БД")
+        solutions.append("Создать платеж заново")
+    
+    if not status_data:
+        problems.append("Backend не отвечает")
+        solutions.append("Проверить доступность backend API")
+    
+    if backend_status == "pending" and status_db == "succeeded":
+        problems.append("Backend возвращает pending, хотя в БД succeeded")
+        solutions.append("Проверить синхронизацию статусов между backend и ЮKassa")
+    
+    if backend_status == "succeeded" and not user_id_from_metadata:
+        problems.append("Нет user_id в метаданных платежа")
+        solutions.append("Проверить создание платежа - метаданные должны содержать user_id")
+    
+    if backend_status == "succeeded":
+        existing_key = payment_db.get('license_key')
+        user = db.get_user(user_id) if user_id else None
+        has_key = existing_key or (user and user.get('has_license'))
+        
+        if not has_key:
+            problems.append("Платеж succeeded, но ключ не выдан")
+            solutions.append("Использовать команду /force_check для принудительной выдачи ключа")
+    
+    if not problems:
+        result.append("✅ Все этапы пройдены успешно!")
+        result.append("• Платеж найден в БД")
+        result.append("• Backend отвечает корректно")
+        if backend_status == "succeeded":
+            result.append("• Ключ выдан пользователю")
+    else:
+        result.append("❌ ОБНАРУЖЕНЫ ПРОБЛЕМЫ:")
+        for i, problem in enumerate(problems, 1):
+            result.append(f"{i}. {problem}")
+        result.append("\n💡 РЕШЕНИЯ:")
+        for i, solution in enumerate(solutions, 1):
+            result.append(f"{i}. {solution}")
+    
+    return "\n".join(result)
+
+
+@router.message(Command("debug_payment_full"))
+async def cmd_debug_payment_full(message: Message):
+    """Полная отладка платежа"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    parts = message.text.split()
+    if len(parts) > 1:
+        payment_id = parts[1]
+        logger.info(f"Отладка платежа {payment_id} запрошена админом {message.from_user.id}")
+        result = await debug_payment_full_internal(payment_id)
+    else:
+        # Показываем последние 3 платежа
+        logger.info(f"Отладка последних платежей запрошена админом {message.from_user.id}")
+        
+        # Получаем последние платежи из БД
+        conn = db._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT payment_id FROM yookassa_payments ORDER BY created_at DESC LIMIT 3"
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        
+        if not rows:
+            await message.answer("❌ В базе данных нет платежей")
+            return
+        
+        result = "🔍 ПОСЛЕДНИЕ 3 ПЛАТЕЖА:\n\n"
+        for i, row in enumerate(rows, 1):
+            payment_id = row[0]
+            result += f"--- ПЛАТЕЖ {i}: {payment_id} ---\n"
+            result += await debug_payment_full_internal(payment_id)
+            result += "\n\n"
+    
+    # Разбиваем на части если сообщение слишком длинное
+    max_length = 4000
+    if len(result) > max_length:
+        parts = [result[i:i+max_length] for i in range(0, len(result), max_length)]
+        for part in parts:
+            await message.answer(part, parse_mode="Markdown")
+    else:
+        await message.answer(result, parse_mode="Markdown")
+
+
+@router.message(Command("debug_last_payments"))
+async def cmd_debug_last_payments(message: Message):
+    """Отладка последних 5 платежей"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    logger.info(f"Отладка последних платежей запрошена админом {message.from_user.id}")
+    
+    # Получаем последние 5 платежей из БД
+    conn = db._get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT payment_id FROM yookassa_payments ORDER BY created_at DESC LIMIT 5"
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        await message.answer("❌ В базе данных нет платежей")
+        return
+    
+    result = "🔍 ПОСЛЕДНИЕ 5 ПЛАТЕЖЕЙ:\n\n"
+    for i, row in enumerate(rows, 1):
+        payment_id = row[0]
+        result += f"═══════════════════════════════════\n"
+        result += f"ПЛАТЕЖ {i}: {payment_id}\n"
+        result += f"═══════════════════════════════════\n"
+        result += await debug_payment_full_internal(payment_id)
+        result += "\n\n"
+    
+    # Разбиваем на части
+    max_length = 4000
+    if len(result) > max_length:
+        parts = [result[i:i+max_length] for i in range(0, len(result), max_length)]
+        for part in parts:
+            await message.answer(part, parse_mode="Markdown")
+    else:
+        await message.answer(result, parse_mode="Markdown")
+
+
+@router.message(Command("debug_user_payments"))
+async def cmd_debug_user_payments(message: Message):
+    """Отладка всех платежей пользователя"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer("Использование: /debug_user_payments @username или /debug_user_payments <user_id>")
+        return
+    
+    identifier = parts[1].strip('@')
+    
+    # Пытаемся найти user_id
+    try:
+        user_id = int(identifier)
+    except ValueError:
+        # Ищем по username
+        conn = db._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id FROM users WHERE username = ?", (identifier,))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row:
+            await message.answer(f"❌ Пользователь @{identifier} не найден в базе данных")
+            return
+        user_id = row[0]
+    
+    logger.info(f"Отладка платежей пользователя {user_id} запрошена админом {message.from_user.id}")
+    
+    # Получаем все платежи пользователя
+    conn = db._get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT payment_id FROM yookassa_payments WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        await message.answer(f"❌ У пользователя {user_id} нет платежей в базе данных")
+        return
+    
+    result = f"🔍 ПЛАТЕЖИ ПОЛЬЗОВАТЕЛЯ {user_id}:\n\n"
+    for i, row in enumerate(rows, 1):
+        payment_id = row[0]
+        result += f"═══════════════════════════════════\n"
+        result += f"ПЛАТЕЖ {i}: {payment_id}\n"
+        result += f"═══════════════════════════════════\n"
+        result += await debug_payment_full_internal(payment_id)
+        result += "\n\n"
+    
+    # Разбиваем на части
+    max_length = 4000
+    if len(result) > max_length:
+        parts = [result[i:i+max_length] for i in range(0, len(result), max_length)]
+        for part in parts:
+            await message.answer(part, parse_mode="Markdown")
+    else:
+        await message.answer(result, parse_mode="Markdown")
+
+
+@router.message(Command("force_check"))
+async def cmd_force_check(message: Message):
+    """Принудительная проверка и выдача ключа"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer("Использование: /force_check <payment_id>")
+        return
+    
+    payment_id = parts[1]
+    logger.info(f"Принудительная проверка платежа {payment_id} запрошена админом {message.from_user.id}")
+    
+    await message.answer(f"🔧 Принудительная проверка платежа {payment_id}...")
+    
+    # Получаем платеж из БД
+    payment_db = db.get_yookassa_payment(payment_id)
+    if not payment_db:
+        await message.answer(f"❌ Платеж {payment_id} не найден в базе данных")
+        return
+    
+    user_id = payment_db.get('user_id')
+    license_type = payment_db.get('license_type', 'forever')
+    
+    # Проверяем статус через backend
+    status_data = await backend_check_payment(payment_id)
+    if not status_data:
+        await message.answer(f"❌ Не удалось получить статус платежа от backend")
+        return
+    
+    backend_status = status_data.get("status")
+    
+    if backend_status != "succeeded":
+        await message.answer(
+            f"❌ Платеж имеет статус {backend_status}, а не succeeded.\n"
+            f"Выдача ключа возможна только для succeeded платежей."
+        )
+        return
+    
+    # Проверяем, не выдан ли уже ключ
+    user = db.get_user(user_id) if user_id else None
+    if user and user.get('has_license'):
+        existing_key = user.get('license_key', 'N/A')
+        await message.answer(
+            f"✅ Пользователь уже имеет лицензию:\n`{existing_key}`\n\n"
+            f"Статус платежа обновлен на succeeded."
+        )
+        db.update_yookassa_payment_status(payment_id, "succeeded", existing_key)
+        return
+    
+    # Генерируем ключ
+    await message.answer("🔑 Генерирую ключ...")
+    try:
+        is_lifetime = license_type == "forever"
+        username = user.get('username', '') if user else ''
+        license_key = await generate_license_for_user(user_id, username, is_lifetime=is_lifetime)
+        
+        if not license_key:
+            await message.answer("❌ Не удалось сгенерировать ключ через API")
+            return
+        
+        # Сохраняем ключ в БД
+        db.update_user_license(user_id, license_key)
+        db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
+        
+        # Формируем сообщение
+        if license_type == "forever":
+            license_text = "Ваш ключ действует бессрочно"
+        else:
+            from datetime import datetime, timedelta
+            expiry_date = datetime.now() + timedelta(days=30)
+            license_text = f"Ваша подписка действует до {expiry_date.strftime('%d.%m.%Y')}"
+        
+        result = f"""✅ Ключ успешно выдан!
+
+Платеж: `{payment_id}`
+Пользователь: {user_id}
+Тип лицензии: {license_type}
+
+Ключ: `{license_key}`
+
+{license_text}
+
+Ссылка для установки:
+{INSTALLATION_LINK}"""
+        
+        await message.answer(result, parse_mode="Markdown")
+        
+        # Отправляем ключ пользователю
+        try:
+            await message.bot.send_message(
+                user_id,
+                f"""✅ Ваш лицензионный ключ:
+
+`{license_key}`
+
+{license_text}
+
+Ссылка для установки расширения:
+{INSTALLATION_LINK}
+
+Инструкция по активации:
+1. Установите расширение по ссылке выше
+2. Откройте настройки расширения
+3. Введите ваш лицензионный ключ
+4. Расширение активировано
+
+При возникновении вопросов: {SUPPORT_TECH}""",
+                parse_mode="Markdown"
+            )
+            await message.answer(f"✅ Ключ отправлен пользователю {user_id}")
+        except Exception as send_error:
+            logger.error(f"Ошибка отправки ключа пользователю {user_id}: {send_error}", exc_info=True)
+            await message.answer(f"⚠️ Ключ сохранен в БД, но не удалось отправить пользователю: {send_error}")
+        
+    except Exception as e:
+        logger.error(f"Ошибка при принудительной выдаче ключа: {e}", exc_info=True)
+        await message.answer(f"❌ Ошибка: {str(e)}")
 
