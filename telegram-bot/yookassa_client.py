@@ -1,6 +1,7 @@
 """Клиент для работы с API ЮKassa"""
 import logging
 import asyncio
+import uuid
 from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
@@ -70,9 +71,10 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
             return None
         
         # Payment.create() - синхронный метод, выполняем в отдельном потоке
+        # ВАЖНО: сумма должна быть строкой в формате "500.00", а не числом
         payment_data = {
             "amount": {
-                "value": f"{amount:.2f}",
+                "value": f"{amount:.2f}",  # Уже строка в формате "500.00"
                 "currency": "RUB"
             },
             "confirmation": {
@@ -83,12 +85,18 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
             "description": description
         }
         
+        # Генерируем уникальный idempotence_key для каждого платежа
+        idempotence_key = str(uuid.uuid4())
+        logger.info(f"Создание платежа с idempotence_key: {idempotence_key}")
+        
         # Выполняем синхронный вызов в отдельном потоке
         # Payment.create() - синхронный метод, который делает HTTP запрос
         def _create_payment_sync():
             try:
                 logger.debug(f"Вызов Payment.create с данными: {payment_data}")
-                result = Payment.create(payment_data)
+                logger.debug(f"Idempotence key: {idempotence_key}")
+                # Передаем idempotence_key как второй параметр
+                result = Payment.create(payment_data, idempotence_key)
                 logger.debug(f"Payment.create вернул результат: {result.id if result else None}")
                 return result
             except Exception as sync_error:

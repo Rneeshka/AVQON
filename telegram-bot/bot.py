@@ -7,12 +7,32 @@ from aiogram.enums import ParseMode
 
 from config import BOT_TOKEN
 
+# Импортируем yookassa_client для инициализации конфигурации ЮKassa ДО всех платежей
+try:
+    from yookassa_client import YOOKASSA_AVAILABLE
+    if YOOKASSA_AVAILABLE:
+        logger = logging.getLogger(__name__)
+        logger.info("ЮKassa конфигурация инициализирована при запуске бота")
+except Exception as e:
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Не удалось инициализировать ЮKassa при запуске: {e}")
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Импортируем yookassa_client для инициализации конфигурации ЮKassa ДО всех платежей
+try:
+    from yookassa_client import YOOKASSA_AVAILABLE
+    if YOOKASSA_AVAILABLE:
+        logger.info("ЮKassa конфигурация инициализирована при запуске бота")
+    else:
+        logger.warning("ЮKassa недоступна при запуске бота")
+except Exception as e:
+    logger.warning(f"Не удалось инициализировать ЮKassa при запуске: {e}")
 
 # Безопасный импорт обработчиков
 try:

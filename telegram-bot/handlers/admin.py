@@ -1,11 +1,13 @@
 """Админ-команды"""
 import logging
+import uuid
+import traceback
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from database import Database
 from api_client import generate_license_for_user
-from config import ADMIN_ID, DB_PATH
+from config import ADMIN_ID, DB_PATH, YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -240,4 +242,73 @@ async def cancel_reset_all(callback: CallbackQuery):
     """Отмена очистки БД"""
     await callback.answer("Операция отменена")
     await callback.message.edit_text("❌ Очистка базы данных отменена")
+
+
+@router.message(Command("debug_payment"))
+async def cmd_debug_payment(message: Message):
+    """Тест подключения к ЮKassa"""
+    try:
+        from yookassa import Configuration, Payment
+        from yookassa.domain.exceptions import ApiError
+        
+        # 1. Конфигурация (ОБЯЗАТЕЛЬНО ПЕРВЫМ!)
+        Configuration.account_id = YOOKASSA_SHOP_ID
+        Configuration.secret_key = YOOKASSA_SECRET_KEY
+        
+        await message.answer("🔧 Тестирую подключение к ЮKassa...")
+        
+        # 2. Простейший платеж
+        idempotence_key = str(uuid.uuid4())
+        
+        payment_data = {
+            "amount": {
+                "value": "1.00",  # СТРОКА "1.00" а не число 1
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": "https://t.me"  # заменить на реальный username если нужно
+            },
+            "capture": True,
+            "description": "Тест подключения к ЮKassa"
+        }
+        
+        logger.info(f"Создание тестового платежа с idempotence_key: {idempotence_key}")
+        logger.info(f"Payment data: {payment_data}")
+        
+        payment = Payment.create(payment_data, idempotence_key)
+        
+        await message.answer(
+            f"✅ Успешное подключение!\n\n"
+            f"Payment ID: `{payment.id}`\n"
+            f"Статус: {payment.status}\n"
+            f"URL для оплаты: {payment.confirmation.confirmation_url}\n\n"
+            f"Idempotence key: `{idempotence_key}`"
+        )
+        
+    except ApiError as e:
+        # Полный traceback
+        error_trace = traceback.format_exc()
+        
+        error_details = f"❌ Ошибка API ЮKassa:\n\n"
+        error_details += f"Тип ошибки: {type(e).__name__}\n"
+        error_details += f"Код ошибки: {getattr(e, 'code', 'N/A')}\n"
+        error_details += f"Описание: {getattr(e, 'description', str(e))}\n"
+        error_details += f"Параметр: {getattr(e, 'parameter', 'N/A')}\n\n"
+        error_details += f"Полный traceback:\n```\n{error_trace[:1500]}\n```"
+        
+        logger.error(f"Ошибка API ЮKassa при debug_payment: {e}", exc_info=True)
+        await message.answer(error_details)
+        
+    except Exception as e:
+        # Полный traceback
+        error_trace = traceback.format_exc()
+        
+        error_details = f"❌ Ошибка подключения к ЮKassa:\n\n"
+        error_details += f"Тип ошибки: {type(e).__name__}\n"
+        error_details += f"Сообщение: {str(e)}\n\n"
+        error_details += f"Полный traceback:\n```\n{error_trace[:1500]}\n```"
+        
+        logger.error(f"Ошибка при debug_payment: {e}", exc_info=True)
+        await message.answer(error_details)
 
