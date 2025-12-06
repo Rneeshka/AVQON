@@ -261,3 +261,22 @@
 2025-12-06 23:59:25,158 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/acts
 2025-12-06 23:59:25,158 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/acts: safe=True, source=external_apis
 2025-12-06 23:59:25,159 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/acts to client fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-07 00:01:06,383 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:01:06,386 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:01:06,388 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:01:06,415 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:01:06,418 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:01:06,419 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:01:06,448 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:01:06,451 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:01:06,452 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:01:06,482 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:01:06,484 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:01:06,486 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:01:06,512 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:01:06,514 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:01:06,516 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:04:59,565 - app.logger - INFO - [WS] Client disconnected gracefully: fb21de14-eab2-4d22-8a71-65f9bc82457e
+2025-12-07 00:04:59,566 - app.logger - INFO - [WS] Client disconnected: id=fb21de14-eab2-4d22-8a71-65f9bc82457e, reason=cleanup
+2025-12-07 00:04:59,666 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:04:59,666 - app.logger - INFO - Background job manager stopped

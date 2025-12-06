@@ -1796,8 +1796,8 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.execute(
-                    "SELECT payment_id, user_id, amount, license_type, status, created_at "
-                    "FROM yookassa_payments WHERE payment_id = ?",
+                    "SELECT id, user_id, amount, license_type, status, license_key, created_at, updated_at "
+                    "FROM yookassa_payments WHERE id = ?",
                     (payment_id,)
                 )
                 row = cursor.fetchone()
@@ -1805,6 +1805,36 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Get payment error: {e}")
             return None
+
+    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
+        """Создает запись платежа YooKassa"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO yookassa_payments
+                    (id, user_id, amount, license_type, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))
+                """, (payment_id, user_id, amount, license_type))
+                conn.commit()
+        except Exception as e:
+            logger.error(f"[DB] Failed to create payment: {e}")
+            raise
+
+    async def update_yookassa_payment_status(self, payment_id: str, status: str, license_key: str = None):
+        """Обновляет статус платежа и сохраняет лицензионный ключ"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE yookassa_payments
+                    SET status = ?, license_key = ?, updated_at = datetime('now')
+                    WHERE id = ?
+                """, (status, license_key, payment_id))
+                conn.commit()
+        except Exception as e:
+            logger.error(f"[DB] Failed to update payment status: {e}")
+            raise
             
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()

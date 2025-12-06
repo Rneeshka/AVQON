@@ -1,0 +1,324 @@
+2025-12-07 00:05:00,239 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:05:00,241 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:05:00,244 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:05:00,343 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:05:00,343 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:05:00,343 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:05:00,416 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:05:00,418 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:05:00,419 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:05:00,421 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:05:00,422 - app.logger - INFO - Rate limits reset
+2025-12-07 00:05:00,422 - app.logger - INFO - Background job manager started
+2025-12-07 00:05:00,422 - app.logger - INFO - Background job manager started
+2025-12-07 00:05:00,423 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:05:00,423 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:05:00,708 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:05:00,709 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:05:00,715 - app.logger - INFO - [WS] Client connected: id=f913255d-f2e1-4feb-9426-d19c1e2a3367, ip=185.46.16.165
+2025-12-07 00:05:49,539 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:05:49,542 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:05:49,544 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:05:51,195 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 00:05:51,354 - app.logger - INFO - [PAYMENTS] Payment created: 30c6ae6f-000f-5001-8000-1687b04225f3
+2025-12-07 00:05:51,355 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:05:51,358 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:05:51,359 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-07 00:05:52,821 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:05:52,823 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:05:52,825 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:06:59,011 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/acts (context: hover)
+2025-12-07 00:06:59,012 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/acts (ignore_db=False)
+2025-12-07 00:06:59,018 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/acts
+2025-12-07 00:06:59,018 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/acts: safe=True, source=external_apis
+2025-12-07 00:06:59,019 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/acts to client f913255d-f2e1-4feb-9426-d19c1e2a3367
+2025-12-07 00:06:59,983 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/analytics (context: hover)
+2025-12-07 00:06:59,983 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/analytics (ignore_db=False)
+2025-12-07 00:06:59,988 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/analytics
+2025-12-07 00:06:59,988 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/analytics: safe=True, source=external_apis
+2025-12-07 00:06:59,989 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/analytics to client f913255d-f2e1-4feb-9426-d19c1e2a3367
+2025-12-07 00:07:01,550 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/registries (context: hover)
+2025-12-07 00:07:01,552 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/registries (ignore_db=False)
+2025-12-07 00:07:01,557 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/registries
+2025-12-07 00:07:01,558 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/registries: safe=True, source=external_apis
+2025-12-07 00:07:01,558 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/registries to client f913255d-f2e1-4feb-9426-d19c1e2a3367
+2025-12-07 00:07:08,388 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/analytics (context: link_check)
+2025-12-07 00:07:08,388 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/analytics (ignore_db=False)
+2025-12-07 00:07:08,393 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/analytics
+2025-12-07 00:07:08,393 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/analytics: safe=True, source=external_apis
+2025-12-07 00:07:08,394 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/analytics to client f913255d-f2e1-4feb-9426-d19c1e2a3367
+2025-12-07 00:10:16,292 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:10:16,297 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:10:16,298 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:11:50,756 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:11:50,760 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:11:50,762 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:13:30,144 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:13:30,150 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:13:30,151 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:13:36,449 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:13:36,453 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:13:36,455 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:14:11,342 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:14:11,346 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:14:11,347 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:15:26,511 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:15:26,515 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:15:26,516 - app.logger - INFO - [PAYMENTS] Payment succeeded: test123. Issuing license to 696019842
+2025-12-07 00:15:26,516 - app.logger - ERROR - [PAYMENTS] Failed to update DB payment status: 'DatabaseManager' object has no attribute 'update_yookassa_payment_status'
+2025-12-07 00:24:19,974 - app.logger - INFO - [WS] Client disconnected gracefully: f913255d-f2e1-4feb-9426-d19c1e2a3367
+2025-12-07 00:24:19,974 - app.logger - INFO - [WS] Client disconnected: id=f913255d-f2e1-4feb-9426-d19c1e2a3367, reason=cleanup
+2025-12-07 00:24:20,074 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:24:20,075 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:24:20,821 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:24:20,823 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:20,826 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:20,952 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:24:20,953 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:24:20,953 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:24:21,042 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:24:21,044 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:24:21,045 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:24:21,047 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:24:21,047 - app.logger - INFO - Rate limits reset
+2025-12-07 00:24:21,047 - app.logger - INFO - Background job manager started
+2025-12-07 00:24:21,048 - app.logger - INFO - Background job manager started
+2025-12-07 00:24:21,048 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:24:21,048 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:24:21,156 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:24:21,157 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:24:21,163 - app.logger - INFO - [WS] Client connected: id=f4fd9e10-2195-4f39-a827-d8a5d2a979d5, ip=185.46.16.165
+2025-12-07 00:24:50,713 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:50,718 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:50,720 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:24:51,990 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 00:24:52,137 - app.logger - INFO - [PAYMENTS] Payment created: 30c6b2e4-000f-5000-b000-19c3da7dcc20
+2025-12-07 00:24:52,138 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:52,140 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:52,140 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-07 00:24:53,127 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:53,130 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:53,131 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:24:55,694 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:55,697 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:55,698 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:24:57,188 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 00:24:57,339 - app.logger - INFO - [PAYMENTS] Payment created: 30c6b2e9-000f-5000-b000-194b8e415a6c
+2025-12-07 00:24:57,340 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:57,343 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:57,343 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-07 00:24:58,218 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:24:58,220 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:24:58,222 - app.database - ERROR - Get payment error: no such table: yookassa_payments
+2025-12-07 00:26:10,695 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=forever, amount=500
+2025-12-07 00:26:10,835 - app.logger - INFO - [PAYMENTS] Payment created: 30c6b332-000f-5001-9000-16b1e2661c77
+2025-12-07 00:26:10,836 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:26:10,840 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:26:10,841 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-07 00:26:15,887 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 00:26:16,066 - app.logger - INFO - [PAYMENTS] Payment created: 30c6b337-000f-5000-b000-1c822289daa1
+2025-12-07 00:26:16,067 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:26:16,070 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:26:16,071 - app.logger - ERROR - [PAYMENTS] DB save error: 'DatabaseManager' object has no attribute 'create_yookassa_payment'
+2025-12-07 00:28:02,757 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/docs/support/merchant/payments/analytics (context: hover)
+2025-12-07 00:28:02,759 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/docs/support/merchant/payments/analytics (ignore_db=False)
+2025-12-07 00:28:02,767 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/docs/support/merchant/payments/analytics
+2025-12-07 00:28:02,768 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/docs/support/merchant/payments/analytics: safe=True, source=external_apis
+2025-12-07 00:28:02,769 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/docs/support/merchant/payments/analytics to client f4fd9e10-2195-4f39-a827-d8a5d2a979d5
+2025-12-07 00:28:16,058 - app.logger - INFO - [WS] Client disconnected gracefully: f4fd9e10-2195-4f39-a827-d8a5d2a979d5
+2025-12-07 00:28:16,059 - app.logger - INFO - [WS] Client disconnected: id=f4fd9e10-2195-4f39-a827-d8a5d2a979d5, reason=cleanup
+2025-12-07 00:28:16,159 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:28:16,159 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:28:16,888 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:28:16,890 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:28:16,893 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:28:17,018 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:28:17,019 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:28:17,019 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:28:17,107 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:28:17,109 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:28:17,110 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:28:17,112 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:28:17,112 - app.logger - INFO - Rate limits reset
+2025-12-07 00:28:17,113 - app.logger - INFO - Background job manager started
+2025-12-07 00:28:17,113 - app.logger - INFO - Background job manager started
+2025-12-07 00:28:17,113 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:28:17,113 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:28:17,337 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:28:17,338 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:28:17,344 - app.logger - INFO - [WS] Client connected: id=52a124d6-c3b2-4339-a6ed-99c27f8de794, ip=185.46.16.165
+2025-12-07 00:34:35,518 - app.logger - INFO - [WS] Client disconnected gracefully: 52a124d6-c3b2-4339-a6ed-99c27f8de794
+2025-12-07 00:34:35,518 - app.logger - INFO - [WS] Client disconnected: id=52a124d6-c3b2-4339-a6ed-99c27f8de794, reason=cleanup
+2025-12-07 00:34:35,618 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:34:35,618 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:34:36,238 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:34:36,255 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:34:36,257 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:34:36,359 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:34:36,359 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:34:36,359 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:34:36,437 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:34:36,439 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:34:36,439 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:34:36,442 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:34:36,443 - app.logger - INFO - Rate limits reset
+2025-12-07 00:34:36,443 - app.logger - INFO - Background job manager started
+2025-12-07 00:34:36,443 - app.logger - INFO - Background job manager started
+2025-12-07 00:34:36,443 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:34:36,443 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:34:36,665 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:34:36,665 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:34:36,673 - app.logger - INFO - [WS] Client connected: id=b8b4b118-8dc5-4015-9897-1988c7177865, ip=185.46.16.165
+2025-12-07 00:35:07,458 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:35:07,462 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:37:32,614 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:37:32,620 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:40:25,417 - app.logger - INFO - [WS] Client disconnected gracefully: b8b4b118-8dc5-4015-9897-1988c7177865
+2025-12-07 00:40:25,418 - app.logger - INFO - [WS] Client disconnected: id=b8b4b118-8dc5-4015-9897-1988c7177865, reason=cleanup
+2025-12-07 00:40:25,518 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:40:25,518 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:40:26,966 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:40:26,985 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:40:26,988 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:40:27,313 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:40:27,314 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:40:27,315 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:40:27,429 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:40:27,431 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:40:27,431 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:40:27,436 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:40:27,437 - app.logger - INFO - Rate limits reset
+2025-12-07 00:40:27,437 - app.logger - INFO - Background job manager started
+2025-12-07 00:40:27,437 - app.logger - INFO - Background job manager started
+2025-12-07 00:40:27,437 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:40:27,437 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:40:28,710 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:40:28,712 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:40:28,718 - app.logger - INFO - [WS] Client connected: id=133b693b-57cc-4d20-90f7-5c1693bb8386, ip=185.46.16.165
+2025-12-07 00:40:32,165 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:40:32,168 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:41:06,487 - app.logger - INFO - [WS] Client disconnected gracefully: 133b693b-57cc-4d20-90f7-5c1693bb8386
+2025-12-07 00:41:06,488 - app.logger - INFO - [WS] Client disconnected: id=133b693b-57cc-4d20-90f7-5c1693bb8386, reason=cleanup
+2025-12-07 00:41:06,587 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:41:06,587 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:41:07,269 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:41:07,271 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:41:07,273 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:41:07,393 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:41:07,393 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:41:07,394 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:41:07,476 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:41:07,478 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:41:07,478 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:41:07,480 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:41:07,481 - app.logger - INFO - Rate limits reset
+2025-12-07 00:41:07,481 - app.logger - INFO - Background job manager started
+2025-12-07 00:41:07,481 - app.logger - INFO - Background job manager started
+2025-12-07 00:41:07,481 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:41:07,481 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:41:07,643 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:41:07,644 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:41:07,649 - app.logger - INFO - [WS] Client connected: id=c89ed5f1-99d6-4462-9e12-f71a4aa85015, ip=185.46.16.165
+2025-12-07 00:41:13,826 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:41:13,828 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:42:46,240 - app.logger - INFO - [WS] Client disconnected gracefully: c89ed5f1-99d6-4462-9e12-f71a4aa85015
+2025-12-07 00:42:46,241 - app.logger - INFO - [WS] Client disconnected: id=c89ed5f1-99d6-4462-9e12-f71a4aa85015, reason=cleanup
+2025-12-07 00:42:46,341 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:42:46,342 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:42:47,750 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:42:47,773 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:42:47,775 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:42:48,130 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:42:48,131 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:42:48,132 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:42:48,240 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:42:48,241 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:42:48,242 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:42:48,247 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:42:48,248 - app.logger - INFO - Rate limits reset
+2025-12-07 00:42:48,248 - app.logger - INFO - Background job manager started
+2025-12-07 00:42:48,248 - app.logger - INFO - Background job manager started
+2025-12-07 00:42:48,248 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:42:48,248 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:42:49,239 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:42:49,242 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:42:49,567 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:42:49,568 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:42:49,573 - app.logger - INFO - [WS] Client connected: id=907547ba-76aa-4b38-b613-9837f8cff0ac, ip=185.46.16.165
+2025-12-07 00:43:29,203 - app.logger - INFO - [WS] Client disconnected gracefully: 907547ba-76aa-4b38-b613-9837f8cff0ac
+2025-12-07 00:43:29,204 - app.logger - INFO - [WS] Client disconnected: id=907547ba-76aa-4b38-b613-9837f8cff0ac, reason=cleanup
+2025-12-07 00:43:29,303 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:43:29,304 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:43:30,026 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:43:30,029 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:43:30,032 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:43:30,164 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:43:30,165 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:43:30,165 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:43:30,254 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:43:30,255 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:43:30,256 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:43:30,260 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:43:30,260 - app.logger - INFO - Rate limits reset
+2025-12-07 00:43:30,261 - app.logger - INFO - Background job manager started
+2025-12-07 00:43:30,261 - app.logger - INFO - Background job manager started
+2025-12-07 00:43:30,261 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:43:30,262 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:43:30,370 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:43:30,371 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:43:30,377 - app.logger - INFO - [WS] Client connected: id=b0429850-d500-4e8d-b9f2-a7439e22d336, ip=185.46.16.165
+2025-12-07 00:43:31,700 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:43:31,703 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:43:39,611 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/my/finance (context: hover)
+2025-12-07 00:43:39,611 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/my/finance (ignore_db=False)
+2025-12-07 00:43:39,616 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/my/finance
+2025-12-07 00:43:39,616 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/my/finance: safe=True, source=external_apis
+2025-12-07 00:43:39,617 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/my/finance to client b0429850-d500-4e8d-b9f2-a7439e22d336
+2025-12-07 00:44:36,717 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:44:36,722 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:50:26,986 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:50:27,006 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:50:27,009 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:50:27,340 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:50:27,340 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:50:27,341 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:50:27,450 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:50:27,451 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:50:27,452 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:50:27,456 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:50:27,457 - app.logger - INFO - Rate limits reset
+2025-12-07 00:50:27,457 - app.logger - INFO - Background job manager started
+2025-12-07 00:50:27,457 - app.logger - INFO - Background job manager started
+2025-12-07 00:50:27,458 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:50:27,458 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:50:30,800 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:50:30,801 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:50:30,811 - app.logger - INFO - [WS] Client connected: id=d4635cf3-5b91-47ff-bb6d-9abbbf6e7157, ip=185.46.16.165
+2025-12-07 00:50:58,043 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:50:58,047 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:51:10,984 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:51:10,987 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:55:25,930 - app.logger - INFO - [WS] Client disconnected gracefully: d4635cf3-5b91-47ff-bb6d-9abbbf6e7157
+2025-12-07 00:55:25,931 - app.logger - INFO - [WS] Client disconnected: id=d4635cf3-5b91-47ff-bb6d-9abbbf6e7157, reason=cleanup
+2025-12-07 00:55:26,031 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:55:26,031 - app.logger - INFO - Background job manager stopped
+2025-12-07 00:55:26,748 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 00:55:26,751 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:55:26,754 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 00:55:26,878 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 00:55:26,878 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 00:55:26,879 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 00:55:26,965 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 00:55:26,967 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 00:55:26,968 - app.logger - INFO - Database connection established successfully
+2025-12-07 00:55:26,970 - app.database - INFO - Rate limits reset successfully
+2025-12-07 00:55:26,971 - app.logger - INFO - Rate limits reset
+2025-12-07 00:55:26,971 - app.logger - INFO - Background job manager started
+2025-12-07 00:55:26,971 - app.logger - INFO - Background job manager started
+2025-12-07 00:55:26,971 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 00:55:26,972 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 00:55:27,084 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 00:55:27,085 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 00:55:27,091 - app.logger - INFO - [WS] Client connected: id=06a15658-dde7-43f7-aeca-966baac99b23, ip=185.46.16.165
+2025-12-07 00:56:00,272 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 00:56:00,277 - app.database - INFO - Database initialized successfully with all tables
