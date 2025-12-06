@@ -47,4 +47,4 @@ curl -X POST http://127.0.0.1:8000/check/url \
   -d '{"url":"http://example.com"}'
  API‑ключи
 
-Для работы с VirusTotal, Google Safe Browsing и AbuseIPDB добавьте переменные окружения с вашими ключами. Без них ядро работает в базовом режиме.
+Для работы с VirusTotal, Google Safe Browsing и AbuseIPDB добавьте переменные окружения с вашими ключами. Без них ядро работает в базовом режиме..
