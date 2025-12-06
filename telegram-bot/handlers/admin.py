@@ -2,6 +2,7 @@
 import logging
 import uuid
 import traceback
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
@@ -247,15 +248,24 @@ async def cancel_reset_all(callback: CallbackQuery):
 @router.message(Command("debug_payment"))
 async def cmd_debug_payment(message: Message):
     """Тест подключения к ЮKassa"""
+    user_id = message.from_user.id
+    logger.info(f"Команда /debug_payment вызвана пользователем {user_id}")
+    
     try:
+        # Сразу отвечаем, чтобы пользователь знал, что команда работает
+        await message.answer("🔧 Тестирую подключение к ЮKassa...")
+        logger.info(f"Отправлено начальное сообщение пользователю {user_id}")
+        
         from yookassa import Configuration, Payment
         from yookassa.domain.exceptions import ApiError
+        
+        logger.info(f"Импорт yookassa успешен. Настраиваю конфигурацию...")
         
         # 1. Конфигурация (ОБЯЗАТЕЛЬНО ПЕРВЫМ!)
         Configuration.account_id = YOOKASSA_SHOP_ID
         Configuration.secret_key = YOOKASSA_SECRET_KEY
         
-        await message.answer("🔧 Тестирую подключение к ЮKassa...")
+        logger.info(f"Конфигурация установлена: account_id={YOOKASSA_SHOP_ID}, secret_key={'установлен' if YOOKASSA_SECRET_KEY else 'не установлен'}")
         
         # 2. Простейший платеж
         idempotence_key = str(uuid.uuid4())
@@ -276,9 +286,23 @@ async def cmd_debug_payment(message: Message):
         logger.info(f"Создание тестового платежа с idempotence_key: {idempotence_key}")
         logger.info(f"Payment data: {payment_data}")
         
-        payment = Payment.create(payment_data, idempotence_key)
+        # Payment.create() - синхронный метод, выполняем в отдельном потоке
+        def _create_payment_sync():
+            try:
+                logger.info("Вызываю Payment.create в синхронном потоке...")
+                result = Payment.create(payment_data, idempotence_key)
+                logger.info(f"Payment.create успешно выполнен. Payment ID: {result.id}")
+                return result
+            except Exception as sync_error:
+                logger.error(f"Ошибка в синхронном вызове Payment.create: {sync_error}", exc_info=True)
+                raise
         
-        await message.answer(
+        logger.info("Запускаю Payment.create в отдельном потоке...")
+        loop = asyncio.get_event_loop()
+        payment = await loop.run_in_executor(None, _create_payment_sync)
+        logger.info(f"Payment.create успешно выполнен. Payment ID: {payment.id}")
+        
+        response_text = (
             f"✅ Успешное подключение!\n\n"
             f"Payment ID: `{payment.id}`\n"
             f"Статус: {payment.status}\n"
@@ -286,9 +310,15 @@ async def cmd_debug_payment(message: Message):
             f"Idempotence key: `{idempotence_key}`"
         )
         
+        logger.info("Отправляю ответ пользователю...")
+        await message.answer(response_text)
+        logger.info("Ответ отправлен успешно")
+        
     except ApiError as e:
         # Полный traceback
         error_trace = traceback.format_exc()
+        
+        logger.error(f"Ошибка API ЮKassa при debug_payment: {e}", exc_info=True)
         
         error_details = f"❌ Ошибка API ЮKassa:\n\n"
         error_details += f"Тип ошибки: {type(e).__name__}\n"
@@ -297,18 +327,24 @@ async def cmd_debug_payment(message: Message):
         error_details += f"Параметр: {getattr(e, 'parameter', 'N/A')}\n\n"
         error_details += f"Полный traceback:\n```\n{error_trace[:1500]}\n```"
         
-        logger.error(f"Ошибка API ЮKassa при debug_payment: {e}", exc_info=True)
-        await message.answer(error_details)
+        try:
+            await message.answer(error_details)
+        except Exception as send_error:
+            logger.error(f"Не удалось отправить сообщение об ошибке: {send_error}")
         
     except Exception as e:
         # Полный traceback
         error_trace = traceback.format_exc()
+        
+        logger.error(f"Ошибка при debug_payment: {e}", exc_info=True)
         
         error_details = f"❌ Ошибка подключения к ЮKassa:\n\n"
         error_details += f"Тип ошибки: {type(e).__name__}\n"
         error_details += f"Сообщение: {str(e)}\n\n"
         error_details += f"Полный traceback:\n```\n{error_trace[:1500]}\n```"
         
-        logger.error(f"Ошибка при debug_payment: {e}", exc_info=True)
-        await message.answer(error_details)
+        try:
+            await message.answer(error_details)
+        except Exception as send_error:
+            logger.error(f"Не удалось отправить сообщение об ошибке: {send_error}")
 
