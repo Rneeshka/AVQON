@@ -3,8 +3,13 @@ import logging
 import asyncio
 import uuid
 from typing import Optional, Dict
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
+
+# Создаем отдельный пул потоков для синхронных операций ЮKassa
+# Это предотвращает блокировку event loop
+executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="yookassa")
 
 # Безопасный импорт yookassa
 try:
@@ -35,14 +40,15 @@ except Exception as e:
     ApiError = Exception
 
 
-async def create_payment(amount: int, description: str, return_url: str = None) -> Optional[Dict]:
+async def create_payment(amount: int, description: str, return_url: str = None, metadata: dict = None) -> Optional[Dict]:
     """
-    Создать платеж в ЮKassa
+    Создать платеж в ЮKassa (асинхронно с таймаутом)
     
     Args:
         amount: Сумма в рублях (будет конвертирована в копейки)
         description: Описание платежа
         return_url: URL для возврата после оплаты (опционально)
+        metadata: Метаданные платежа (все значения должны быть строками!)
     
     Returns:
         Dict с payment_id и confirmation_url или None при ошибке
@@ -85,26 +91,47 @@ async def create_payment(amount: int, description: str, return_url: str = None) 
             "description": description
         }
         
+        # Добавляем metadata если передано (все значения должны быть строками!)
+        if metadata:
+            # Убеждаемся, что все значения в metadata - строки
+            safe_metadata = {}
+            for key, value in metadata.items():
+                safe_metadata[str(key)] = str(value) if value is not None else ""
+            payment_data["metadata"] = safe_metadata
+        
         # Генерируем уникальный idempotence_key для каждого платежа
         idempotence_key = str(uuid.uuid4())
         logger.info(f"Создание платежа с idempotence_key: {idempotence_key}")
         
-        # Выполняем синхронный вызов в отдельном потоке
+        # Выполняем синхронный вызов в отдельном потоке с таймаутом
         # Payment.create() - синхронный метод, который делает HTTP запрос
         def _create_payment_sync():
             try:
-                logger.debug(f"Вызов Payment.create с данными: {payment_data}")
+                logger.info(f"Вызов Payment.create в потоке {asyncio.current_task()}")
+                logger.debug(f"Payment data: {payment_data}")
                 logger.debug(f"Idempotence key: {idempotence_key}")
                 # Передаем idempotence_key как второй параметр
                 result = Payment.create(payment_data, idempotence_key)
-                logger.debug(f"Payment.create вернул результат: {result.id if result else None}")
+                logger.info(f"Payment.create успешно выполнен. Payment ID: {result.id if result else None}")
                 return result
             except Exception as sync_error:
                 logger.error(f"Ошибка в синхронном вызове Payment.create: {sync_error}", exc_info=True)
                 raise
         
-        loop = asyncio.get_event_loop()
-        payment = await loop.run_in_executor(None, _create_payment_sync)
+        # Используем отдельный executor и добавляем таймаут 30 секунд
+        logger.info("Запускаю Payment.create в отдельном потоке с таймаутом 30 секунд...")
+        try:
+            payment = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(executor, _create_payment_sync),
+                timeout=30.0
+            )
+            logger.info(f"Платеж создан успешно: {payment.id}")
+        except asyncio.TimeoutError:
+            logger.error("Таймаут при создании платежа (30 секунд). API ЮKassa не отвечает.")
+            return None
+        except Exception as timeout_error:
+            logger.error(f"Ошибка при выполнении Payment.create: {timeout_error}", exc_info=True)
+            raise
         
         if not payment:
             logger.error("Payment.create вернул None")
@@ -150,10 +177,25 @@ async def get_payment_status(payment_id: str) -> Optional[Dict]:
     try:
         # Payment.find_one() - синхронный метод, выполняем в отдельном потоке
         def _find_payment_sync():
-            return Payment.find_one(payment_id)
+            try:
+                logger.debug(f"Запрос статуса платежа {payment_id}")
+                result = Payment.find_one(payment_id)
+                logger.debug(f"Статус платежа {payment_id}: {result.status if result else None}")
+                return result
+            except Exception as sync_error:
+                logger.error(f"Ошибка в синхронном вызове Payment.find_one: {sync_error}", exc_info=True)
+                raise
         
-        loop = asyncio.get_event_loop()
-        payment = await loop.run_in_executor(None, _find_payment_sync)
+        # Используем отдельный executor и добавляем таймаут 15 секунд
+        logger.info(f"Запрос статуса платежа {payment_id} с таймаутом 15 секунд...")
+        try:
+            payment = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(executor, _find_payment_sync),
+                timeout=15.0
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Таймаут при запросе статуса платежа {payment_id} (15 секунд)")
+            return None
         
         return {
             "payment_id": payment.id,

@@ -35,6 +35,7 @@ async def buy_forever(callback: CallbackQuery):
     logger.info(f"Обработчик buy_forever вызван для пользователя {callback.from_user.id}")
     try:
         user_id = callback.from_user.id
+        username = callback.from_user.username or ""
         logger.info(f"Обработка покупки forever для пользователя {user_id}")
         user = db.get_user(user_id)
         
@@ -74,7 +75,19 @@ async def buy_forever(callback: CallbackQuery):
         
         description = f"Постоянный доступ к AEGIS - вечная лицензия"
         logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_LIFETIME}₽")
-        payment_result = await create_payment(LICENSE_PRICE_LIFETIME, description)
+        
+        # Создаем metadata (все значения должны быть строками!)
+        metadata = {
+            "user_id": str(user_id),
+            "license_type": "forever",
+            "telegram_username": username
+        }
+        
+        payment_result = await create_payment(
+            LICENSE_PRICE_LIFETIME, 
+            description,
+            metadata=metadata
+        )
         
         if not payment_result:
             logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
@@ -164,7 +177,20 @@ async def buy_monthly(callback: CallbackQuery):
         
         description = f"Проверка AEGIS на 30 дней - месячная подписка"
         logger.info(f"Попытка создать платеж для пользователя {user_id}, сумма {LICENSE_PRICE_MONTHLY}₽")
-        payment_result = await create_payment(LICENSE_PRICE_MONTHLY, description)
+        
+        # Создаем metadata (все значения должны быть строками!)
+        username = callback.from_user.username or ""
+        metadata = {
+            "user_id": str(user_id),
+            "license_type": "monthly",
+            "telegram_username": username
+        }
+        
+        payment_result = await create_payment(
+            LICENSE_PRICE_MONTHLY, 
+            description,
+            metadata=metadata
+        )
         
         if not payment_result:
             logger.error(f"Не удалось создать платеж для пользователя {user_id}. Проверьте логи для деталей.")
