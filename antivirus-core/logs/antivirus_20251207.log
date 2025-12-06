@@ -324,3 +324,80 @@
 2025-12-07 00:56:00,277 - app.database - INFO - Database initialized successfully with all tables
 2025-12-07 01:13:13,139 - app.database - INFO - Generated API key: PREMIP-IX6... for kit
 2025-12-07 01:13:13,143 - app.database - INFO - ✅ API key created successfully for kit with level premium: PREMIP-IX6...
+2025-12-07 01:27:05,158 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:05,162 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:06,700 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:27:06,890 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c17a-000f-5000-b000-13ab9b816c0c
+2025-12-07 01:27:06,891 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:06,894 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:10,795 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:10,799 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:14,248 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:14,251 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:16,844 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:16,846 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:18,583 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:27:18,742 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c186-000f-5001-9000-187dac8f35e3
+2025-12-07 01:27:18,743 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:18,746 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:19,542 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:19,544 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:27:33,281 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:27:33,284 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:23,964 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:23,969 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:36,019 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:31:36,179 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c288-000f-5001-8000-196e68271ca4
+2025-12-07 01:31:36,180 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:36,183 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:37,967 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:37,970 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:42,596 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:42,600 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:44,179 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:44,182 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:31:50,125 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:31:50,128 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:23,547 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=forever, amount=500
+2025-12-07 01:33:23,751 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c2f3-000f-5000-8000-18fb92fe30ef
+2025-12-07 01:33:23,752 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:33:23,755 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:28,619 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:33:28,622 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:32,034 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:33:32,038 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:34,086 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:33:34,090 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:39,148 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:33:39,292 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c303-000f-5000-b000-10639c8b5c5a
+2025-12-07 01:33:39,293 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:33:39,296 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:33:59,184 - app.logger - INFO - [WS] Starting URL analysis for: https://yookassa.ru/docs/support/merchant/payments/analytics (context: hover)
+2025-12-07 01:33:59,186 - app.logger - INFO - 🔍 Analyzing URL: https://yookassa.ru/docs/support/merchant/payments/analytics (ignore_db=False)
+2025-12-07 01:33:59,193 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://yookassa.ru/docs/support/merchant/payments/analytics
+2025-12-07 01:33:59,193 - app.logger - INFO - [WS] URL analysis completed for https://yookassa.ru/docs/support/merchant/payments/analytics: safe=True, source=external_apis
+2025-12-07 01:33:59,194 - app.logger - INFO - [WS] Sent analysis_result for https://yookassa.ru/docs/support/merchant/payments/analytics to client 06a15658-dde7-43f7-aeca-966baac99b23
+2025-12-07 01:34:52,263 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 01:34:52,419 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c34c-000f-5000-8000-1f98e19155a0
+2025-12-07 01:34:52,420 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:34:52,423 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:35:25,160 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:35:25,164 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:35:28,162 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:35:28,164 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:38:09,867 - app.logger - INFO - [WS] Starting URL analysis for: https://cursor.com/api/auth/logout (context: link_check)
+2025-12-07 01:38:09,867 - app.logger - INFO - 🔍 Analyzing URL: https://cursor.com/api/auth/logout (ignore_db=False)
+2025-12-07 01:38:09,872 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://cursor.com/api/auth/logout
+2025-12-07 01:38:09,877 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/api/auth/logout: safe=True, source=internal_only
+2025-12-07 01:38:09,878 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/api/auth/logout to client 06a15658-dde7-43f7-aeca-966baac99b23
+2025-12-07 01:38:09,919 - app.logger - INFO - [WS] Starting URL analysis for: https://cursor.com/api/auth/logout (context: hover)
+2025-12-07 01:38:09,920 - app.logger - INFO - 🔍 Analyzing URL: https://cursor.com/api/auth/logout (ignore_db=False)
+2025-12-07 01:38:09,921 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://cursor.com/api/auth/logout
+2025-12-07 01:38:09,929 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://cursor.com/api/auth/logout
+2025-12-07 01:38:09,933 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/api/auth/logout: safe=True, source=internal_only
+2025-12-07 01:38:09,934 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/api/auth/logout to client 06a15658-dde7-43f7-aeca-966baac99b23
+2025-12-07 01:38:32,792 - app.logger - INFO - [WS] Starting URL analysis for: https://cursor.com/dashboard (context: link_check)
+2025-12-07 01:38:32,794 - app.logger - INFO - 🔍 Analyzing URL: https://cursor.com/dashboard (ignore_db=False)
+2025-12-07 01:38:32,799 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://cursor.com/dashboard
+2025-12-07 01:38:32,802 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/dashboard: safe=True, source=internal_only
+2025-12-07 01:38:32,804 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/dashboard to client 06a15658-dde7-43f7-aeca-966baac99b23
