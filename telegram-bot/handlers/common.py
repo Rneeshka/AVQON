@@ -84,6 +84,13 @@ async def cmd_start(message: Message):
                                         try:
                                             db.update_user_license(user_id, license_key)
                                             db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
+                                            
+                                            # Создаем подписку для месячных лицензий
+                                            if license_type == "monthly":
+                                                from datetime import datetime, timedelta
+                                                expires_at = datetime.now() + timedelta(days=30)
+                                                db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                                                logger.info(f"Создана подписка для user={user_id}, expires_at={expires_at}")
                                         except Exception as db_err:
                                             logger.error(f"Ошибка сохранения ключа в БД: {db_err}", exc_info=True)
                                         
@@ -129,6 +136,8 @@ async def cmd_start(message: Message):
                                     logger.error(f"Ошибка генерации ключа: {key_gen_err}", exc_info=True)
                             else:
                                 logger.info(f"Платеж {payment_id} еще не завершен, статус: {status}")
+                                await message.answer("⏳ Платеж обрабатывается. Попробуйте позже.")
+                                return
                         else:
                             logger.warning(f"Не удалось получить статус платежа {payment_id} от backend")
                     except ImportError as import_err:
@@ -202,7 +211,6 @@ AEGIS — это расширение для браузера, которое п
 
 Что вас интересует?"""
         
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔐 Постоянный доступ (500₽)", callback_data="buy_forever")],
             [InlineKeyboardButton(text="📅 Проверка на месяц (150₽)", callback_data="buy_monthly")],
@@ -250,7 +258,6 @@ async def main_menu(callback: CallbackQuery):
 
 При возникновении вопросов: {SUPPORT_TECH}"""
         
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
             [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
@@ -287,7 +294,6 @@ AEGIS — это расширение для браузера, которое п
 
 Что вас интересует?"""
         
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔐 Постоянный доступ (500₽)", callback_data="buy_forever")],
             [InlineKeyboardButton(text="📅 Проверка на месяц (150₽)", callback_data="buy_monthly")],
@@ -297,41 +303,46 @@ AEGIS — это расширение для браузера, которое п
     
     await callback.message.edit_text(text, reply_markup=keyboard)
 
-
+        
 @router.callback_query(F.data == "show_key")
 async def show_key(callback: CallbackQuery):
-    """Показать ключ пользователя"""
+    """Показать лицензионный ключ пользователя"""
     await callback.answer()
     user_id = callback.from_user.id
     user = db.get_user(user_id)
-    
+
+    # --- если лицензия есть ---
     if user and user.get("has_license"):
         license_key = user.get("license_key", "N/A")
         text = f"""🔑 Ваш лицензионный ключ:
 
 `{license_key}`
 
-Ссылка для установки расширения:
+Ссылка для установки:
 {INSTALLATION_LINK}
 
-Инструкция по активации:
-1. Установите расширение по ссылке выше
-2. Откройте настройки расширения
-3. Введите ваш лицензионный ключ
-4. Расширение активировано
+Инструкция:
+1. Установите расширение
+2. Перейдите в настройки
+3. Введите ключ
+"""
 
-Расширение начнет работать сразу после активации. Просто продолжайте пользоваться браузером как обычно.
-
-При возникновении вопросов: {SUPPORT_TECH}"""
-        
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
-            [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+            [InlineKeyboardButton(text="📦 Установить", url=INSTALLATION_LINK)],
+            [InlineKeyboardButton(text="❓ Помощь", callback_data="help")],
             [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
         ])
-        
+
         await callback.message.edit_text(text, reply_markup=keyboard)
-    else:
-        await callback.answer("У вас пока нет лицензии", show_alert=True)
+        return
+
+    # --- если лицензии НЕТ (вот этого У ТЕБЯ НЕ БЫЛО!) ---
+    text = "❗ У вас пока нет лицензии.\nВыберите подходящий вариант:"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔐 Постоянный доступ (500₽)", callback_data="buy_forever")],
+        [InlineKeyboardButton(text="📅 Проверка на месяц (150₽)", callback_data="buy_monthly")],
+        [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+    ])
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
 

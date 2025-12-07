@@ -117,6 +117,7 @@ class Database:
                 license_type TEXT NOT NULL,
                 status TEXT DEFAULT 'pending',
                 license_key TEXT,
+                is_renewal BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -124,6 +125,28 @@ class Database:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_user_id ON yookassa_payments(user_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id)")
+        
+        # Таблица подписок (для месячных лицензий)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id BIGINT NOT NULL,
+                license_key TEXT NOT NULL,
+                license_type TEXT NOT NULL DEFAULT 'monthly',
+                expires_at TIMESTAMP NOT NULL,
+                auto_renew BOOLEAN DEFAULT FALSE,
+                renewal_count INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active' CHECK(status IN ('active', 'expired', 'canceled')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                FOREIGN KEY (license_key) REFERENCES users(license_key) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_license_key ON subscriptions(license_key)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_expires_at ON subscriptions(expires_at)")
         
         # ===== ТАБЛИЦЫ ДЛЯ BACKEND (ANTIVIRUS CORE) =====
         
@@ -355,6 +378,17 @@ class Database:
         except sqlite3.OperationalError:
             pass
         
+        # Миграции для yookassa_payments
+        try:
+            cursor.execute("PRAGMA table_info(yookassa_payments)")
+            payment_cols = {row[1] for row in cursor.fetchall()}
+            if "is_renewal" not in payment_cols:
+                cursor.execute("ALTER TABLE yookassa_payments ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
+        except sqlite3.OperationalError:
+            pass
+        except sqlite3.OperationalError:
+            pass
+        
         conn.commit()
         conn.close()
         logger.info("База данных инициализирована (единая БД для бота и backend)")
@@ -434,9 +468,9 @@ class Database:
             )
         else:
             cursor.execute(
-            "UPDATE payments SET status = ? WHERE payment_id = ?",
-            (status, payment_id)
-        )
+                "UPDATE payments SET status = ? WHERE payment_id = ?",
+                (status, payment_id)
+            )
         conn.commit()
         conn.close()
     
@@ -556,19 +590,19 @@ class Database:
         conn.close()
         logger.warning(f"База данных очищена. Очищены таблицы: {', '.join(cleared_tables)}")
     
-    def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
+    def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str, is_renewal: bool = False):
         """Создать запись о платеже ЮKassa"""
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute(
             """INSERT INTO yookassa_payments 
-               (payment_id, user_id, amount, license_type, status) 
-               VALUES (?, ?, ?, ?, 'pending')""",
-            (payment_id, user_id, amount, license_type)
+               (payment_id, user_id, amount, license_type, status, is_renewal) 
+               VALUES (?, ?, ?, ?, 'pending', ?)""",
+            (payment_id, user_id, amount, license_type, is_renewal)
         )
         conn.commit()
         conn.close()
-        logger.info(f"Создан платеж ЮKassa {payment_id} для пользователя {user_id}")
+        logger.info(f"Создан платеж ЮKassa {payment_id} для пользователя {user_id} (renewal: {is_renewal})")
     
     def get_yookassa_payment(self, payment_id: str) -> Optional[Dict]:
         """Получить платеж ЮKassa по ID"""
@@ -615,6 +649,174 @@ class Database:
         conn.commit()
         conn.close()
         logger.info(f"Обновлен статус платежа {payment_id} на {status}")
+    
+    # ===== МЕТОДЫ ДЛЯ РАБОТЫ С ПОДПИСКАМИ =====
+    
+    def create_subscription(self, user_id: int, license_key: str, license_type: str, expires_at: datetime, auto_renew: bool = False) -> Optional[int]:
+        """Создать подписку для пользователя"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """INSERT INTO subscriptions 
+                   (user_id, license_key, license_type, expires_at, auto_renew, status) 
+                   VALUES (?, ?, ?, ?, ?, 'active')""",
+                (user_id, license_key, license_type, expires_at, auto_renew)
+            )
+            conn.commit()
+            subscription_id = cursor.lastrowid
+            logger.info(f"Создана подписка {subscription_id} для пользователя {user_id}, expires_at={expires_at}")
+            return subscription_id
+        except sqlite3.IntegrityError as e:
+            logger.error(f"Ошибка создания подписки: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    def get_subscription(self, user_id: int) -> Optional[Dict]:
+        """Получить активную подписку пользователя"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE user_id = ? AND status = 'active' 
+               ORDER BY expires_at DESC LIMIT 1""",
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    
+    def get_subscription_by_license_key(self, license_key: str) -> Optional[Dict]:
+        """Получить подписку по license_key"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE license_key = ? AND status = 'active' 
+               ORDER BY expires_at DESC LIMIT 1""",
+            (license_key,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    
+    def update_subscription_expiry(self, user_id: int, new_expires_at: datetime, renewal_count: Optional[int] = None):
+        """Обновить срок действия подписки (при продлении)"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        from datetime import datetime as dt
+        if renewal_count is not None:
+            cursor.execute(
+                """UPDATE subscriptions 
+                   SET expires_at = ?, renewal_count = ?, updated_at = ? 
+                   WHERE user_id = ? AND status = 'active'""",
+                (new_expires_at, renewal_count, dt.now(), user_id)
+            )
+        else:
+            # Увеличиваем renewal_count на 1
+            cursor.execute(
+                """UPDATE subscriptions 
+                   SET expires_at = ?, renewal_count = renewal_count + 1, updated_at = ? 
+                   WHERE user_id = ? AND status = 'active'""",
+                (new_expires_at, dt.now(), user_id)
+            )
+        conn.commit()
+        conn.close()
+        logger.info(f"Обновлен срок подписки для пользователя {user_id}, новый expires_at={new_expires_at}")
+    
+    def set_subscription_auto_renew(self, user_id: int, auto_renew: bool):
+        """Включить/выключить автопродление подписки"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """UPDATE subscriptions 
+               SET auto_renew = ?, updated_at = ? 
+               WHERE user_id = ? AND status = 'active'""",
+            (auto_renew, datetime.now(), user_id)
+        )
+        conn.commit()
+        conn.close()
+        logger.info(f"Автопродление для пользователя {user_id} установлено: {auto_renew}")
+    
+    def expire_subscription(self, user_id: int):
+        """Пометить подписку как истекшую"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """UPDATE subscriptions 
+               SET status = 'expired', updated_at = ? 
+               WHERE user_id = ? AND status = 'active'""",
+            (datetime.now(), user_id)
+        )
+        conn.commit()
+        conn.close()
+        logger.info(f"Подписка пользователя {user_id} помечена как истекшая")
+    
+    def get_expiring_subscriptions(self, days: int) -> List[Dict]:
+        """Получить подписки, которые истекают в течение указанного количества дней"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        from datetime import datetime, timedelta
+        expiry_date = datetime.now() + timedelta(days=days)
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE status = 'active' 
+               AND expires_at <= ? 
+               AND expires_at > ? 
+               ORDER BY expires_at ASC""",
+            (expiry_date, datetime.now())
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+    
+    def get_expired_subscriptions(self) -> List[Dict]:
+        """Получить все истекшие, но еще не помеченные подписки"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE status = 'active' 
+               AND expires_at < ? 
+               ORDER BY expires_at ASC""",
+            (datetime.now(),)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+    
+    def get_subscription_history(self, user_id: int) -> List[Dict]:
+        """Получить историю всех подписок пользователя"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE user_id = ? 
+               ORDER BY created_at DESC""",
+            (user_id,)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+    
+    def get_auto_renew_subscriptions(self) -> List[Dict]:
+        """Получить все активные подписки с включенным автопродлением"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT * FROM subscriptions 
+               WHERE status = 'active' 
+               AND auto_renew = TRUE 
+               ORDER BY expires_at ASC""",
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
     
     def get_forever_licenses_count_from_yookassa(self) -> int:
         """Получить количество выданных постоянных лицензий из платежей ЮKassa"""

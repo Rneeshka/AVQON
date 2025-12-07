@@ -427,10 +427,90 @@ async def check_payment(callback: CallbackQuery):
             return
 
         if status == "succeeded":
-            logger.info(f"[CHECK_PAYMENT] Платеж {payment_id} успешен, генерирую ключ для user={user_id}, license_type={license_type}")
+            logger.info(f"[CHECK_PAYMENT] Платеж {payment_id} успешен, обрабатываю для user={user_id}, license_type={license_type}")
 
-            # Проверяем, не выдан ли уже ключ
+            # Проверяем, является ли это продлением
+            is_renewal = payment_db and payment_db.get("is_renewal", False)
+            
             user = db.get_user(user_id)
+            existing_license_key = user.get("license_key") if user and user.get("has_license") else None
+            
+            if is_renewal and existing_license_key:
+                # ПРОДЛЕНИЕ ПОДПИСКИ
+                logger.info(f"[CHECK_PAYMENT] Это продление подписки для user={user_id}, license_key={existing_license_key[:10]}...")
+                
+                from api_client import renew_license
+                from datetime import datetime, timedelta
+                
+                # Продлеваем лицензию через API
+                renewal_success = await renew_license(existing_license_key, extend_days=30)
+                
+                if not renewal_success:
+                    logger.error(f"[CHECK_PAYMENT] Не удалось продлить лицензию для user={user_id}")
+                    await safe_edit_message(
+                        callback,
+                        f"❌ Ошибка при продлении лицензии. Обратитесь в поддержку: {SUPPORT_TECH}"
+                    )
+                    return
+                
+                # Обновляем подписку в БД
+                subscription = db.get_subscription(user_id)
+                if subscription:
+                    # Продлеваем срок: если подписка еще активна, добавляем 30 дней к текущему сроку
+                    expires_at_str = subscription.get("expires_at")
+                    if expires_at_str:
+                        if isinstance(expires_at_str, str):
+                            current_expires = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                        else:
+                            current_expires = expires_at_str
+                        
+                        # Если подписка уже истекла, начинаем с текущей даты + 30 дней
+                        # Если еще активна, добавляем 30 дней к текущему сроку
+                        now = datetime.now()
+                        if current_expires.tzinfo:
+                            now = now.replace(tzinfo=current_expires.tzinfo)
+                        
+                        if current_expires < now:
+                            new_expires_at = now + timedelta(days=30)
+                        else:
+                            new_expires_at = current_expires + timedelta(days=30)
+                        
+                        db.update_subscription_expiry(user_id, new_expires_at)
+                        logger.info(f"[CHECK_PAYMENT] Подписка продлена до {new_expires_at} для user={user_id}")
+                    else:
+                        # Если expires_at не указан, создаем новый срок
+                        new_expires_at = datetime.now() + timedelta(days=30)
+                        db.update_subscription_expiry(user_id, new_expires_at)
+                else:
+                    # Если подписки нет, создаем новую
+                    new_expires_at = datetime.now() + timedelta(days=30)
+                    db.create_subscription(user_id, existing_license_key, "monthly", new_expires_at)
+                    logger.info(f"[CHECK_PAYMENT] Создана новая подписка для user={user_id}")
+                
+                # Обновляем статус платежа
+                if payment_db:
+                    db.update_yookassa_payment_status(payment_id, "succeeded", existing_license_key)
+                
+                new_expires_date = new_expires_at.strftime("%d.%m.%Y")
+                text = f"""✅ Подписка успешно продлена!
+
+Ваш лицензионный ключ:
+`{existing_license_key}`
+
+📅 Подписка действует до: {new_expires_date}
+
+Ссылка для установки: {INSTALLATION_LINK}"""
+                
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="📦 Установить расширение", url=INSTALLATION_LINK)],
+                    [InlineKeyboardButton(text="📊 Моя подписка", callback_data="my_subscription")],
+                    [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+                ])
+                
+                await safe_edit_message(callback, text, reply_markup=keyboard)
+                return
+            
+            # НОВАЯ ПОКУПКА
             if user and user.get("has_license"):
                 license_key = user.get("license_key", "N/A")
                 logger.info(f"[CHECK_PAYMENT] Ключ уже выдан пользователю {user_id}: {license_key}")
@@ -467,30 +547,20 @@ async def check_payment(callback: CallbackQuery):
                 if payment_db:
                     db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
 
-                # --- СОХРАНЕНИЕ ПОДПИСКИ ---
-                try:
-                    from datetime import datetime, timedelta
-                    expires_at = None if license_type == "forever" else (
-                        datetime.now() + timedelta(days=30)
-                    ).strftime("%Y-%m-%d %H:%M:%S")
-
-                    if hasattr(db, "add_subscription"):
-                        db.add_subscription(user_id, license_key, license_type, expires_at)
-                    else:
-                        db.execute("""
-                            INSERT INTO subscriptions (user_id, license_key, license_type, expires_at)
-                            VALUES (?, ?, ?, ?)
-                        """, (user_id, license_key, license_type, expires_at))
-                        db.commit()
-
-                    logger.info(f"[BOT] Subscription saved for user={user_id}")
-                except Exception as e:
-                    logger.error(f"[BOT] Failed to save subscription: {e}", exc_info=True)
-                # ---------------------------
+                # Создаем подписку для месячных лицензий
+                if license_type == "monthly":
+                    try:
+                        from datetime import datetime, timedelta
+                        expires_at = datetime.now() + timedelta(days=30)
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        logger.info(f"[CHECK_PAYMENT] Создана подписка для user={user_id}, expires_at={expires_at}")
+                    except Exception as e:
+                        logger.error(f"[CHECK_PAYMENT] Ошибка создания подписки: {e}", exc_info=True)
 
                 if license_type == "forever":
                     license_text = "Ваш ключ действует бессрочно."
                 else:
+                    from datetime import datetime, timedelta
                     expiry_date = datetime.now() + timedelta(days=30)
                     license_text = f"Подписка действует до {expiry_date.strftime('%d.%m.%Y')}."
 
