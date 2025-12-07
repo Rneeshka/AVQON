@@ -1486,13 +1486,13 @@ class DatabaseManager:
                     existing = cursor.fetchone()
                     
                     if existing:
-                        # Обновляем существующую сессию для этого device_id
+                        # Обновляем только expires_at для существующей сессии (НЕ меняем session_token!)
                         cursor.execute("""
                             UPDATE active_sessions 
-                            SET session_token = ?, expires_at = ?
+                            SET expires_at = ?
                             WHERE user_id = ? AND device_id = ?
-                        """, (session_token, expires_at, user_id, device_id))
-                        logger.info(f"Updated existing session for user_id={user_id}, device_id={device_id}")
+                        """, (expires_at, user_id, device_id))
+                        logger.info(f"Updated existing session expiry for user_id={user_id}, device_id={device_id}")
                     else:
                         # Удаляем старую сессию для этого user_id (если есть) и создаем новую
                         cursor.execute("DELETE FROM active_sessions WHERE user_id = ?", (user_id,))
@@ -1515,6 +1515,26 @@ class DatabaseManager:
                 return True
         except sqlite3.Error as e:
             logger.error(f"Set active session error: {e}")
+            return False
+    
+    def update_session_expiry(self, user_id: int, device_id: str, expires_hours: int = 720) -> bool:
+        """Обновляет срок действия существующей сессии без изменения session_token."""
+        try:
+            expires_at = (datetime.now() + timedelta(hours=expires_hours)).isoformat()
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE active_sessions 
+                    SET expires_at = ?
+                    WHERE user_id = ? AND device_id = ?
+                """, (expires_at, user_id, device_id))
+                
+                conn.commit()
+                logger.info(f"Updated session expiry for user_id={user_id}, device_id={device_id}")
+                return cursor.rowcount > 0
+        except sqlite3.Error as e:
+            logger.error(f"Update session expiry error: {e}")
             return False
     
     def validate_session_token(self, session_token: str) -> Optional[int]:
