@@ -46,44 +46,56 @@ async def cmd_start(message: Message):
             if pending_payments and not (user and user.get("has_license")):
                 # Проверяем статус последнего pending платежа через backend
                 last_payment = pending_payments[0]
-                payment_id = last_payment["payment_id"]
+                payment_id = last_payment.get("payment_id")
                 license_type = last_payment.get("license_type", "forever")
                 
-                logger.info(f"Автоматическая проверка pending платежа {payment_id} для user={user_id}")
-                
-                try:
-                    # Импортируем функцию проверки из purchase.py
-                    from handlers.purchase import backend_check_payment
-                    from api_client import generate_license_for_user
+                if not payment_id:
+                    logger.warning(f"Платеж без payment_id для user={user_id}")
+                else:
+                    logger.info(f"Автоматическая проверка pending платежа {payment_id} для user={user_id}")
                     
-                    status_data = await backend_check_payment(payment_id)
-                    
-                    if status_data:
-                        status = status_data.get("status")
-                        logger.info(f"Статус платежа {payment_id}: {status}")
-                        db.update_yookassa_payment_status(payment_id, status)
+                    try:
+                        # Импортируем функцию проверки из purchase.py
+                        from handlers.purchase import check_payment_direct_yookassa
+                        from api_client import generate_license_for_user
                         
-                        if status == "succeeded":
-                            # Платеж успешен - генерируем и выдаем ключ
-                            logger.info(f"Платеж {payment_id} успешен, генерирую ключ для user={user_id}")
+                        status_data = await check_payment_direct_yookassa(payment_id)
+                        
+                        if status_data:
+                            status = status_data.get("status")
+                            logger.info(f"Статус платежа {payment_id}: {status}")
                             
-                            is_lifetime = license_type == "forever"
-                            license_key = await generate_license_for_user(user_id, username or "", is_lifetime=is_lifetime)
+                            try:
+                                # Обновляем статус в БД (без license_key, он будет добавлен позже)
+                                db.update_yookassa_payment_status(payment_id, status)
+                            except Exception as db_err:
+                                logger.error(f"Ошибка обновления статуса в БД: {db_err}", exc_info=True)
                             
-                            if license_key:
-                                # Сохраняем ключ в БД
-                                db.update_user_license(user_id, license_key)
-                                db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
+                            if status == "succeeded":
+                                # Платеж успешен - генерируем и выдаем ключ
+                                logger.info(f"Платеж {payment_id} успешен, генерирую ключ для user={user_id}")
                                 
-                                # Формируем сообщение
-                                if license_type == "forever":
-                                    license_text = "Ваш ключ действует бессрочно"
-                                else:
-                                    from datetime import datetime, timedelta
-                                    expiry_date = datetime.now() + timedelta(days=30)
-                                    license_text = f"Ваша подписка действует до {expiry_date.strftime('%d.%m.%Y')}. За 3 дня до окончания получите уведомление"
-                                
-                                text = f"""✅ Оплата подтверждена!
+                                try:
+                                    is_lifetime = license_type == "forever"
+                                    license_key = await generate_license_for_user(user_id, username or "", is_lifetime=is_lifetime)
+                                    
+                                    if license_key:
+                                        # Сохраняем ключ в БД
+                                        try:
+                                            db.update_user_license(user_id, license_key)
+                                            db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
+                                        except Exception as db_err:
+                                            logger.error(f"Ошибка сохранения ключа в БД: {db_err}", exc_info=True)
+                                        
+                                        # Формируем сообщение
+                                        if license_type == "forever":
+                                            license_text = "Ваш ключ действует бессрочно"
+                                        else:
+                                            from datetime import datetime, timedelta
+                                            expiry_date = datetime.now() + timedelta(days=30)
+                                            license_text = f"Ваша подписка действует до {expiry_date.strftime('%d.%m.%Y')}. За 3 дня до окончания получите уведомление"
+                                        
+                                        text = f"""✅ Оплата подтверждена!
 
 Ваш лицензионный ключ:
 
@@ -103,23 +115,27 @@ async def cmd_start(message: Message):
 Расширение начнет работать сразу после активации. Просто продолжайте пользоваться браузером как обычно.
 
 При возникновении вопросов: {SUPPORT_TECH}"""
-                                
-                                keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                                    [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
-                                    [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
-                                    [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
-                                ])
-                                await message.answer(text, reply_markup=keyboard)
-                                return
+                                        
+                                        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                                            [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
+                                            [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+                                            [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+                                        ])
+                                        await message.answer(text, reply_markup=keyboard)
+                                        return
+                                    else:
+                                        logger.error(f"Не удалось сгенерировать ключ для user={user_id} после успешной оплаты")
+                                except Exception as key_gen_err:
+                                    logger.error(f"Ошибка генерации ключа: {key_gen_err}", exc_info=True)
                             else:
-                                logger.error(f"Не удалось сгенерировать ключ для user={user_id} после успешной оплаты")
+                                logger.info(f"Платеж {payment_id} еще не завершен, статус: {status}")
                         else:
-                            logger.info(f"Платеж {payment_id} еще не завершен, статус: {status}")
-                    else:
-                        logger.warning(f"Не удалось получить статус платежа {payment_id} от backend")
-                except Exception as payment_check_error:
-                    logger.warning(f"Не удалось проверить статус платежа {payment_id}: {payment_check_error}", exc_info=True)
-                    # Продолжаем выполнение, не блокируем /start
+                            logger.warning(f"Не удалось получить статус платежа {payment_id} от backend")
+                    except ImportError as import_err:
+                        logger.error(f"Ошибка импорта модулей: {import_err}", exc_info=True)
+                    except Exception as payment_check_error:
+                        logger.warning(f"Не удалось проверить статус платежа {payment_id}: {payment_check_error}", exc_info=True)
+                        # Продолжаем выполнение, не блокируем /start
         except Exception as e:
             logger.error(f"Ошибка при проверке pending платежей: {e}", exc_info=True)
             # Продолжаем выполнение, не блокируем /start
