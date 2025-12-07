@@ -12,7 +12,17 @@ class Database:
     def __init__(self, db_path: str):
         self.db_path = db_path
         # Создаем директорию если её нет
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        db_dir = Path(db_path).parent
+        try:
+            db_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"База данных будет создана/использована: {db_path}")
+            logger.info(f"Директория БД: {db_dir} (существует: {db_dir.exists()})")
+        except PermissionError as e:
+            logger.error(f"Ошибка прав доступа при создании директории {db_dir}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Ошибка при создании директории {db_dir}: {e}")
+            raise
         self._init_db()
     
     def _get_connection(self):

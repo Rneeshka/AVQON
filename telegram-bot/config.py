@@ -22,7 +22,8 @@ YOOKASSA_PROVIDER_TOKEN = os.getenv("YOOKASSA_PROVIDER_TOKEN", "")  # Для Tel
 
 # База данных (единая для бота и backend)
 # Используем DATABASE_PATH если задан, иначе DB_PATH, иначе дефолтный путь
-DB_PATH = os.getenv("DATABASE_PATH") or os.getenv("DB_PATH", "data/aegis.db")
+# По умолчанию используем /opt/Aegis/data/aegis.db для продакшена
+DB_PATH = os.getenv("DATABASE_PATH") or os.getenv("DB_PATH", "/opt/aegis/data/aegis.db")
 
 # Лимиты акции
 TOTAL_LICENSES = 1000
