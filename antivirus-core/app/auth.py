@@ -141,11 +141,13 @@ class AuthManager:
         existing_session = db_manager.get_session_by_device_id(account["id"], device_id)
         
         if existing_session and existing_session.get("session_token"):
-            # Если сессия существует для этого device_id - используем её и обновляем срок действия
+            # Если сессия существует для этого device_id - используем тот же session_token
+            # и просто обновляем срок действия (НЕ меняем токен!)
             session_token = existing_session["session_token"]
-            # Обновляем срок действия существующей сессии
-            db_manager.set_active_session(account["id"], session_token, device_id, expires_hours=720)
-            logger.info(f"Reusing existing session for user_id={account['id']}, device_id={device_id}")
+            # Обновляем только expires_at, не меняя session_token
+            if not db_manager.update_session_expiry(account["id"], device_id, expires_hours=720):
+                logger.warning(f"Failed to update session expiry for user_id={account['id']}, device_id={device_id}")
+            logger.info(f"Reusing existing session token for user_id={account['id']}, device_id={device_id}")
         else:
             # Генерируем новый session_token только если нет существующей сессии для этого device_id
             import secrets
