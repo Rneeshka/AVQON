@@ -4,6 +4,7 @@ import logging
 import aiohttp
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.exceptions import TelegramBadRequest
 
 from config import (
     BACKEND_URL,
@@ -18,6 +19,42 @@ from api_client import generate_license_for_user
 logger = logging.getLogger(__name__)
 router = Router()
 db = Database(DB_PATH)
+
+
+# --------------------------
+# ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ БЕЗОПАСНОГО РЕДАКТИРОВАНИЯ
+# --------------------------
+
+async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup=None):
+    """
+    Безопасно редактирует сообщение, обрабатывая ошибку "message is not modified"
+    """
+    try:
+        await callback.message.edit_text(text, reply_markup=reply_markup)
+    except TelegramBadRequest as e:
+        if "message is not modified" in str(e).lower():
+            # Сообщение не изменилось - это нормально, просто отвечаем на callback
+            logger.debug(f"[SAFE_EDIT] Message not modified, answering callback: {callback.data}")
+            try:
+                await callback.answer()
+            except Exception:
+                pass
+        else:
+            # Другая ошибка - пробуем отправить новое сообщение
+            logger.warning(f"[SAFE_EDIT] TelegramBadRequest: {e}, trying to send new message")
+            try:
+                await callback.message.answer(text, reply_markup=reply_markup)
+            except Exception as send_err:
+                logger.error(f"[SAFE_EDIT] Failed to send new message: {send_err}")
+                raise
+    except Exception as e:
+        # Любая другая ошибка - пробуем отправить новое сообщение
+        logger.warning(f"[SAFE_EDIT] Error editing message: {e}, trying to send new message")
+        try:
+            await callback.message.answer(text, reply_markup=reply_markup)
+        except Exception as send_err:
+            logger.error(f"[SAFE_EDIT] Failed to send new message: {send_err}")
+            raise
 
 # --------------------------
 # ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ
@@ -75,7 +112,8 @@ async def buy_forever(callback: CallbackQuery):
     )
 
     if not response:
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             "❌ Платеж временно недоступен.\nОбратитесь в поддержку: " + SUPPORT_TECH
         )
         return
@@ -85,7 +123,8 @@ async def buy_forever(callback: CallbackQuery):
 
     if not payment_id or not confirmation_url:
         logger.error(f"Backend не вернул payment_id или confirmation_url: {response}")
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
         )
         return
@@ -123,7 +162,7 @@ async def buy_forever(callback: CallbackQuery):
         [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
     ])
 
-    await callback.message.edit_text(text, reply_markup=keyboard)
+    await safe_edit_message(callback, text, reply_markup=keyboard)
 
 
 # --------------------------
@@ -147,7 +186,8 @@ async def buy_monthly(callback: CallbackQuery):
     )
 
     if not response:
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             "❌ Платеж временно недоступен.\nОбратитесь в поддержку: " + SUPPORT_TECH
         )
         return
@@ -157,7 +197,8 @@ async def buy_monthly(callback: CallbackQuery):
 
     if not payment_id or not confirmation_url:
         logger.error(f"Backend не вернул payment_id или confirmation_url: {response}")
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             "❌ Ошибка при создании платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
         )
         return
@@ -192,7 +233,7 @@ async def buy_monthly(callback: CallbackQuery):
         [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
     ])
 
-    await callback.message.edit_text(text, reply_markup=keyboard)
+    await safe_edit_message(callback, text, reply_markup=keyboard)
 
 
 # --------------------------
@@ -237,7 +278,8 @@ async def check_payment(callback: CallbackQuery):
 
         if not status_data:
             logger.error(f"[CHECK_PAYMENT] Backend не вернул данные для платежа {payment_id}")
-            await callback.message.edit_text(
+            await safe_edit_message(
+                callback,
                 "❌ Ошибка проверки платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
             )
             return
@@ -247,7 +289,8 @@ async def check_payment(callback: CallbackQuery):
         status = status_data.get("status")
         if not status:
             logger.error(f"[CHECK_PAYMENT] В ответе backend отсутствует поле 'status': {status_data}")
-            await callback.message.edit_text(
+            await safe_edit_message(
+                callback,
                 "❌ Ошибка: неверный формат ответа от сервера. Обратитесь в поддержку: " + SUPPORT_TECH
             )
             return
@@ -300,7 +343,8 @@ async def check_payment(callback: CallbackQuery):
                 logger.error(f"Ошибка при обновлении статуса в БД: {update_err}", exc_info=True)
 
         if status == "pending":
-            await callback.message.edit_text(
+            await safe_edit_message(
+                callback,
                 "⏳ Платеж ещё не подтвержден.\nПодождите 1-2 минуты и попробуйте снова.",
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                     [InlineKeyboardButton(text="🔄 Проверить снова", callback_data=f"check_payment_{payment_id}")],
@@ -337,7 +381,8 @@ async def check_payment(callback: CallbackQuery):
 
                 if not license_key:
                     logger.error(f"[CHECK_PAYMENT] Не удалось сгенерировать ключ для user={user_id}")
-                    await callback.message.edit_text(
+                    await safe_edit_message(
+                        callback,
                         f"❌ Ошибка при генерации ключа. Обратитесь в поддержку: {SUPPORT_TECH}"
                     )
                     return
@@ -392,15 +437,12 @@ async def check_payment(callback: CallbackQuery):
                 [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
             ])
 
-            try:
-                await callback.message.edit_text(text, reply_markup=keyboard)
-            except Exception:
-                await callback.message.answer(text, reply_markup=keyboard)
-
+            await safe_edit_message(callback, text, reply_markup=keyboard)
             return
 
         if status == "canceled":
-            await callback.message.edit_text(
+            await safe_edit_message(
+                callback,
                 "❌ Платёж отменён.",
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                     [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
@@ -409,7 +451,8 @@ async def check_payment(callback: CallbackQuery):
             return
 
         if status == "waiting_for_capture":
-            await callback.message.edit_text(
+            await safe_edit_message(
+                callback,
                 "⏳ Платеж ожидает подтверждения. Обычно это занимает несколько минут.",
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                     [InlineKeyboardButton(text="🔄 Проверить снова", callback_data=f"check_payment_{payment_id}")],
@@ -420,7 +463,8 @@ async def check_payment(callback: CallbackQuery):
 
         # Неизвестный статус
         logger.warning(f"[CHECK_PAYMENT] Неизвестный статус платежа {payment_id}: {status}")
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             f"❓ Неизвестный статус платежа: {status}\nОбратитесь в поддержку: {SUPPORT_TECH}",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
@@ -429,30 +473,25 @@ async def check_payment(callback: CallbackQuery):
         
     except aiohttp.ClientError as client_err:
         logger.error(f"[CHECK_PAYMENT] Сетевая ошибка при проверке платежа {payment_id}: {client_err}", exc_info=True)
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             f"❌ Ошибка соединения с сервером. Проверьте интернет и попробуйте позже.\nПоддержка: {SUPPORT_TECH}"
         )
     except KeyError as key_err:
         logger.error(f"[CHECK_PAYMENT] Ошибка доступа к полю в ответе backend для платежа {payment_id}: {key_err}", exc_info=True)
-        await callback.message.edit_text(
+        await safe_edit_message(
+            callback,
             f"❌ Ошибка обработки ответа сервера. Обратитесь в поддержку: {SUPPORT_TECH}"
         )
     except Exception as e:
         logger.error(f"[CHECK_PAYMENT] Критическая ошибка при проверке платежа {payment_id}: {type(e).__name__}: {e}", exc_info=True)
         error_details = f"{type(e).__name__}: {str(e)}"
         logger.error(f"[CHECK_PAYMENT] Детали ошибки: {error_details}")
-        try:
-            await callback.message.edit_text(
-                f"❌ Произошла ошибка при проверке платежа.\n\nДетали: {error_details[:100]}\n\nОбратитесь в поддержку: {SUPPORT_TECH}"
-            )
-        except Exception as send_err:
-            logger.error(f"[CHECK_PAYMENT] Не удалось отправить сообщение об ошибке: {send_err}")
-            try:
-                await callback.message.answer(
-                    f"❌ Произошла ошибка при проверке платежа.\n\nОбратитесь в поддержку: {SUPPORT_TECH}"
-                )
-            except Exception:
-                logger.error(f"[CHECK_PAYMENT] Критическая ошибка: не удалось отправить сообщение пользователю")
+        # Убираем детали ошибки из сообщения пользователю для безопасности
+        await safe_edit_message(
+            callback,
+            f"❌ Произошла ошибка при проверке платежа.\n\nОбратитесь в поддержку: {SUPPORT_TECH}"
+        )
 
 
 # --------------------------
@@ -462,7 +501,8 @@ async def check_payment(callback: CallbackQuery):
 @router.callback_query(F.data == "cancel_payment")
 async def cancel_payment(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(
+    await safe_edit_message(
+        callback,
         "❌ Платеж отменён.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
