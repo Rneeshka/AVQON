@@ -1591,12 +1591,14 @@ async def validate_session(request: Request):
         user_id = db_manager.validate_session_token(session_token)
         
         if not user_id:
-            # Сессия невалидна
+            # Сессия невалидна - логируем для диагностики
+            logger.warning(f"Session validation failed for token {session_token[:10]}...")
             return {
                 "status": "invalid",
                 "valid": False
             }
         
+        logger.debug(f"Session validated successfully for user_id={user_id}")
         return {
             "status": "valid",
             "valid": True,
@@ -1605,8 +1607,14 @@ async def validate_session(request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Validate session error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Validate session error: {e}", exc_info=True)
+        # При ошибке сервера возвращаем valid=True, чтобы не выкидывать пользователя
+        # из-за временных проблем с БД
+        return {
+            "status": "error",
+            "valid": True,  # Считаем валидной при ошибке, чтобы не выкидывать пользователя
+            "error": "Temporary server error"
+        }
 
 @app.get("/auth/me")
 async def get_current_user(request: Request):
