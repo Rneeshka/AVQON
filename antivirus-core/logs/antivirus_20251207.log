@@ -1504,3 +1504,36 @@
 2025-12-07 12:26:14,866 - app.database - INFO - Database initialized successfully with all tables
 2025-12-07 12:26:14,894 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
 2025-12-07 12:26:14,896 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:28:54,041 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:28:54,045 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:28:54,070 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:28:54,072 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:28:54,097 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:28:54,099 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:28:54,123 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:28:54,125 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:28:54,147 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:28:54,151 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:29:03,113 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:29:03,115 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:29:04,206 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 12:29:04,421 - app.logger - INFO - [PAYMENTS] Payment created: 30c75ca0-000f-5000-8000-11a49ae5a5da
+2025-12-07 12:29:04,422 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:29:04,425 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:29:04,428 - app.database - INFO - Created YooKassa payment 30c75ca0-000f-5000-8000-11a49ae5a5da for user 696019842
+2025-12-07 12:29:05,530 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:29:05,532 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:29:06,960 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:29:06,963 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:45,861 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:45,865 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:50,698 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:50,700 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:50,730 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:50,734 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:50,763 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:50,766 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:50,794 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:50,796 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:30:50,826 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 12:30:50,829 - app.database - INFO - Database initialized successfully with all tables
