@@ -729,8 +729,35 @@
       });
       
       if (!res.ok) {
-        // Сессия невалидна - автоматически выходим
-        console.warn('[Aegis] Session invalid, logging out');
+        // Проверяем статус ответа
+        const errorData = await res.json().catch(() => ({}));
+        
+        // Если это ошибка сервера (500) - не выходим, это временная проблема
+        if (res.status >= 500) {
+          console.warn('[Aegis] Server error during session validation, keeping session');
+          return true; // Не выходим при ошибке сервера
+        }
+        
+        // Только при 401/400 считаем сессию невалидной
+        if (res.status === 401 || res.status === 400) {
+          const data = await res.json().catch(() => ({}));
+          // Проверяем, действительно ли сессия невалидна
+          if (data.valid === false || data.status === 'invalid') {
+            console.warn('[Aegis] Session invalid, logging out');
+            await handleLogout();
+            showInternalNotification('⚠️ Вы вышли из аккаунта (вход выполнен на другом устройстве)', 'warning');
+            return false;
+          }
+        }
+        
+        return true; // При других ошибках не выходим
+      }
+      
+      const data = await res.json().catch(() => ({}));
+      
+      // Проверяем ответ сервера
+      if (data.valid === false || data.status === 'invalid') {
+        console.warn('[Aegis] Session invalid from response, logging out');
         await handleLogout();
         showInternalNotification('⚠️ Вы вышли из аккаунта (вход выполнен на другом устройстве)', 'warning');
         return false;

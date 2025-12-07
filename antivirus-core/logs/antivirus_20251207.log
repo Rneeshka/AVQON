@@ -2253,3 +2253,83 @@ connector: <aiohttp.connector.TCPConnector object at 0x7f33604378e0>
 2025-12-07 16:45:04,517 - app.logger - INFO - Not all external APIs returned results for https://nikita.aegis.builders/?folder=%2Fopt%2Faegis, but at least one returned safe=True, treating as safe
 2025-12-07 16:45:04,520 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
 2025-12-07 16:45:04,521 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 73425195-0673-4190-967a-847e0ee38ff0
+2025-12-07 16:45:29,356 - app.database - INFO - Updated existing session for user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:45:29,361 - app.auth - INFO - Reusing existing session for user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:45:29,364 - app.auth - INFO - User logged in: username=Grsev, user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:45:30,519 - app.logger - INFO - [WS] Starting URL analysis for: https://nikita.aegis.builders/?folder=/opt/aegis (context: popup)
+2025-12-07 16:45:30,519 - app.logger - INFO - 🔍 Analyzing URL: https://nikita.aegis.builders/?folder=/opt/aegis (ignore_db=False)
+2025-12-07 16:45:30,519 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
+2025-12-07 16:45:30,520 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 73425195-0673-4190-967a-847e0ee38ff0
+2025-12-07 16:45:39,043 - app.logger - INFO - [WS] Client disconnected gracefully: 73425195-0673-4190-967a-847e0ee38ff0
+2025-12-07 16:45:39,043 - app.logger - INFO - [WS] Client disconnected: id=73425195-0673-4190-967a-847e0ee38ff0, reason=cleanup
+2025-12-07 16:45:39,144 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:45:39,144 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:45:39,810 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 16:45:39,833 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-07 16:45:39,836 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 16:45:39,941 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 16:45:39,941 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 16:45:39,941 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 16:45:40,018 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 16:45:40,021 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 16:45:40,021 - app.logger - INFO - Database connection established successfully
+2025-12-07 16:45:40,022 - app.database - INFO - Rate limits reset successfully
+2025-12-07 16:45:40,023 - app.logger - INFO - Rate limits reset
+2025-12-07 16:45:40,023 - app.logger - INFO - Background job manager started
+2025-12-07 16:45:40,023 - app.logger - INFO - Background job manager started
+2025-12-07 16:45:40,023 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 16:45:40,023 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 16:45:40,234 - app.logger - INFO - [WS] WebSocket connection attempt from 178.178.233.25
+2025-12-07 16:45:40,235 - app.logger - INFO - [WS] WebSocket connection accepted from 178.178.233.25
+2025-12-07 16:45:40,240 - app.logger - INFO - [WS] Client connected: id=962f5fe3-390b-4ee4-a3f3-2d8e5ddd2b58, ip=178.178.233.25
+2025-12-07 16:46:05,772 - app.logger - INFO - [WS] Starting URL analysis for: https://nikita.aegis.builders/?folder=/opt/aegis (context: popup)
+2025-12-07 16:46:05,772 - app.logger - INFO - 🔍 Analyzing URL: https://nikita.aegis.builders/?folder=/opt/aegis (ignore_db=False)
+2025-12-07 16:46:05,776 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
+2025-12-07 16:46:05,777 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 962f5fe3-390b-4ee4-a3f3-2d8e5ddd2b58
+2025-12-07 16:46:26,494 - app.logger - INFO - [PAYMENTS] Creating payment: user=7866952753, type=monthly, amount=150
+2025-12-07 16:46:26,497 - app.logger - INFO - [PAYMENTS] Sending POST request to YooKassa API: https://api.yookassa.ru/v3/payments
+2025-12-07 16:46:26,656 - app.logger - INFO - [PAYMENTS] YooKassa responded with status: 200
+2025-12-07 16:46:26,657 - app.logger - INFO - [PAYMENTS] YooKassa response received
+2025-12-07 16:46:26,657 - app.logger - INFO - [PAYMENTS] Payment created successfully: 30c798f2-000f-5001-8000-1fe400e85acf
+2025-12-07 16:46:26,657 - app.logger - INFO - [PAYMENTS] Confirmation URL: https://yoomoney.ru/checkout/payments/v2/contract?orderId=30c798f2-000f-5001-8000-1fe400e85acf
+2025-12-07 16:46:26,658 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-07 16:46:26,663 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 16:46:26,666 - app.database - INFO - Created YooKassa payment 30c798f2-000f-5001-8000-1fe400e85acf for user 7866952753
+2025-12-07 16:46:26,669 - app.logger - INFO - [PAYMENTS] Payment saved to database: 30c798f2-000f-5001-8000-1fe400e85acf
+2025-12-07 16:46:38,085 - app.logger - INFO - [WS] Starting URL analysis for: https://nikita.aegis.builders/?folder=/opt/aegis (context: popup)
+2025-12-07 16:46:38,086 - app.logger - INFO - 🔍 Analyzing URL: https://nikita.aegis.builders/?folder=/opt/aegis (ignore_db=False)
+2025-12-07 16:46:38,086 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
+2025-12-07 16:46:38,087 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 962f5fe3-390b-4ee4-a3f3-2d8e5ddd2b58
+2025-12-07 16:46:41,344 - app.logger - INFO - [WS] Client disconnected gracefully: 962f5fe3-390b-4ee4-a3f3-2d8e5ddd2b58
+2025-12-07 16:46:41,345 - app.logger - INFO - [WS] Client disconnected: id=962f5fe3-390b-4ee4-a3f3-2d8e5ddd2b58, reason=cleanup
+2025-12-07 16:46:41,445 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:46:41,445 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:46:42,106 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 16:46:42,109 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-07 16:46:42,111 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 16:46:42,213 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 16:46:42,213 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 16:46:42,214 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 16:46:42,282 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 16:46:42,284 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 16:46:42,286 - app.logger - INFO - Database connection established successfully
+2025-12-07 16:46:42,288 - app.database - INFO - Rate limits reset successfully
+2025-12-07 16:46:42,289 - app.logger - INFO - Rate limits reset
+2025-12-07 16:46:42,289 - app.logger - INFO - Background job manager started
+2025-12-07 16:46:42,289 - app.logger - INFO - Background job manager started
+2025-12-07 16:46:42,290 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 16:46:42,290 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 16:46:42,785 - app.logger - INFO - [WS] WebSocket connection attempt from 178.178.233.25
+2025-12-07 16:46:42,786 - app.logger - INFO - [WS] WebSocket connection accepted from 178.178.233.25
+2025-12-07 16:46:42,786 - app.logger - INFO - [WS] Client connected: id=0f24440e-cfd8-46e2-86d6-2e0cdcb73923, ip=178.178.233.25
+2025-12-07 16:46:43,875 - app.logger - INFO - [WS] Starting URL analysis for: https://nikita.aegis.builders/?folder=/opt/aegis (context: popup)
+2025-12-07 16:46:43,875 - app.logger - INFO - 🔍 Analyzing URL: https://nikita.aegis.builders/?folder=/opt/aegis (ignore_db=False)
+2025-12-07 16:46:43,879 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
+2025-12-07 16:46:43,879 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 0f24440e-cfd8-46e2-86d6-2e0cdcb73923
+2025-12-07 16:46:50,603 - app.database - INFO - Updated session expiry for user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:46:50,605 - app.auth - INFO - Reusing existing session token for user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:46:50,611 - app.auth - INFO - User logged in: username=Grsev, user_id=1, device_id=device_1764877745884_s9z5t6ytc
+2025-12-07 16:50:50,716 - app.logger - INFO - [WS] Starting URL analysis for: https://nikita.aegis.builders/?folder=/opt/aegis (context: popup)
+2025-12-07 16:50:50,719 - app.logger - INFO - 🔍 Analyzing URL: https://nikita.aegis.builders/?folder=/opt/aegis (ignore_db=False)
+2025-12-07 16:50:50,720 - app.logger - INFO - [WS] URL analysis completed for https://nikita.aegis.builders/?folder=/opt/aegis: safe=True, source=combined
+2025-12-07 16:50:50,720 - app.logger - INFO - [WS] Sent analysis_result for https://nikita.aegis.builders/?folder=/opt/aegis to client 0f24440e-cfd8-46e2-86d6-2e0cdcb73923

@@ -1449,10 +1449,20 @@ class DatabaseManager:
                     SELECT user_id, session_token, device_id, created_at, expires_at
                     FROM active_sessions 
                     WHERE user_id = ? AND device_id = ?
-                    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
                 """, (user_id, device_id))
                 result = cursor.fetchone()
                 if result:
+                    expires_at_str = result[4]
+                    # Проверяем срок действия в Python
+                    if expires_at_str:
+                        try:
+                            expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                            if expires_at <= datetime.now():
+                                logger.debug(f"Session expired for user_id={user_id}, device_id={device_id}")
+                                return None
+                        except (ValueError, AttributeError):
+                            pass  # При ошибке парсинга считаем валидной
+                    
                     return {
                         "user_id": result[0],
                         "session_token": result[1],
@@ -1545,15 +1555,48 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
+                # Получаем сессию и проверяем expires_at в Python (более надежно)
                 cursor.execute("""
-                    SELECT user_id FROM active_sessions 
-                    WHERE session_token = ? 
-                    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                    SELECT user_id, expires_at, device_id FROM active_sessions 
+                    WHERE session_token = ?
                 """, (session_token,))
                 result = cursor.fetchone()
-                return result[0] if result else None
+                
+                if not result:
+                    logger.debug(f"Session token not found: {session_token[:10]}...")
+                    return None
+                
+                user_id = result[0]
+                expires_at_str = result[1]
+                device_id = result[2]
+                
+                # Если expires_at NULL - сессия бессрочная
+                if expires_at_str is None:
+                    logger.debug(f"Session valid (no expiry) for user_id={user_id}, device_id={device_id}")
+                    return user_id
+                
+                # Проверяем срок действия в Python
+                try:
+                    # Обрабатываем разные форматы времени
+                    expires_at_str_clean = expires_at_str.replace('Z', '+00:00')
+                    if '+' not in expires_at_str_clean and expires_at_str_clean.count(':') == 2:
+                        # Формат без timezone - добавляем локальное время
+                        expires_at = datetime.fromisoformat(expires_at_str_clean)
+                    else:
+                        expires_at = datetime.fromisoformat(expires_at_str_clean)
+                    
+                    now = datetime.now()
+                    if expires_at > now:
+                        logger.debug(f"Session valid for user_id={user_id}, device_id={device_id}, expires_at={expires_at_str}")
+                        return user_id
+                    else:
+                        logger.warning(f"Session expired for user_id={user_id}, device_id={device_id}, expires_at={expires_at_str}, now={now.isoformat()}")
+                        return None
+                except (ValueError, AttributeError) as e:
+                    logger.warning(f"Error parsing expires_at '{expires_at_str}': {e}, treating as valid")
+                    return user_id  # При ошибке парсинга считаем сессию валидной
         except sqlite3.Error as e:
-            logger.error(f"Validate session token error: {e}")
+            logger.error(f"Validate session token error: {e}", exc_info=True)
             return None
     
     def delete_session(self, session_token: str) -> bool:
