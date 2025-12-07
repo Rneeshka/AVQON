@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 router = Router()
 db = Database(DB_PATH)
 
-# ID главного администратора (для критических команд)
-MAIN_ADMIN_ID = 696019842
+# ID главных администраторов (для критических команд)
+MAIN_ADMIN_IDS = [696019842, 940965509]
 
 
 def is_admin(user_id: int) -> bool:
@@ -27,7 +27,7 @@ def is_admin(user_id: int) -> bool:
 
 def is_main_admin(user_id: int) -> bool:
     """Проверка, является ли пользователь главным админом"""
-    return user_id == MAIN_ADMIN_ID
+    return user_id in MAIN_ADMIN_IDS
 
 
 @router.message(Command("stats"))

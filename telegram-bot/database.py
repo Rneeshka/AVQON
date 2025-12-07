@@ -16,17 +16,57 @@ class Database:
         self._init_db()
     
     def _get_connection(self):
-        """Получить соединение с БД"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        """Получить соединение с БД (с улучшенной обработкой блокировок)"""
+        max_retries = 3
+        retry_delay = 0.1
+        
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(
+                    self.db_path,
+                    timeout=30,
+                    check_same_thread=False
+                )
+                conn.row_factory = sqlite3.Row
+                # Включаем foreign keys и улучшаем производительность
+                conn.execute("PRAGMA foreign_keys = ON")
+                conn.execute("PRAGMA journal_mode = WAL")
+                conn.execute("PRAGMA synchronous = NORMAL")
+                conn.execute("PRAGMA cache_size = -10000")
+                # Проверяем что соединение работает
+                conn.execute("SELECT 1").fetchone()
+                return conn
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e).lower() and attempt < max_retries - 1:
+                    import time
+                    time.sleep(retry_delay * (attempt + 1))
+                    continue
+                logger.error(f"Database connection error (attempt {attempt + 1}): {e}")
+                if attempt == max_retries - 1:
+                    raise
+            except sqlite3.Error as e:
+                logger.error(f"Database connection error: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                import time
+                time.sleep(retry_delay * (attempt + 1))
+        
+        raise sqlite3.Error("Failed to establish database connection after retries")
     
     def _init_db(self):
-        """Инициализация таблиц"""
+        """Инициализация таблиц (единая БД для бота и backend)"""
         conn = self._get_connection()
         cursor = conn.cursor()
         
-        # Таблица пользователей
+        # Включаем foreign keys и улучшаем производительность
+        cursor.execute("PRAGMA foreign_keys = ON")
+        cursor.execute("PRAGMA journal_mode = WAL")
+        cursor.execute("PRAGMA synchronous = NORMAL")
+        cursor.execute("PRAGMA cache_size = -10000")
+        
+        # ===== ТАБЛИЦЫ ДЛЯ TELEGRAM БОТА =====
+        
+        # Таблица пользователей Telegram бота
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 user_id BIGINT PRIMARY KEY,
@@ -36,6 +76,8 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_has_license ON users(has_license)")
         
         # Таблица платежей (старая, для совместимости)
         cursor.execute("""
@@ -51,6 +93,9 @@ class Database:
                 completed_at TIMESTAMP
             )
         """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_payment_id ON payments(payment_id)")
         
         # Таблица платежей ЮKassa
         cursor.execute("""
@@ -66,8 +111,190 @@ class Database:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_user_id ON yookassa_payments(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id)")
         
-        # Добавляем новые колонки если таблица уже существует
+        # ===== ТАБЛИЦЫ ДЛЯ BACKEND (ANTIVIRUS CORE) =====
+        
+        # Таблица для аккаунтов пользователей (веб-интерфейс)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP DEFAULT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                reset_code TEXT DEFAULT NULL,
+                reset_code_expires TIMESTAMP DEFAULT NULL
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email)")
+        
+        # Таблица для API ключей
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS api_keys (
+                api_key TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                is_active BOOLEAN DEFAULT TRUE,
+                access_level TEXT DEFAULT 'basic' CHECK(access_level IN ('basic', 'premium')),
+                features TEXT DEFAULT '[]',
+                rate_limit_daily INTEGER DEFAULT 1000,
+                rate_limit_hourly INTEGER DEFAULT 100,
+                requests_total INTEGER DEFAULT 0,
+                requests_today INTEGER DEFAULT 0,
+                requests_hour INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP DEFAULT NULL,
+                user_id INTEGER DEFAULT NULL,
+                FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active)")
+        
+        # Таблица для вредоносных хэшей файлов
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS malicious_hashes (
+                hash TEXT PRIMARY KEY,
+                threat_type TEXT NOT NULL CHECK(threat_type IN (
+                    'malware', 'trojan', 'ransomware', 'virus', 
+                    'worm', 'spyware', 'adware', 'rootkit', 'backdoor'
+                )),
+                severity TEXT NOT NULL CHECK(severity IN (
+                    'low', 'medium', 'high', 'critical'
+                )) DEFAULT 'medium',
+                description TEXT,
+                source TEXT DEFAULT 'manual',
+                first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                detection_count INTEGER DEFAULT 1
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_hashes_hash ON malicious_hashes(hash)")
+        
+        # Таблица для вредоносных URL
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS malicious_urls (
+                url TEXT PRIMARY KEY,
+                domain TEXT NOT NULL,
+                threat_type TEXT NOT NULL CHECK(threat_type IN (
+                    'phishing', 'malware', 'scam', 'fraud',
+                    'defacement', 'spam', 'botnet', 'cryptojacking'
+                )),
+                severity TEXT NOT NULL CHECK(severity IN (
+                    'low', 'medium', 'high', 'critical'
+                )) DEFAULT 'medium',
+                description TEXT,
+                source TEXT DEFAULT 'manual',
+                first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                detection_count INTEGER DEFAULT 1
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_urls_url ON malicious_urls(url)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_malicious_urls_domain ON malicious_urls(domain)")
+        
+        # Таблица для логов запросов
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS request_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                api_key_hash TEXT,
+                endpoint TEXT NOT NULL,
+                method TEXT NOT NULL,
+                status_code INTEGER,
+                response_time_ms INTEGER,
+                user_agent TEXT,
+                client_ip_truncated TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_request_logs_timestamp ON request_logs(timestamp)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_request_logs_api_hash ON request_logs(api_key_hash)")
+        
+        # Таблица репутации IP
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ip_reputation (
+                ip TEXT PRIMARY KEY,
+                threat_type TEXT,
+                reputation_score INTEGER,
+                details TEXT,
+                source TEXT,
+                first_detected TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                detection_count INTEGER DEFAULT 1
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ip_reputation_score ON ip_reputation(reputation_score)")
+        
+        # Таблица для локальной базы доверенных доменов (white-list)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cached_whitelist (
+                domain TEXT PRIMARY KEY,
+                details TEXT,
+                detection_ratio TEXT,
+                confidence INTEGER,
+                source TEXT DEFAULT 'external_apis',
+                payload TEXT,
+                first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                hit_count INTEGER DEFAULT 1
+            )
+        """)
+        
+        # Таблица для локальной базы известных угроз (black-list)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cached_blacklist (
+                url_hash TEXT PRIMARY KEY,
+                url TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                threat_type TEXT,
+                details TEXT,
+                source TEXT DEFAULT 'external_apis',
+                payload TEXT,
+                first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                hit_count INTEGER DEFAULT 1
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cached_blacklist_domain ON cached_blacklist(domain)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cached_blacklist_url ON cached_blacklist(url)")
+        
+        # Таблица фоновых задач
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS background_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_type TEXT NOT NULL,
+                job_data TEXT NOT NULL,
+                status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
+                retry_count INTEGER DEFAULT 0,
+                error_message TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_status ON background_jobs(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_background_jobs_created ON background_jobs(created_at)")
+        
+        # Таблица активных сессий
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS active_sessions (
+                user_id INTEGER PRIMARY KEY,
+                session_token TEXT UNIQUE NOT NULL,
+                device_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_active_sessions_token ON active_sessions(session_token)")
+        
+        # Добавляем новые колонки если таблица уже существует (миграции)
         try:
             cursor.execute("ALTER TABLE payments ADD COLUMN license_type TEXT")
         except sqlite3.OperationalError:
@@ -83,9 +310,44 @@ class Database:
         except sqlite3.OperationalError:
             pass
         
+        # Миграции для request_logs
+        try:
+            cursor.execute("PRAGMA table_info(request_logs)")
+            cols = {row[1] for row in cursor.fetchall()}
+            if "api_key_hash" not in cols:
+                cursor.execute("ALTER TABLE request_logs ADD COLUMN api_key_hash TEXT")
+            if "client_ip_truncated" not in cols:
+                cursor.execute("ALTER TABLE request_logs ADD COLUMN client_ip_truncated TEXT")
+        except sqlite3.OperationalError:
+            pass
+        
+        # Миграции для api_keys
+        try:
+            cursor.execute("PRAGMA table_info(api_keys)")
+            api_cols = {row[1] for row in cursor.fetchall()}
+            if "access_level" not in api_cols:
+                cursor.execute("ALTER TABLE api_keys ADD COLUMN access_level TEXT DEFAULT 'basic'")
+            if "features" not in api_cols:
+                cursor.execute("ALTER TABLE api_keys ADD COLUMN features TEXT DEFAULT '[]'")
+            if "user_id" not in api_cols:
+                cursor.execute("ALTER TABLE api_keys ADD COLUMN user_id INTEGER DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass
+        
+        # Миграции для accounts
+        try:
+            cursor.execute("PRAGMA table_info(accounts)")
+            account_cols = {row[1] for row in cursor.fetchall()}
+            if "reset_code" not in account_cols:
+                cursor.execute("ALTER TABLE accounts ADD COLUMN reset_code TEXT DEFAULT NULL")
+            if "reset_code_expires" not in account_cols:
+                cursor.execute("ALTER TABLE accounts ADD COLUMN reset_code_expires TIMESTAMP DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass
+        
         conn.commit()
         conn.close()
-        logger.info("База данных инициализирована")
+        logger.info("База данных инициализирована (единая БД для бота и backend)")
     
     def get_user(self, user_id: int) -> Optional[Dict]:
         """Получить пользователя по ID"""
@@ -162,9 +424,9 @@ class Database:
             )
         else:
             cursor.execute(
-                "UPDATE payments SET status = ? WHERE payment_id = ?",
-                (status, payment_id)
-            )
+            "UPDATE payments SET status = ? WHERE payment_id = ?",
+            (status, payment_id)
+        )
         conn.commit()
         conn.close()
     
@@ -251,16 +513,23 @@ class Database:
         }
     
     def reset_all_data(self):
-        """Очистить все данные из БД"""
+        """Очистить все данные из БД (единая БД для бота и backend)"""
         conn = self._get_connection()
         cursor = conn.cursor()
         
         # Получаем список всех таблиц в БД
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
         tables = [row[0] for row in cursor.fetchall()]
         
-        # Список таблиц для очистки (только пользовательские таблицы)
-        tables_to_clear = ['users', 'payments', 'yookassa_payments', 'licenses']
+        # Список таблиц для очистки (все пользовательские таблицы)
+        tables_to_clear = [
+            # Таблицы бота
+            'users', 'payments', 'yookassa_payments',
+            # Таблицы backend
+            'accounts', 'api_keys', 'malicious_hashes', 'malicious_urls',
+            'request_logs', 'ip_reputation', 'cached_whitelist', 'cached_blacklist',
+            'background_jobs', 'active_sessions'
+        ]
         
         # Очищаем только существующие таблицы
         cleared_tables = []

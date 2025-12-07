@@ -27,8 +27,9 @@ class DatabaseManager:
             db_path (str): Путь к файлу базы данных (если None, берется из окружения или дефолтный)
         """
         # КРИТИЧНО: Поддержка переменной окружения для пути к БД
+        # Используем единый путь для бота и backend
         if db_path is None:
-            db_path = os.getenv("DATABASE_PATH", "/opt/Aegis/data/antivirus.db")
+            db_path = os.getenv("DATABASE_PATH") or os.getenv("DB_PATH", "/opt/Aegis/data/aegis.db")
         
         self.db_path = db_path
         self.storage_dir = Path(self.db_path).parent
@@ -260,7 +261,38 @@ class DatabaseManager:
                     )
                 """)
                 
-                # 11. Таблица платежей ЮKassa
+                # 11. Таблица пользователей Telegram бота
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        user_id BIGINT PRIMARY KEY,
+                        username TEXT,
+                        has_license BOOLEAN DEFAULT FALSE,
+                        license_key TEXT UNIQUE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_has_license ON users(has_license)")
+                
+                # 12. Таблица платежей (старая, для совместимости)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS payments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id BIGINT NOT NULL,
+                        amount INTEGER NOT NULL,
+                        license_type TEXT NOT NULL,
+                        license_key TEXT,
+                        payment_id TEXT UNIQUE,
+                        status TEXT DEFAULT 'pending',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        completed_at TIMESTAMP
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_payment_id ON payments(payment_id)")
+                
+                # 13. Таблица платежей ЮKassa
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS yookassa_payments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,

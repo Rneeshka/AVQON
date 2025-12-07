@@ -20,8 +20,9 @@ YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY", "")
 YOOKASSA_TEST_MODE = os.getenv("YOOKASSA_TEST_MODE", "False").lower() == "true"
 YOOKASSA_PROVIDER_TOKEN = os.getenv("YOOKASSA_PROVIDER_TOKEN", "")  # Для Telegram Payments (не используется с ЮKassa)
 
-# База данных
-DB_PATH = os.getenv("DB_PATH", "data/bot.db")
+# База данных (единая для бота и backend)
+# Используем DATABASE_PATH если задан, иначе DB_PATH, иначе дефолтный путь
+DB_PATH = os.getenv("DATABASE_PATH") or os.getenv("DB_PATH", "data/aegis.db")
 
 # Лимиты акции
 TOTAL_LICENSES = 1000
