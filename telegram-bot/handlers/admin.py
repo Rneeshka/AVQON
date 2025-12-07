@@ -727,3 +727,81 @@ async def cmd_force_check(message: Message):
         logger.error(f"Ошибка при принудительной выдаче ключа: {e}", exc_info=True)
         await message.answer(f"❌ Ошибка: {str(e)}")
 
+
+@router.message(Command("check_yookassa_direct"))
+async def cmd_check_yookassa_direct(message: Message):
+    """Прямая проверка платежа через ЮKassa API (для отладки)"""
+    if not is_main_admin(message.from_user.id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+    
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer("Использование: /check_yookassa_direct <payment_id>")
+        return
+    
+    payment_id = parts[1]
+    logger.info(f"Прямая проверка платежа {payment_id} через ЮKassa API запрошена админом {message.from_user.id}")
+    
+    await message.answer(f"🔍 Проверяю платеж {payment_id} напрямую через ЮKassa API...")
+    
+    # Импортируем конфиг
+    from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
+    
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        await message.answer("❌ Ключи ЮKassa не настроены в конфиге бота")
+        return
+    
+    import aiohttp
+    from aiohttp import BasicAuth
+    
+    url = f"https://api.yookassa.ru/v3/payments/{payment_id}"
+    auth = BasicAuth(login=YOOKASSA_SHOP_ID, password=YOOKASSA_SECRET_KEY)
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, auth=auth, timeout=15) as resp:
+                status_code = resp.status
+                response_text = await resp.text()
+                
+                result = f"""🔍 **Прямой запрос к ЮKassa API:**
+
+**URL:** `{url}`
+**HTTP Status:** {status_code}
+
+**Ответ:**
+```
+{response_text[:2000]}
+```"""
+                
+                if status_code == 200:
+                    try:
+                        import json
+                        data = json.loads(response_text)
+                        yookassa_status = data.get("status", "unknown")
+                        paid = data.get("paid", False)
+                        captured_at = data.get("captured_at")
+                        created_at = data.get("created_at")
+                        
+                        result += f"""
+
+**Статус:** `{yookassa_status}`
+**Оплачен (paid):** {paid}
+**Создан:** {created_at}
+**Захвачен (captured_at):** {captured_at or "N/A"}
+
+**Метаданные:**
+```json
+{json.dumps(data.get("metadata", {}), indent=2, ensure_ascii=False)}
+```"""
+                    except Exception as parse_err:
+                        result += f"\n\n⚠️ Не удалось распарсить JSON: {parse_err}"
+                
+                await message.answer(result, parse_mode="Markdown")
+                
+    except aiohttp.ClientError as e:
+        await message.answer(f"❌ Ошибка сети при запросе к ЮKassa: {e}")
+    except Exception as e:
+        logger.error(f"Ошибка при прямой проверке платежа: {e}", exc_info=True)
+        await message.answer(f"❌ Ошибка: {str(e)}")
+
