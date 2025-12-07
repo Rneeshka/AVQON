@@ -223,31 +223,58 @@ async def check_payment(callback: CallbackQuery):
     user_id = callback.from_user.id
     username = callback.from_user.username or ""
 
-    logger.info(f"Проверка платежа {payment_id} от user={user_id}")
+    logger.info(f"[CHECK_PAYMENT] Начало проверки платежа {payment_id} от user={user_id}")
 
-    await callback.answer()
+    try:
+        await callback.answer()
+    except Exception as answer_err:
+        logger.warning(f"[CHECK_PAYMENT] Ошибка при answer callback: {answer_err}")
 
     try:
         # Получаем статус платежа от backend
+        logger.info(f"[CHECK_PAYMENT] Запрос статуса платежа {payment_id} к backend...")
         status_data = await backend_check_payment(payment_id)
 
         if not status_data:
-            logger.error(f"Не удалось получить статус платежа {payment_id}")
+            logger.error(f"[CHECK_PAYMENT] Backend не вернул данные для платежа {payment_id}")
             await callback.message.edit_text(
                 "❌ Ошибка проверки платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
             )
             return
 
+        logger.info(f"[CHECK_PAYMENT] Получен ответ от backend: {status_data}")
+        
         status = status_data.get("status")
-        logger.info(f"Статус платежа {payment_id}: {status}")
-        logger.debug(f"Полный ответ от backend: {status_data}")
+        if not status:
+            logger.error(f"[CHECK_PAYMENT] В ответе backend отсутствует поле 'status': {status_data}")
+            await callback.message.edit_text(
+                "❌ Ошибка: неверный формат ответа от сервера. Обратитесь в поддержку: " + SUPPORT_TECH
+            )
+            return
+            
+        logger.info(f"[CHECK_PAYMENT] Статус платежа {payment_id}: {status}")
+        logger.debug(f"[CHECK_PAYMENT] Полный ответ от backend: {status_data}")
 
         # Получаем информацию о платеже из БД
         payment_db = db.get_yookassa_payment(payment_id)
         
         # Извлекаем license_type из ответа backend (metadata) или из БД
         metadata = status_data.get("metadata", {})
-        license_type = metadata.get("license_type") or (payment_db.get("license_type") if payment_db else "forever")
+        logger.info(f"[CHECK_PAYMENT] Метаданные из backend: {metadata}")
+        
+        # Приоритет: метаданные из backend > БД > значение по умолчанию
+        license_type = None
+        if metadata and metadata.get("license_type"):
+            license_type = metadata.get("license_type")
+            logger.info(f"[CHECK_PAYMENT] License type из метаданных backend: {license_type}")
+        elif payment_db and payment_db.get("license_type"):
+            license_type = payment_db.get("license_type")
+            logger.info(f"[CHECK_PAYMENT] License type из БД: {license_type}")
+        else:
+            license_type = "forever"  # значение по умолчанию
+            logger.warning(f"[CHECK_PAYMENT] License type не найден, используем значение по умолчанию: {license_type}")
+        
+        logger.info(f"[CHECK_PAYMENT] Итоговый license_type: {license_type}")
         
         if not payment_db:
             logger.warning(f"Платеж {payment_id} не найден в БД")
@@ -283,13 +310,13 @@ async def check_payment(callback: CallbackQuery):
             return
 
         if status == "succeeded":
-            logger.info(f"Платеж {payment_id} успешен, генерирую ключ для user={user_id}")
+            logger.info(f"[CHECK_PAYMENT] Платеж {payment_id} успешен, генерирую ключ для user={user_id}, license_type={license_type}")
 
             # Проверяем, не выдан ли уже ключ
             user = db.get_user(user_id)
             if user and user.get("has_license"):
                 license_key = user.get("license_key", "N/A")
-                logger.info(f"Ключ уже выдан пользователю {user_id}: {license_key}")
+                logger.info(f"[CHECK_PAYMENT] Ключ уже выдан пользователю {user_id}: {license_key}")
 
                 text = f"""✅ У вас уже есть активная лицензия!
 
@@ -305,13 +332,17 @@ async def check_payment(callback: CallbackQuery):
             else:
                 # Генерируем новый ключ
                 is_lifetime = license_type == "forever"
+                logger.info(f"[CHECK_PAYMENT] Генерирую ключ для user={user_id}, is_lifetime={is_lifetime}, license_type={license_type}")
                 license_key = await generate_license_for_user(user_id, username, is_lifetime=is_lifetime)
 
                 if not license_key:
+                    logger.error(f"[CHECK_PAYMENT] Не удалось сгенерировать ключ для user={user_id}")
                     await callback.message.edit_text(
                         f"❌ Ошибка при генерации ключа. Обратитесь в поддержку: {SUPPORT_TECH}"
                     )
                     return
+                
+                logger.info(f"[CHECK_PAYMENT] Ключ успешно сгенерирован для user={user_id}: {license_key[:10]}...")
 
                 # Сохраняем ключ
                 db.update_user_license(user_id, license_key)
@@ -388,7 +419,7 @@ async def check_payment(callback: CallbackQuery):
             return
 
         # Неизвестный статус
-        logger.warning(f"Неизвестный статус платежа {payment_id}: {status}")
+        logger.warning(f"[CHECK_PAYMENT] Неизвестный статус платежа {payment_id}: {status}")
         await callback.message.edit_text(
             f"❓ Неизвестный статус платежа: {status}\nОбратитесь в поддержку: {SUPPORT_TECH}",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -396,11 +427,32 @@ async def check_payment(callback: CallbackQuery):
             ])
         )
         
-    except Exception as e:
-        logger.error(f"Критическая ошибка при проверке платежа {payment_id}: {e}", exc_info=True)
+    except aiohttp.ClientError as client_err:
+        logger.error(f"[CHECK_PAYMENT] Сетевая ошибка при проверке платежа {payment_id}: {client_err}", exc_info=True)
         await callback.message.edit_text(
-            f"❌ Произошла ошибка при проверке платежа. Попробуйте позже или обратитесь в поддержку: {SUPPORT_TECH}"
+            f"❌ Ошибка соединения с сервером. Проверьте интернет и попробуйте позже.\nПоддержка: {SUPPORT_TECH}"
         )
+    except KeyError as key_err:
+        logger.error(f"[CHECK_PAYMENT] Ошибка доступа к полю в ответе backend для платежа {payment_id}: {key_err}", exc_info=True)
+        await callback.message.edit_text(
+            f"❌ Ошибка обработки ответа сервера. Обратитесь в поддержку: {SUPPORT_TECH}"
+        )
+    except Exception as e:
+        logger.error(f"[CHECK_PAYMENT] Критическая ошибка при проверке платежа {payment_id}: {type(e).__name__}: {e}", exc_info=True)
+        error_details = f"{type(e).__name__}: {str(e)}"
+        logger.error(f"[CHECK_PAYMENT] Детали ошибки: {error_details}")
+        try:
+            await callback.message.edit_text(
+                f"❌ Произошла ошибка при проверке платежа.\n\nДетали: {error_details[:100]}\n\nОбратитесь в поддержку: {SUPPORT_TECH}"
+            )
+        except Exception as send_err:
+            logger.error(f"[CHECK_PAYMENT] Не удалось отправить сообщение об ошибке: {send_err}")
+            try:
+                await callback.message.answer(
+                    f"❌ Произошла ошибка при проверке платежа.\n\nОбратитесь в поддержку: {SUPPORT_TECH}"
+                )
+            except Exception:
+                logger.error(f"[CHECK_PAYMENT] Критическая ошибка: не удалось отправить сообщение пользователю")
 
 
 # --------------------------

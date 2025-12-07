@@ -523,30 +523,32 @@ async def optional_auth_middleware(request: Request, call_next):
                 headers={"Access-Control-Allow-Origin": "*"}
             )
     
-    # Пути, которые не требуют аутентификации
+    # Пути, которые не требуют аутентификации (даже если ключ отправлен)
     skip_paths = ["/health", "/health/minimal", "/health/hover", "/docs", "/redoc", "/", "/favicon.ico", "/openapi.json"]
     admin_paths = ["/admin/stats", "/admin/add/malicious-hash", "/admin/api-keys/toggle", 
                    "/admin/api-keys/"]
-    basic_api_paths = ["/check/url", "/check/file", "/check/upload", "/check/domain/"]
     
-    # Пропускаем все админ функции и базовые API без проверки ключей
-    if (request.url.path in skip_paths or 
-        request.url.path.startswith("/admin/ui") or 
-        any(request.url.path.startswith(path) for path in admin_paths) or
-        any(request.url.path.startswith(path) for path in basic_api_paths)):
-        return await call_next(request)
-    
-    if request.method == "OPTIONS":
-        return await call_next(request)
-    
-    # Извлекаем API ключ (если есть)
+    # Извлекаем API ключ (если есть) ДО проверки путей
     api_key = request.headers.get("X-API-Key")
     if not api_key:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             api_key = auth_header.split(" ", 1)[1].strip()
     
-    # Если ключ есть - проверяем его
+    # Пути, которые не требуют аутентификации (пропускаем только если ключ НЕ отправлен)
+    basic_api_paths = ["/check/url", "/check/file", "/check/upload", "/check/domain/"]
+    
+    # Пропускаем без проверки только если это skip_paths или admin_paths
+    if (request.url.path in skip_paths or 
+        request.url.path.startswith("/admin/ui") or 
+        any(request.url.path.startswith(path) for path in admin_paths)):
+        return await call_next(request)
+    
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    
+    # КРИТИЧНО: Если ключ отправлен - ОБЯЗАТЕЛЬНО проверяем его, даже для базовых путей
+    # Это гарантирует, что удаленные/истекшие ключи не будут работать
     if api_key:
         if not db_manager:
             # БД недоступна - продолжаем без аутентификации
@@ -572,11 +574,25 @@ async def optional_auth_middleware(request: Request, call_next):
             except Exception as db_error:
                 # КРИТИЧНО: Ошибка БД не должна ломать запросы
                 logger.error(f"Database error during API key check: {db_error}", exc_info=True)
-                # Продолжаем без аутентификации (базовый доступ)
-                request.state.api_key_info = None
+                # Если ключ был отправлен, но БД недоступна - отклоняем запрос
+                # Это гарантирует, что удаленные ключи не будут работать
+                return JSONResponse(
+                    status_code=503,
+                    content={"detail": "Service temporarily unavailable"},
+                    headers={"Access-Control-Allow-Origin": "*"}
+                )
     else:
-        # Без ключа - базовый доступ
-        request.state.api_key_info = None
+        # Без ключа - базовый доступ (только для базовых путей)
+        if any(request.url.path.startswith(path) for path in basic_api_paths):
+            request.state.api_key_info = None
+            return await call_next(request)
+        else:
+            # Для других путей требуется ключ
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "API key required"},
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
     
     return await call_next(request)
 
@@ -1100,6 +1116,27 @@ async def toggle_api_key(api_key: str, is_active: bool):
     except Exception as e:
         logger.error(f"Toggle API key error: {e}")
         raise HTTPException(status_code=500, detail="Failed to toggle API key")
+
+@app.post("/admin/api-keys/delete")
+async def delete_api_key(api_key: str):
+    """Удаление API ключа из БД. После удаления ключ перестанет работать."""
+    try:
+        with db_manager._get_connection() as conn:
+            cur = conn.cursor()
+            # Проверяем существование ключа
+            cur.execute("SELECT api_key FROM api_keys WHERE api_key = ?", (api_key,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="API key not found")
+            # Удаляем ключ
+            cur.execute("DELETE FROM api_keys WHERE api_key = ?", (api_key,))
+            conn.commit()
+            logger.info(f"API key deleted: {api_key[:10]}...")
+        return {"status": "success", "message": "API key deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete API key error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete API key")
 
 @app.post("/admin/api-keys/validate")
 async def validate_api_key(request: Request):
