@@ -278,20 +278,10 @@ async def cmd_debug_payment(message: Message):
 # ==================== ОТЛАДКА ПЛАТЕЖЕЙ ====================
 
 async def backend_check_payment(payment_id: str) -> Optional[Dict]:
-    """Проверка статуса платежа через backend"""
-    url = f"{BACKEND_URL}/payments/status/{payment_id}"
-    logger.info(f"Запрашиваю статус платежа: {url}")
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=10) as resp:
-                if resp.status != 200:
-                    logger.error(f"Backend HTTP error: {resp.status}")
-                    return None
-                return await resp.json()
-    except Exception as e:
-        logger.error(f"Ошибка запроса статуса: {e}", exc_info=True)
-        return None
+    """Проверка статуса платежа напрямую через ЮKassa API (для обратной совместимости)"""
+    # Используем функцию из purchase.py, которая теперь проверяет напрямую через ЮKassa
+    from handlers.purchase import check_payment_direct_yookassa
+    return await check_payment_direct_yookassa(payment_id)
 
 
 async def debug_payment_full_internal(payment_id: str) -> str:
@@ -632,10 +622,37 @@ async def cmd_force_check(message: Message):
     user_id = payment_db.get('user_id')
     license_type = payment_db.get('license_type', 'forever')
     
-    # Проверяем статус через backend
-    status_data = await backend_check_payment(payment_id)
-    if not status_data:
-        await message.answer(f"❌ Не удалось получить статус платежа от backend")
+    # Проверяем статус напрямую через ЮKassa API
+    from config import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
+    import aiohttp
+    from aiohttp import BasicAuth
+    
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        await message.answer("❌ Ключи ЮKassa не настроены в конфиге бота")
+        return
+    
+    url = f"https://api.yookassa.ru/v3/payments/{payment_id}"
+    auth = BasicAuth(login=YOOKASSA_SHOP_ID, password=YOOKASSA_SECRET_KEY)
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, auth=auth, timeout=15) as resp:
+                if resp.status != 200:
+                    await message.answer(f"❌ Не удалось получить статус платежа от ЮKassa (HTTP {resp.status})")
+                    return
+                
+                data = await resp.json()
+                status_data = {
+                    "status": data.get("status", "pending"),
+                    "metadata": {
+                        "user_id": str(data.get("metadata", {}).get("telegram_id") or user_id or ""),
+                        "license_type": data.get("metadata", {}).get("license_type") or license_type
+                    },
+                    "amount": f"{float(data.get('amount', {}).get('value', 0)):.2f}"
+                }
+    except Exception as e:
+        logger.error(f"Ошибка при проверке платежа через ЮKassa: {e}", exc_info=True)
+        await message.answer(f"❌ Ошибка при проверке платежа: {str(e)}")
         return
     
     backend_status = status_data.get("status")

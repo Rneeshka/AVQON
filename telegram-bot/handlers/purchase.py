@@ -2,6 +2,7 @@
 
 import logging
 import aiohttp
+from typing import Optional, Dict
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.exceptions import TelegramBadRequest
@@ -11,6 +12,8 @@ from config import (
     SUPPORT_TECH,
     INSTALLATION_LINK,
     DB_PATH,
+    YOOKASSA_SHOP_ID,
+    YOOKASSA_SECRET_KEY,
 )
 
 from database import Database
@@ -237,24 +240,90 @@ async def buy_monthly(callback: CallbackQuery):
 
 
 # --------------------------
-# ПРОВЕРКА ПЛАТЕЖА (через backend)
+# ПРОВЕРКА ПЛАТЕЖА (напрямую через ЮKassa API)
 # --------------------------
 
-async def backend_check_payment(payment_id: str):
-    url = f"{BACKEND_URL}/payments/status/{payment_id}"
-
-    logger.info(f"Запрашиваю статус платежа: {url}")
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=10) as resp:
-                if resp.status != 200:
-                    logger.error(f"Backend HTTP error: {resp.status}")
-                    return None
-                return await resp.json()
-    except Exception as e:
-        logger.error(f"Ошибка запроса статуса: {e}", exc_info=True)
+async def check_payment_direct_yookassa(payment_id: str) -> Optional[Dict]:
+    """
+    Проверка статуса платежа напрямую через ЮKassa API.
+    Возвращает словарь с полями: status, metadata (user_id, license_type), amount
+    """
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        logger.error(f"[CHECK_PAYMENT] YooKassa credentials not configured")
         return None
+    
+    url = f"https://api.yookassa.ru/v3/payments/{payment_id}"
+    auth = aiohttp.BasicAuth(login=YOOKASSA_SHOP_ID, password=YOOKASSA_SECRET_KEY)
+    
+    logger.info(f"[CHECK_PAYMENT] Запрашиваю статус платежа напрямую у ЮKassa: {payment_id}")
+    
+    try:
+        timeout = aiohttp.ClientTimeout(total=15)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url, auth=auth) as resp:
+                logger.info(f"[CHECK_PAYMENT] ЮKassa ответил со статусом: {resp.status}")
+                
+                if resp.status == 200:
+                    data = await resp.json()
+                    yookassa_status = data.get("status", "pending")
+                    logger.info(f"[CHECK_PAYMENT] Статус платежа {payment_id} от ЮKassa: {yookassa_status}")
+                    
+                    # Получаем метаданные
+                    metadata = data.get("metadata", {})
+                    user_id = metadata.get("telegram_id") or metadata.get("user_id")
+                    license_type = metadata.get("license_type", "")
+                    
+                    # Получаем сумму
+                    amount_value = 0.0
+                    if "amount" in data:
+                        amount_obj = data.get("amount", {})
+                        if isinstance(amount_obj, dict) and "value" in amount_obj:
+                            try:
+                                amount_value = float(amount_obj["value"])
+                            except (ValueError, TypeError):
+                                pass
+                    
+                    # Если метаданных нет в ответе ЮKassa, пытаемся получить из БД
+                    if not user_id or not license_type:
+                        payment_db = db.get_yookassa_payment(payment_id)
+                        if payment_db:
+                            user_id = user_id or str(payment_db.get("user_id", ""))
+                            license_type = license_type or payment_db.get("license_type", "")
+                            if not amount_value:
+                                amount_value = payment_db.get("amount", 0) / 100
+                    
+                    result = {
+                        "status": yookassa_status,
+                        "metadata": {
+                            "user_id": str(user_id) if user_id else "",
+                            "license_type": license_type or "forever"
+                        },
+                        "amount": f"{amount_value:.2f}"
+                    }
+                    
+                    logger.info(f"[CHECK_PAYMENT] Результат проверки: status={yookassa_status}, user_id={user_id}, license_type={license_type}")
+                    return result
+                    
+                elif resp.status == 404:
+                    logger.warning(f"[CHECK_PAYMENT] Платеж {payment_id} не найден в ЮKassa")
+                    return None
+                else:
+                    error_text = await resp.text()
+                    logger.error(f"[CHECK_PAYMENT] ЮKassa вернул ошибку {resp.status}: {error_text[:200]}")
+                    return None
+                    
+    except aiohttp.ClientError as e:
+        logger.error(f"[CHECK_PAYMENT] Сетевая ошибка при запросе к ЮKassa: {e}", exc_info=True)
+        return None
+    except Exception as e:
+        logger.error(f"[CHECK_PAYMENT] Неожиданная ошибка при проверке платежа: {e}", exc_info=True)
+        return None
+
+
+# Оставляем старую функцию для обратной совместимости, но она теперь вызывает прямую проверку
+async def backend_check_payment(payment_id: str):
+    """Проверка статуса платежа (теперь напрямую через ЮKassa)"""
+    return await check_payment_direct_yookassa(payment_id)
 
 
 @router.callback_query(F.data.startswith("check_payment_"))
@@ -272,23 +341,23 @@ async def check_payment(callback: CallbackQuery):
         logger.warning(f"[CHECK_PAYMENT] Ошибка при answer callback: {answer_err}")
 
     try:
-        # Получаем статус платежа от backend
-        logger.info(f"[CHECK_PAYMENT] Запрос статуса платежа {payment_id} к backend...")
-        status_data = await backend_check_payment(payment_id)
+        # Получаем статус платежа напрямую от ЮKassa
+        logger.info(f"[CHECK_PAYMENT] Запрос статуса платежа {payment_id} напрямую к ЮKassa...")
+        status_data = await check_payment_direct_yookassa(payment_id)
 
         if not status_data:
-            logger.error(f"[CHECK_PAYMENT] Backend не вернул данные для платежа {payment_id}")
+            logger.error(f"[CHECK_PAYMENT] Не удалось получить данные о платеже {payment_id} от ЮKassa")
             await safe_edit_message(
                 callback,
                 "❌ Ошибка проверки платежа. Попробуйте позже или обратитесь в поддержку: " + SUPPORT_TECH
             )
             return
 
-        logger.info(f"[CHECK_PAYMENT] Получен ответ от backend: {status_data}")
+        logger.info(f"[CHECK_PAYMENT] Получен ответ от ЮKassa: {status_data}")
         
         status = status_data.get("status")
         if not status:
-            logger.error(f"[CHECK_PAYMENT] В ответе backend отсутствует поле 'status': {status_data}")
+            logger.error(f"[CHECK_PAYMENT] В ответе ЮKassa отсутствует поле 'status': {status_data}")
             await safe_edit_message(
                 callback,
                 "❌ Ошибка: неверный формат ответа от сервера. Обратитесь в поддержку: " + SUPPORT_TECH
@@ -296,14 +365,14 @@ async def check_payment(callback: CallbackQuery):
             return
             
         logger.info(f"[CHECK_PAYMENT] Статус платежа {payment_id}: {status}")
-        logger.debug(f"[CHECK_PAYMENT] Полный ответ от backend: {status_data}")
+        logger.debug(f"[CHECK_PAYMENT] Полный ответ от ЮKassa: {status_data}")
 
         # Получаем информацию о платеже из БД
         payment_db = db.get_yookassa_payment(payment_id)
         
-        # Извлекаем license_type из ответа backend (metadata) или из БД
+        # Извлекаем license_type из ответа ЮKassa (metadata) или из БД
         metadata = status_data.get("metadata", {})
-        logger.info(f"[CHECK_PAYMENT] Метаданные из backend: {metadata}")
+        logger.info(f"[CHECK_PAYMENT] Метаданные из ЮKassa: {metadata}")
         
         # Приоритет: метаданные из backend > БД > значение по умолчанию
         license_type = None
@@ -334,13 +403,17 @@ async def check_payment(callback: CallbackQuery):
                 await callback.answer("❌ Это не ваш платеж!", show_alert=True)
                 return
 
-        # Обновляем статус в БД
+        # Обновляем статус в БД если изменился
         if payment_db:
-            try:
-                db.update_yookassa_payment_status(payment_id, status)
-                logger.info(f"Статус платежа {payment_id} обновлен в БД: {status}")
-            except Exception as update_err:
-                logger.error(f"Ошибка при обновлении статуса в БД: {update_err}", exc_info=True)
+            db_status = payment_db.get("status", "pending")
+            if status != db_status:
+                try:
+                    db.update_yookassa_payment_status(payment_id, status)
+                    logger.info(f"[CHECK_PAYMENT] Статус платежа {payment_id} обновлен в БД: {db_status} -> {status}")
+                except Exception as update_err:
+                    logger.error(f"[CHECK_PAYMENT] Ошибка при обновлении статуса в БД: {update_err}", exc_info=True)
+            else:
+                logger.debug(f"[CHECK_PAYMENT] Статус платежа {payment_id} не изменился: {status}")
 
         if status == "pending":
             await safe_edit_message(
