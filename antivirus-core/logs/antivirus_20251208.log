@@ -266,3 +266,23 @@
 2025-12-08 01:15:39,231 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
 2025-12-08 01:15:39,233 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
 2025-12-08 01:15:39,239 - app.logger - INFO - [WS] Client connected: id=a6d900e4-df39-4362-8011-0eca35bc800c, ip=185.46.16.165
+2025-12-08 01:37:50,675 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-08 01:37:50,679 - app.logger - INFO - [PAYMENTS] Sending POST request to YooKassa API: https://api.yookassa.ru/v3/payments
+2025-12-08 01:37:50,890 - app.logger - INFO - [PAYMENTS] YooKassa responded with status: 200
+2025-12-08 01:37:50,891 - app.logger - INFO - [PAYMENTS] YooKassa response received
+2025-12-08 01:37:50,891 - app.logger - INFO - [PAYMENTS] Payment created successfully: 30c8157e-000f-5000-b000-11a9e633b003
+2025-12-08 01:37:50,892 - app.logger - INFO - [PAYMENTS] Confirmation URL: https://yoomoney.ru/checkout/payments/v2/contract?orderId=30c8157e-000f-5000-b000-11a9e633b003
+2025-12-08 01:37:50,893 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-08 01:37:50,896 - app.database - INFO - Database initialized successfully with all tables
+2025-12-08 01:37:50,899 - app.database - INFO - Created YooKassa payment 30c8157e-000f-5000-b000-11a9e633b003 for user 696019842
+2025-12-08 01:37:50,901 - app.logger - INFO - [PAYMENTS] Payment saved to database: 30c8157e-000f-5000-b000-11a9e633b003
+2025-12-08 01:39:30,816 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-08 01:39:30,820 - app.logger - INFO - [PAYMENTS] Sending POST request to YooKassa API: https://api.yookassa.ru/v3/payments
+2025-12-08 01:39:31,060 - app.logger - INFO - [PAYMENTS] YooKassa responded with status: 200
+2025-12-08 01:39:31,061 - app.logger - INFO - [PAYMENTS] YooKassa response received
+2025-12-08 01:39:31,061 - app.logger - INFO - [PAYMENTS] Payment created successfully: 30c815e2-000f-5001-9000-1c0c6cc06f97
+2025-12-08 01:39:31,061 - app.logger - INFO - [PAYMENTS] Confirmation URL: https://yoomoney.ru/checkout/payments/v2/contract?orderId=30c815e2-000f-5001-9000-1c0c6cc06f97
+2025-12-08 01:39:31,062 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-08 01:39:31,066 - app.database - INFO - Database initialized successfully with all tables
+2025-12-08 01:39:31,070 - app.database - INFO - Created YooKassa payment 30c815e2-000f-5001-9000-1c0c6cc06f97 for user 940965509
+2025-12-08 01:39:31,072 - app.logger - INFO - [PAYMENTS] Payment saved to database: 30c815e2-000f-5001-9000-1c0c6cc06f97

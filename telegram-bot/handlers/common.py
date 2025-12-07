@@ -172,9 +172,11 @@ async def cmd_start(message: Message):
 При возникновении вопросов: {SUPPORT_TECH}"""
             
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="📊 Моя подписка", callback_data="my_subscription")],
                 [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
-                [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
                 [InlineKeyboardButton(text="🔑 Посмотреть мой ключ", callback_data="show_key")],
+                [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+                [InlineKeyboardButton(text="💬 Поддержка", callback_data="support")],
                 [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
             ])
             
@@ -259,9 +261,11 @@ async def main_menu(callback: CallbackQuery):
 При возникновении вопросов: {SUPPORT_TECH}"""
         
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📊 Моя подписка", callback_data="my_subscription")],
             [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
+            [InlineKeyboardButton(text="🔑 Посмотреть мой ключ", callback_data="show_key")],
             [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
-            [InlineKeyboardButton(text="🔑 Посмотреть мой ключ", callback_data="show_key")]
+            [InlineKeyboardButton(text="💬 Поддержка", callback_data="support")]
         ])
     else:
         # Главное меню для новых пользователей
@@ -328,6 +332,7 @@ async def show_key(callback: CallbackQuery):
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📊 Моя подписка", callback_data="my_subscription")],
             [InlineKeyboardButton(text="📦 Установить", url=INSTALLATION_LINK)],
             [InlineKeyboardButton(text="❓ Помощь", callback_data="help")],
             [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
