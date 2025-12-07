@@ -302,6 +302,7 @@ class DatabaseManager:
                         license_type TEXT NOT NULL,
                         status TEXT DEFAULT 'pending',
                         license_key TEXT,
+                        is_renewal BOOLEAN DEFAULT FALSE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
@@ -309,6 +310,27 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_user_id ON yookassa_payments(user_id)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id)")
+                
+                # 14. Таблица подписок (для месячных лицензий)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS subscriptions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id BIGINT NOT NULL,
+                        license_key TEXT NOT NULL,
+                        license_type TEXT NOT NULL DEFAULT 'monthly',
+                        expires_at TIMESTAMP NOT NULL,
+                        auto_renew BOOLEAN DEFAULT FALSE,
+                        renewal_count INTEGER DEFAULT 0,
+                        status TEXT DEFAULT 'active' CHECK(status IN ('active', 'expired', 'canceled')),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_license_key ON subscriptions(license_key)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_expires_at ON subscriptions(expires_at)")
                 
                 # Миграции схемы для совместимости со старыми базами (до индексов)
                 self._migrate_schema(conn)
@@ -376,6 +398,15 @@ class DatabaseManager:
                 cur.execute("ALTER TABLE accounts ADD COLUMN reset_code TEXT DEFAULT NULL")
             if "reset_code_expires" not in account_cols:
                 cur.execute("ALTER TABLE accounts ADD COLUMN reset_code_expires TIMESTAMP DEFAULT NULL")
+            
+            # Миграция yookassa_payments для is_renewal
+            try:
+                cur.execute("PRAGMA table_info(yookassa_payments)")
+                payment_cols = {row[1] for row in cur.fetchall()}
+                if "is_renewal" not in payment_cols:
+                    cur.execute("ALTER TABLE yookassa_payments ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
+            except sqlite3.OperationalError:
+                pass  # Таблица может не существовать
             
             conn.commit()
         except Exception as e:

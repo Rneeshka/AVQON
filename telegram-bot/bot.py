@@ -36,7 +36,7 @@ except Exception as e:
 
 # Безопасный импорт обработчиков
 try:
-    from handlers import common, purchase, info, admin
+    from handlers import common, purchase, info, admin, subscriptions
 except Exception as e:
     logger.error(f"Ошибка при импорте обработчиков: {e}", exc_info=True)
     raise
@@ -76,10 +76,32 @@ async def main():
     except Exception as e:
         logger.error(f"Ошибка при регистрации роутера admin: {e}", exc_info=True)
     
+    try:
+        dp.include_router(subscriptions.router)
+        logger.info("Роутер subscriptions зарегистрирован")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации роутера subscriptions: {e}", exc_info=True)
+    
     logger.info("Бот запущен!")
     
+    # Запускаем планировщик подписок
+    try:
+        from subscription_scheduler import start_scheduler
+        await start_scheduler(bot)
+        logger.info("Планировщик подписок запущен")
+    except Exception as e:
+        logger.error(f"Ошибка при запуске планировщика подписок: {e}", exc_info=True)
+    
     # Запускаем polling
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot)
+    finally:
+        # Останавливаем планировщик при завершении
+        try:
+            from subscription_scheduler import stop_scheduler
+            await stop_scheduler()
+        except Exception as e:
+            logger.error(f"Ошибка при остановке планировщика подписок: {e}", exc_info=True)
 
 
 if __name__ == "__main__":

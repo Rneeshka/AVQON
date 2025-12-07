@@ -57,3 +57,40 @@ async def generate_license_for_user(user_id: int, username: str, is_lifetime: bo
         logger.error(f"Неожиданная ошибка при запросе ключа: {e}", exc_info=True)
         return None
 
+
+async def renew_license(license_key: str, extend_days: int = 30) -> bool:
+    """
+    Продлить срок действия лицензии через /admin/api-keys/extend
+    Возвращает True при успехе, False при ошибке
+    
+    Args:
+        license_key: Лицензионный ключ для продления
+        extend_days: Количество дней для продления (по умолчанию 30)
+    """
+    headers = {"Authorization": f"Bearer {API_KEY}"}
+    # Формируем URL для продления
+    base_url = API_URL.rsplit('/', 1)[0] if '/admin/api-keys/create' in API_URL else API_URL
+    extend_url = f"{base_url}/admin/api-keys/extend"
+    
+    data = {
+        "api_key": license_key,
+        "extend_days": extend_days
+    }
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(extend_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    logger.info(f"Лицензия {license_key[:10]}... успешно продлена на {extend_days} дней")
+                    return True
+                else:
+                    error_text = await response.text()
+                    logger.error(f"Ошибка продления лицензии: {response.status} - {error_text}")
+                    return False
+    except aiohttp.ClientError as e:
+        logger.error(f"Ошибка соединения с API при продлении: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при продлении лицензии: {e}", exc_info=True)
+        return False
