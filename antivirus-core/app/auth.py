@@ -137,15 +137,25 @@ class AuthManager:
             import secrets
             device_id = secrets.token_hex(16)
         
-        # Генерируем новый session_token
-        import secrets
-        session_token = secrets.token_urlsafe(32)
+        # Проверяем существующую сессию для этого device_id
+        existing_session = db_manager.get_session_by_device_id(account["id"], device_id)
         
-        # КРИТИЧНО: Устанавливаем новую сессию (старая автоматически удаляется через INSERT OR REPLACE)
-        # Это означает, что старое устройство потеряет доступ
-        if not db_manager.set_active_session(account["id"], session_token, device_id, expires_hours=720):
-            logger.error(f"Failed to set active session for user_id={account['id']}")
-            return False, None, None, "Ошибка создания сессии"
+        if existing_session and existing_session.get("session_token"):
+            # Если сессия существует для этого device_id - используем её и обновляем срок действия
+            session_token = existing_session["session_token"]
+            # Обновляем срок действия существующей сессии
+            db_manager.set_active_session(account["id"], session_token, device_id, expires_hours=720)
+            logger.info(f"Reusing existing session for user_id={account['id']}, device_id={device_id}")
+        else:
+            # Генерируем новый session_token только если нет существующей сессии для этого device_id
+            import secrets
+            session_token = secrets.token_urlsafe(32)
+            
+            # Устанавливаем новую сессию только если это новое устройство
+            # Если device_id совпадает - обновляем существующую сессию
+            if not db_manager.set_active_session(account["id"], session_token, device_id, expires_hours=720):
+                logger.error(f"Failed to set active session for user_id={account['id']}")
+                return False, None, None, "Ошибка создания сессии"
         
         # Обновляем время последнего входа
         db_manager.update_last_login(account["id"])

@@ -1440,25 +1440,78 @@ class DatabaseManager:
             logger.error(f"Get active session token error: {e}")
             return None
     
+    def get_session_by_device_id(self, user_id: int, device_id: str) -> Optional[Dict[str, Any]]:
+        """Получает сессию по user_id и device_id."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT user_id, session_token, device_id, created_at, expires_at
+                    FROM active_sessions 
+                    WHERE user_id = ? AND device_id = ?
+                    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                """, (user_id, device_id))
+                result = cursor.fetchone()
+                if result:
+                    return {
+                        "user_id": result[0],
+                        "session_token": result[1],
+                        "device_id": result[2],
+                        "created_at": result[3],
+                        "expires_at": result[4]
+                    }
+                return None
+        except sqlite3.Error as e:
+            logger.error(f"Get session by device_id error: {e}")
+            return None
+    
     def set_active_session(self, user_id: int, session_token: str, device_id: str = None, expires_hours: int = 720) -> bool:
         """
         Устанавливает активную сессию для пользователя.
-        КРИТИЧНО: Если уже есть сессия - она перезаписывается (старое устройство автоматически выйдет).
+        КРИТИЧНО: Если device_id совпадает - обновляем существующую сессию.
+        Если device_id отличается - заменяем сессию (старое устройство автоматически выйдет).
         """
         try:
             expires_at = (datetime.now() + timedelta(hours=expires_hours)).isoformat()
             
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                # Используем INSERT OR REPLACE для автоматической замены старой сессии
-                cursor.execute("""
-                    INSERT OR REPLACE INTO active_sessions 
-                    (user_id, session_token, device_id, expires_at)
-                    VALUES (?, ?, ?, ?)
-                """, (user_id, session_token, device_id, expires_at))
+                
+                # Если device_id указан, проверяем существующую сессию для этого device_id
+                if device_id:
+                    cursor.execute("""
+                        SELECT user_id FROM active_sessions 
+                        WHERE user_id = ? AND device_id = ?
+                    """, (user_id, device_id))
+                    existing = cursor.fetchone()
+                    
+                    if existing:
+                        # Обновляем существующую сессию для этого device_id
+                        cursor.execute("""
+                            UPDATE active_sessions 
+                            SET session_token = ?, expires_at = ?
+                            WHERE user_id = ? AND device_id = ?
+                        """, (session_token, expires_at, user_id, device_id))
+                        logger.info(f"Updated existing session for user_id={user_id}, device_id={device_id}")
+                    else:
+                        # Удаляем старую сессию для этого user_id (если есть) и создаем новую
+                        cursor.execute("DELETE FROM active_sessions WHERE user_id = ?", (user_id,))
+                        cursor.execute("""
+                            INSERT INTO active_sessions 
+                            (user_id, session_token, device_id, expires_at)
+                            VALUES (?, ?, ?, ?)
+                        """, (user_id, session_token, device_id, expires_at))
+                        logger.info(f"Replaced session for user_id={user_id}, new device_id={device_id}")
+                else:
+                    # Если device_id не указан - используем INSERT OR REPLACE (старое поведение)
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO active_sessions 
+                        (user_id, session_token, device_id, expires_at)
+                        VALUES (?, ?, ?, ?)
+                    """, (user_id, session_token, device_id, expires_at))
+                    logger.info(f"Active session set for user_id={user_id}, device_id={device_id}")
                 
                 conn.commit()
-                logger.info(f"Active session set for user_id={user_id}, device_id={device_id}")
                 return True
         except sqlite3.Error as e:
             logger.error(f"Set active session error: {e}")
