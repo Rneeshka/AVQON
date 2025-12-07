@@ -3105,3 +3105,7 @@ AttributeError: 'NoneType' object has no attribute 'get'
 2025-12-08 00:06:15,896 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://cursor.com/dashboard
 2025-12-08 00:06:15,899 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/dashboard: safe=True, source=internal_only
 2025-12-08 00:06:15,900 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/dashboard to client d566c8df-b830-4de5-8dc8-74e5428ef739
+2025-12-08 00:17:15,583 - app.logger - INFO - [WS] Client disconnected gracefully: d566c8df-b830-4de5-8dc8-74e5428ef739
+2025-12-08 00:17:15,584 - app.logger - INFO - [WS] Client disconnected: id=d566c8df-b830-4de5-8dc8-74e5428ef739, reason=cleanup
+2025-12-08 00:17:15,685 - app.logger - INFO - Background job manager stopped
+2025-12-08 00:17:15,685 - app.logger - INFO - Background job manager stopped

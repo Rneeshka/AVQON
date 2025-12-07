@@ -627,6 +627,20 @@ class Database:
         conn.close()
         return [dict(row) for row in rows]
     
+    def get_yookassa_payment_by_license_key(self, license_key: str) -> Optional[Dict]:
+        """Получить платеж ЮKassa по license_key"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM yookassa_payments WHERE license_key = ? AND status = 'succeeded' ORDER BY created_at DESC LIMIT 1",
+            (license_key,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+        return None
+    
     def update_yookassa_payment_status(self, payment_id: str, status: str, license_key: Optional[str] = None):
         """Обновить статус платежа ЮKassa"""
         conn = self._get_connection()

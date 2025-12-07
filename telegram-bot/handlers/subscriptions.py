@@ -38,15 +38,54 @@ async def cmd_my_subscription(message: Message):
     subscription = db.get_subscription(user_id)
     
     if not subscription:
-        # Проверяем, может быть это вечная лицензия
-        # Для вечных лицензий подписки не создаются
-        await message.answer(
-            f"✅ У вас активная лицензия:\n\n"
-            f"`{license_key}`\n\n"
-            f"Тип: Постоянная (бессрочная)\n\n"
-            f"Ссылка для установки: {INSTALLATION_LINK}"
-        )
-        return
+        # Проверяем по платежам, какой тип лицензии был куплен
+        # Если это месячная, но подписки нет - создаем её
+        try:
+            payment = db.get_yookassa_payment_by_license_key(license_key)
+            if payment and payment.get("license_type") == "monthly":
+                # Создаем подписку на основе платежа
+                from datetime import datetime, timedelta
+                created_at_str = payment.get("created_at")
+                if created_at_str:
+                    if isinstance(created_at_str, str):
+                        created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                    else:
+                        created_at = created_at_str
+                    # Если платеж был недавно (менее 30 дней назад), создаем подписку
+                    expires_at = created_at + timedelta(days=30)
+                    now = datetime.now()
+                    if expires_at.tzinfo:
+                        now = now.replace(tzinfo=expires_at.tzinfo)
+                    
+                    if expires_at > now:
+                        # Подписка еще не истекла, создаем запись
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        subscription = db.get_subscription(user_id)
+                        logger.info(f"Создана подписка для существующего пользователя {user_id} на основе платежа")
+                    else:
+                        # Подписка уже истекла, но создаем для истории
+                        expires_at = now + timedelta(days=30)  # Даем еще 30 дней
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        subscription = db.get_subscription(user_id)
+                        logger.info(f"Создана подписка для пользователя {user_id} (была истекшей)")
+                else:
+                    # Если даты нет, создаем с текущей датой + 30 дней
+                    expires_at = datetime.now() + timedelta(days=30)
+                    db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                    subscription = db.get_subscription(user_id)
+                    logger.info(f"Создана подписка для пользователя {user_id} (без даты платежа)")
+        except Exception as e:
+            logger.error(f"Ошибка при проверке платежей для создания подписки: {e}", exc_info=True)
+        
+        if not subscription:
+            # Если не месячная или не удалось создать - это вечная лицензия
+            await message.answer(
+                f"✅ У вас активная лицензия:\n\n"
+                f"`{license_key}`\n\n"
+                f"Тип: Постоянная (бессрочная)\n\n"
+                f"Ссылка для установки: {INSTALLATION_LINK}"
+            )
+            return
     
     expires_at_str = subscription.get("expires_at")
     if expires_at_str:
@@ -136,15 +175,51 @@ async def callback_my_subscription(callback: CallbackQuery):
     subscription = db.get_subscription(user_id)
     
     if not subscription:
-        # Проверяем, может быть это вечная лицензия
-        await safe_edit_message(
-            callback,
-            f"✅ У вас активная лицензия:\n\n"
-            f"`{license_key}`\n\n"
-            f"Тип: Постоянная (бессрочная)\n\n"
-            f"Ссылка для установки: {INSTALLATION_LINK}"
-        )
-        return
+        # Проверяем по платежам, какой тип лицензии был куплен
+        # Если это месячная, но подписки нет - создаем её
+        try:
+            payment = db.get_yookassa_payment_by_license_key(license_key)
+            if payment and payment.get("license_type") == "monthly":
+                # Создаем подписку на основе платежа
+                from datetime import datetime, timedelta
+                created_at_str = payment.get("created_at")
+                if created_at_str:
+                    if isinstance(created_at_str, str):
+                        created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                    else:
+                        created_at = created_at_str
+                    expires_at = created_at + timedelta(days=30)
+                    now = datetime.now()
+                    if expires_at.tzinfo:
+                        now = now.replace(tzinfo=expires_at.tzinfo)
+                    
+                    if expires_at > now:
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        subscription = db.get_subscription(user_id)
+                        logger.info(f"Создана подписка для существующего пользователя {user_id} (callback)")
+                    else:
+                        expires_at = now + timedelta(days=30)
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        subscription = db.get_subscription(user_id)
+                        logger.info(f"Создана подписка для пользователя {user_id} (была истекшей, callback)")
+                else:
+                    expires_at = datetime.now() + timedelta(days=30)
+                    db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                    subscription = db.get_subscription(user_id)
+                    logger.info(f"Создана подписка для пользователя {user_id} (без даты платежа, callback)")
+        except Exception as e:
+            logger.error(f"Ошибка при проверке платежей: {e}", exc_info=True)
+        
+        if not subscription:
+            # Если не месячная или не удалось создать - это вечная лицензия
+            await safe_edit_message(
+                callback,
+                f"✅ У вас активная лицензия:\n\n"
+                f"`{license_key}`\n\n"
+                f"Тип: Постоянная (бессрочная)\n\n"
+                f"Ссылка для установки: {INSTALLATION_LINK}"
+            )
+            return
     
     expires_at_str = subscription.get("expires_at")
     if expires_at_str:
@@ -158,29 +233,51 @@ async def callback_my_subscription(callback: CallbackQuery):
             now = now.replace(tzinfo=expires_at.tzinfo)
         
         days_left = (expires_at - now).days
+        hours_left = int((expires_at - now).total_seconds() / 3600)
         auto_renew = subscription.get("auto_renew", False)
         renewal_count = subscription.get("renewal_count", 0)
         
+        # Форматирование таймера
         if days_left < 0:
             status_text = "❌ Подписка истекла"
-            days_text = f"Истекла {abs(days_left)} дней назад"
+            timer_text = f"⏰ Истекла {abs(days_left)} дней назад"
+            timer_emoji = "❌"
         elif days_left == 0:
             status_text = "⚠️ Подписка истекает сегодня"
-            days_text = "Осталось менее 1 дня"
+            if hours_left > 0:
+                timer_text = f"⏰ Осталось {hours_left} часов"
+            else:
+                timer_text = "⏰ Осталось менее часа"
+            timer_emoji = "🔴"
         elif days_left <= 3:
             status_text = "⚠️ Подписка скоро истечет"
-            days_text = f"Осталось {days_left} дня"
+            timer_text = f"⏰ Осталось {days_left} дня"
+            timer_emoji = "🟠"
+        elif days_left <= 7:
+            status_text = "✅ Подписка активна"
+            timer_text = f"⏰ Осталось {days_left} дней"
+            timer_emoji = "🟡"
         else:
             status_text = "✅ Подписка активна"
-            days_text = f"Осталось {days_left} дней"
+            timer_text = f"⏰ Осталось {days_left} дней"
+            timer_emoji = "🟢"
         
         expires_date = expires_at.strftime("%d.%m.%Y")
         expires_time = expires_at.strftime("%H:%M")
         
+        # Текст для кнопки продления
+        if days_left > 0:
+            new_expires = expires_at + timedelta(days=30)
+            renew_button_text = f"🔄 Продлить (+30 дней, будет до {new_expires.strftime('%d.%m.%Y')})"
+        else:
+            renew_button_text = "🔄 Продлить подписку"
+        
         text = f"""{status_text}
 
-📅 Срок действия: до {expires_date} в {expires_time}
-⏳ {days_text}
+{timer_emoji} <b>ТАЙМЕР ДО ОКОНЧАНИЯ:</b>
+{timer_text}
+
+📅 Дата окончания: {expires_date} в {expires_time}
 
 🔑 Ваш ключ:
 `{license_key}`
@@ -188,10 +285,12 @@ async def callback_my_subscription(callback: CallbackQuery):
 🔄 Автопродление: {"✅ Включено" if auto_renew else "❌ Выключено"}
 📊 Продлений: {renewal_count}
 
+💡 <i>Вы можете продлить подписку заранее - к текущему сроку добавится еще 30 дней</i>
+
 Ссылка для установки: {INSTALLATION_LINK}"""
         
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔄 Продлить подписку", callback_data="renew_subscription")],
+            [InlineKeyboardButton(text=renew_button_text, callback_data="renew_subscription")],
             [InlineKeyboardButton(
                 text="🔄 " + ("Выключить" if auto_renew else "Включить") + " автопродление",
                 callback_data=f"toggle_auto_renew_{'off' if auto_renew else 'on'}"
@@ -234,6 +333,39 @@ async def renew_subscription(callback: CallbackQuery):
         )
         return
     
+    # Показываем информацию о текущей подписке и что будет после продления
+    expires_at_str = subscription.get("expires_at")
+    if expires_at_str:
+        if isinstance(expires_at_str, str):
+            current_expires = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+        else:
+            current_expires = expires_at_str
+        
+        now = datetime.now()
+        if current_expires.tzinfo:
+            now = now.replace(tzinfo=current_expires.tzinfo)
+        
+        days_left = (current_expires - now).days
+        new_expires = current_expires + timedelta(days=30)
+        
+        if days_left > 0:
+            info_text = f"""📊 <b>Текущая подписка:</b>
+⏰ Осталось: {days_left} дней
+📅 Истекает: {current_expires.strftime('%d.%m.%Y')}
+
+📊 <b>После продления:</b>
+📅 Будет действовать до: {new_expires.strftime('%d.%m.%Y')}
+⏰ Всего дней: {(new_expires - now).days} дней"""
+        else:
+            info_text = f"""📊 <b>Текущая подписка:</b>
+❌ Подписка истекла
+
+📊 <b>После продления:</b>
+📅 Будет действовать до: {new_expires.strftime('%d.%m.%Y')}
+⏰ Всего дней: 30 дней"""
+    else:
+        info_text = "После продления подписка будет продлена на 30 дней"
+    
     # Создаем новый платеж для продления
     response = await backend_create_payment(
         amount=LICENSE_PRICE_MONTHLY,
@@ -273,15 +405,17 @@ async def renew_subscription(callback: CallbackQuery):
     except Exception as db_error:
         logger.error(f"Ошибка при сохранении платежа в БД: {db_error}", exc_info=True)
     
-    text = f"""🔄 Продление подписки
+    text = f"""🔄 <b>Продление подписки</b>
 
-Цена: {LICENSE_PRICE_MONTHLY}₽
-Срок: +30 дней к текущей подписке
+💰 Цена: {LICENSE_PRICE_MONTHLY}₽
+📅 Добавится: +30 дней к текущему сроку
 
-Ссылка для оплаты:
+{info_text}
+
+💳 <b>Ссылка для оплаты:</b>
 {confirmation_url}
 
-После успешной оплаты подписка будет автоматически продлена."""
+✅ После успешной оплаты подписка будет автоматически продлена."""
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)],
@@ -404,6 +538,39 @@ async def cmd_renew(message: Message):
         )
         return
     
+    # Показываем информацию о текущей подписке и что будет после продления
+    expires_at_str = subscription.get("expires_at")
+    if expires_at_str:
+        if isinstance(expires_at_str, str):
+            current_expires = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+        else:
+            current_expires = expires_at_str
+        
+        now = datetime.now()
+        if current_expires.tzinfo:
+            now = now.replace(tzinfo=current_expires.tzinfo)
+        
+        days_left = (current_expires - now).days
+        new_expires = current_expires + timedelta(days=30)
+        
+        if days_left > 0:
+            info_text = f"""📊 <b>Текущая подписка:</b>
+⏰ Осталось: {days_left} дней
+📅 Истекает: {current_expires.strftime('%d.%m.%Y')}
+
+📊 <b>После продления:</b>
+📅 Будет действовать до: {new_expires.strftime('%d.%m.%Y')}
+⏰ Всего дней: {(new_expires - now).days} дней"""
+        else:
+            info_text = f"""📊 <b>Текущая подписка:</b>
+❌ Подписка истекла
+
+📊 <b>После продления:</b>
+📅 Будет действовать до: {new_expires.strftime('%d.%m.%Y')}
+⏰ Всего дней: 30 дней"""
+    else:
+        info_text = "После продления подписка будет продлена на 30 дней"
+    
     # Создаем новый платеж для продления
     response = await backend_create_payment(
         amount=LICENSE_PRICE_MONTHLY,
@@ -441,15 +608,17 @@ async def cmd_renew(message: Message):
     except Exception as db_error:
         logger.error(f"Ошибка при сохранении платежа в БД: {db_error}", exc_info=True)
     
-    text = f"""🔄 Продление подписки
+    text = f"""🔄 <b>Продление подписки</b>
 
-Цена: {LICENSE_PRICE_MONTHLY}₽
-Срок: +30 дней к текущей подписке
+💰 Цена: {LICENSE_PRICE_MONTHLY}₽
+📅 Добавится: +30 дней к текущему сроку
 
-Ссылка для оплаты:
+{info_text}
+
+💳 <b>Ссылка для оплаты:</b>
 {confirmation_url}
 
-После успешной оплаты подписка будет автоматически продлена."""
+✅ После успешной оплаты подписка будет автоматически продлена."""
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)],
