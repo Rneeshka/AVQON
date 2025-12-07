@@ -17,7 +17,7 @@ router = Router()
 db = Database(DB_PATH)
 
 # ID главных администраторов (для критических команд)
-MAIN_ADMIN_IDS = [696019842, 940965509]
+MAIN_ADMIN_IDS = [696019842]
 
 
 def is_admin(user_id: int) -> bool:
