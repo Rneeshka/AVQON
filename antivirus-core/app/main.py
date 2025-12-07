@@ -235,7 +235,7 @@ class RegisterRequest(BaseModel):
     username: str
     email: str
     password: str
-    api_key: str  # API ключ для привязки
+    api_key: Optional[str] = None  # API ключ для привязки (опционально)
 
 class LoginRequest(BaseModel):
     username: str  # username или email
@@ -524,7 +524,11 @@ async def optional_auth_middleware(request: Request, call_next):
             )
     
     # Пути, которые не требуют аутентификации (даже если ключ отправлен)
-    skip_paths = ["/health", "/health/minimal", "/health/hover", "/docs", "/redoc", "/", "/favicon.ico", "/openapi.json"]
+    skip_paths = [
+        "/health", "/health/minimal", "/health/hover", 
+        "/docs", "/redoc", "/", "/favicon.ico", "/openapi.json",
+        "/auth/register", "/auth/login", "/auth/reset-password"  # Эндпоинты аутентификации
+    ]
     admin_paths = ["/admin/stats", "/admin/add/malicious-hash", "/admin/api-keys/toggle", 
                    "/admin/api-keys/"]
     
@@ -1504,9 +1508,9 @@ async def reset_password(request: Request):
 @app.post("/auth/register")
 async def register_account(request: RegisterRequest):
     """
-    Регистрация нового аккаунта и привязка API ключа.
+    Регистрация нового аккаунта и привязка API ключа (опционально).
     
-    Для премиум версии: пользователь создает аккаунт и привязывает к нему API ключ.
+    API ключ не обязателен для регистрации. Если указан, он будет привязан к аккаунту.
     """
     success, user_id, error_msg = auth_manager.register(
         username=request.username,
@@ -1521,12 +1525,17 @@ async def register_account(request: RegisterRequest):
             detail=error_msg or "Ошибка регистрации"
         )
     
-    return {
+    response = {
         "status": "success",
         "message": "Аккаунт успешно создан",
-        "user_id": user_id,
-        "api_key": request.api_key
+        "user_id": user_id
     }
+    
+    # Добавляем api_key в ответ только если он был указан
+    if request.api_key:
+        response["api_key"] = request.api_key
+    
+    return response
 
 @app.post("/auth/login")
 async def login_account(request: LoginRequest, http_request: Request):

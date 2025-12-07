@@ -1969,3 +1969,56 @@ connector: <aiohttp.connector.TCPConnector object at 0x7f33604378e0>
 2025-12-07 16:12:42,996 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
 2025-12-07 16:12:43,002 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
 2025-12-07 16:12:43,003 - app.logger - INFO - [WS] Client connected: id=a6be4cc7-ef1e-44d6-93c3-496c4e018909, ip=185.46.16.165
+2025-12-07 16:15:04,951 - app.logger - INFO - [WS] Client disconnected gracefully: a6be4cc7-ef1e-44d6-93c3-496c4e018909
+2025-12-07 16:15:04,952 - app.logger - INFO - [WS] Client disconnected: id=a6be4cc7-ef1e-44d6-93c3-496c4e018909, reason=cleanup
+2025-12-07 16:15:05,051 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:15:05,051 - app.logger - INFO - Background job manager stopped
+2025-12-07 16:15:05,738 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 16:15:05,741 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-07 16:15:05,759 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 16:15:05,909 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 16:15:05,910 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 16:15:05,911 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 16:15:06,011 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 16:15:06,012 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 16:15:06,014 - app.logger - INFO - Database connection established successfully
+2025-12-07 16:15:06,015 - app.database - INFO - Rate limits reset successfully
+2025-12-07 16:15:06,015 - app.logger - INFO - Rate limits reset
+2025-12-07 16:15:06,015 - app.logger - INFO - Background job manager started
+2025-12-07 16:15:06,015 - app.logger - INFO - Background job manager started
+2025-12-07 16:15:06,016 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 16:15:06,016 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 16:15:06,071 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 16:15:06,072 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 16:15:06,072 - app.logger - INFO - [WS] Client connected: id=bd934246-bc72-4c6e-96a5-93aa07dd7d34, ip=185.46.16.165
+2025-12-07 16:20:42,867 - app.database - INFO - Generated API key: PREMIE-H38... for 214
+2025-12-07 16:20:42,871 - app.database - INFO - ✅ API key created successfully for 214 with level premium: PREMIE-H38...
+2025-12-07 16:20:50,084 - app.logger - INFO - [WS] Starting URL analysis for: https://api.aegis.builders/admin/ui/keys (context: popup)
+2025-12-07 16:20:50,084 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 16:20:50,091 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:20:50,094 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
+2025-12-07 16:20:50,095 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client bd934246-bc72-4c6e-96a5-93aa07dd7d34
+2025-12-07 16:20:50,827 - app.logger - INFO - [WS] Starting URL analysis for: https://api.aegis.builders/admin/ui/keys (context: popup)
+2025-12-07 16:20:50,827 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 16:20:50,827 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:20:50,836 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:20:50,840 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
+2025-12-07 16:20:50,840 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client bd934246-bc72-4c6e-96a5-93aa07dd7d34
+2025-12-07 16:20:50,841 - app.logger - INFO - [WS] Starting URL analysis for: https://api.aegis.builders/admin/ui/keys (context: popup)
+2025-12-07 16:20:50,841 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 16:20:50,841 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:20:50,847 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:20:50,850 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
+2025-12-07 16:20:50,851 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client bd934246-bc72-4c6e-96a5-93aa07dd7d34
+2025-12-07 16:21:59,166 - app.logger - INFO - [WS] Starting URL analysis for: https://api.aegis.builders/admin/ui/keys (context: popup)
+2025-12-07 16:21:59,167 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 16:21:59,168 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:21:59,175 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:21:59,179 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
+2025-12-07 16:21:59,180 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client bd934246-bc72-4c6e-96a5-93aa07dd7d34
+2025-12-07 16:25:23,879 - app.logger - INFO - [WS] Starting URL analysis for: https://api.aegis.builders/admin/ui/keys (context: popup)
+2025-12-07 16:25:23,881 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 16:25:23,882 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:25:23,889 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 16:25:23,892 - app.logger - INFO - [WS] URL analysis completed for https://api.aegis.builders/admin/ui/keys: safe=True, source=internal_only
+2025-12-07 16:25:23,893 - app.logger - INFO - [WS] Sent analysis_result for https://api.aegis.builders/admin/ui/keys to client bd934246-bc72-4c6e-96a5-93aa07dd7d34
