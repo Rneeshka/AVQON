@@ -401,3 +401,1051 @@
 2025-12-07 01:38:32,799 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://cursor.com/dashboard
 2025-12-07 01:38:32,802 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/dashboard: safe=True, source=internal_only
 2025-12-07 01:38:32,804 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/dashboard to client 06a15658-dde7-43f7-aeca-966baac99b23
+2025-12-07 01:48:49,113 - app.logger - INFO - [WS] Client disconnected gracefully: 06a15658-dde7-43f7-aeca-966baac99b23
+2025-12-07 01:48:49,114 - app.logger - INFO - [WS] Client disconnected: id=06a15658-dde7-43f7-aeca-966baac99b23, reason=cleanup
+2025-12-07 01:48:49,213 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:48:49,214 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:48:50,064 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:48:50,088 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:48:50,092 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:48:53,922 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:48:53,925 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:48:53,926 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:48:57,954 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:48:57,956 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:48:57,957 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:01,981 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:01,984 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:01,986 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:05,964 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:05,966 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:05,968 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:09,957 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:09,960 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:09,961 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:13,947 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:13,950 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:13,952 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:17,966 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:17,968 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:17,970 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:21,940 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:21,942 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:21,944 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:25,968 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:25,970 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:25,972 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:29,991 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:29,993 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:29,995 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:31,141 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:31,145 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:31,146 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:35,170 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:35,172 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:35,174 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:39,212 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:39,214 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:39,216 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:43,203 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:43,205 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:43,207 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:47,204 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:47,206 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:47,208 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:51,218 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:51,220 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:51,222 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:55,092 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:55,094 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:55,096 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:49:58,977 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:49:58,979 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:49:58,981 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:02,988 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:02,990 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:02,992 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:06,981 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:06,983 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:06,984 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:10,968 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:10,971 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:10,973 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:14,891 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:14,893 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:14,894 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:18,693 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:18,695 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:18,696 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:22,715 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:22,718 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:22,720 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:26,746 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:26,749 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:26,750 - app.database - ERROR - Database initialization error: no such column: payment_id
+2025-12-07 01:50:27,537 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:27,539 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:27,550 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:50:27,711 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 01:50:27,711 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 01:50:27,712 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 01:50:27,811 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 01:50:27,812 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 01:50:27,814 - app.logger - INFO - Database connection established successfully
+2025-12-07 01:50:27,814 - app.database - INFO - Rate limits reset successfully
+2025-12-07 01:50:27,815 - app.logger - INFO - Rate limits reset
+2025-12-07 01:50:27,815 - app.logger - INFO - Background job manager started
+2025-12-07 01:50:27,815 - app.logger - INFO - Background job manager started
+2025-12-07 01:50:27,815 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 01:50:27,815 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 01:50:32,641 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:50:32,642 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:50:33,270 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:50:33,272 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:50:33,275 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:50:33,394 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 01:50:33,394 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 01:50:33,394 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 01:50:33,479 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 01:50:33,480 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 01:50:33,481 - app.logger - INFO - Database connection established successfully
+2025-12-07 01:50:33,482 - app.database - INFO - Rate limits reset successfully
+2025-12-07 01:50:33,483 - app.logger - INFO - Rate limits reset
+2025-12-07 01:50:33,483 - app.logger - INFO - Background job manager started
+2025-12-07 01:50:33,483 - app.logger - INFO - Background job manager started
+2025-12-07 01:50:33,483 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 01:50:33,483 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 01:50:38,187 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:38,187 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:38,188 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:39,405 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:39,406 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:39,407 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:40,596 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:40,597 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:40,598 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:41,803 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:41,804 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:41,806 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:43,036 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:43,037 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:43,039 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:44,245 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:44,246 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:44,248 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:45,444 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:45,445 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:45,447 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:46,673 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:46,675 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:46,676 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:47,866 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:47,867 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:47,869 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:49,080 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:49,082 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:49,083 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:54,468 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:54,470 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:54,471 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:55,681 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:55,682 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:55,684 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:56,886 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:56,887 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:56,889 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:58,081 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:58,083 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:58,084 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:50:59,271 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:50:59,272 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:50:59,273 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:00,470 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:00,472 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:00,474 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:01,665 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:01,667 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:01,668 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:02,857 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:02,858 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:02,860 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:04,081 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:04,082 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:04,084 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:05,301 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:05,301 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:05,302 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:06,512 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:06,513 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:06,515 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:07,724 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:07,726 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:07,727 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:08,906 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:08,907 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:08,909 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:10,084 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:10,085 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:10,086 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:18,673 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:18,675 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:18,676 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:19,869 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:19,870 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:19,871 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:21,052 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:21,053 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:21,054 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:22,255 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:22,257 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:22,258 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:23,180 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://chat.deepseek.com/a/chat/s/858be3a8-605d-4, has_api_key=True, ip=185.46.16.165
+2025-12-07 01:51:23,180 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1 (ignore_db=False)
+2025-12-07 01:51:23,187 - app.logger - INFO - 🔍 Checking external APIs for: https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1
+2025-12-07 01:51:23,456 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:23,458 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:23,459 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:24,684 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:24,686 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:24,687 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:24,871 - app.logger - INFO - Found URL in VirusTotal database: https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1
+2025-12-07 01:51:24,873 - app.logger - INFO - 🔍 Combining external results for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1: {'virustotal': {'data': {'id': 'f715079bd7d9c33c9d4f5aa3f94bbc20b56ce5fb58c60680ebc5cc5a49745223', 'type': 'url', 'links': {'self': 'https://www.virustotal.com/api/v3/urls/f715079bd7d9c33c9d4f5aa3f94bbc20b56ce5fb58c60680ebc5cc5a49745223'}, 'attributes': {'last_analysis_date': 1764782397, 'last_http_response_cookies': {'ds_session_id': '98e12fee41e9488a8764582fb879c1c1'}, 'threat_names': [], 'last_http_response_headers': {'Content-Type': 'text/html; charset=utf-8', 'Transfer-Encoding': 'chunked', 'Connection': 'keep-alive', 'Date': 'Wed, 03 Dec 2025 17:19:59 GMT', 'Server': 'elb', 'Content-Encoding': 'br', 'Set-Cookie': 'ds_session_id=98e12fee41e9488a8764582fb879c1c1; Path=/; HttpOnly; Secure; SameSite=Strict', 'x-ds-served-by': 'chat', 'Content-Security-Policy': "frame-ancestors 'none';", 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0', 'Pragma': 'no-cache', 'Expires': '0', 'x-ds-trace-id': '49fe3a55b14755417daaa71f45a597fd', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload', 'X-Content-Type-Options': 'nosniff', 'Vary': 'Accept-Encoding', 'X-Cache': 'Miss from cloudfront', 'Via': '1.1 ba437ea2340585e48bd8901315998164.cloudfront.net (CloudFront)', 'X-Amz-Cf-Pop': 'DEN53-P2', 'X-Amz-Cf-Id': 'qDRoiKMmRQYKYKmL0awDeLeXh_Joyycn464exShaQvAGjQg8okg47A=='}, 'tld': 'com', 'last_http_response_content_length': 5031, 'last_modification_date': 1764795493, 'last_submission_date': 1764782397, 'last_http_response_content_sha256': '1938d622e4c224b747da6b554bae683cfae9426d5ed1b8b5f2962ff46ec84f41', 'html_meta': {'viewport': ['initial-scale=1.0,maximum-scale=1,minimum-scale=1.0,user-scalable=no,width=device-width,viewport-fit=cover'], 'commit-id': ['62c1e637'], 'description': ['Chat with DeepSeek AI – your intelligent assistant for coding, content creation, file reading, and more. Upload documents, engage in long-context conversations, and get expert help in AI, natural language processing, and beyond. | 深度求索（DeepSeek）助力编程代码开发、创意写作、文件处理等任务，支持文件上传及长文本对话，随时为您提供高效的AI支持。'], 'keywords': ['DeepSeek,DeepSeek AI,DeepSeek Chat,AI assistant,coding assistant,long-context LLM,Open Source LLM,natural language processing,AI chatbot,AI long text,AI content creation,large language model,深度求索,大语言模型,自然语言处理,AI聊天机器人,代码开发,创意写作,AI助手,长文本对话,文件处理AI,大模型公司,人工智能,AI开发助手'], 'og:url': ['https://chat.deepseek.com'], 'og:type': ['website'], 'og:title': ['DeepSeek'], 'og:description': ['Chat with DeepSeek AI.'], 'og:image': ['https://cdn.deepseek.com/images/deepseek-chat-open-graph-image.jpeg'], 'twitter:card': ['summary_large_image'], 'twitter:domain': ['deepseek.com'], 'twitter:url': ['https://chat.deepseek.com'], 'twitter:title': ['DeepSeek'], 'twitter:description': ['Chat with DeepSeek AI.'], 'twitter:image': ['https://cdn.deepseek.com/images/deepseek-chat-open-graph-image.jpeg'], 'google': ['notranslate'], 'ip': ['34.98.143.40'], 'region': ['US']}, 'title': 'DeepSeek', 'times_submitted': 1, 'first_submission_date': 1764782397, 'last_analysis_results': {'Artists Against 419': {'method': 'blacklist', 'engine_name': 'Artists Against 419', 'category': 'harmless', 'result': 'clean'}, 'Acronis': {'method': 'blacklist', 'engine_name': 'Acronis', 'category': 'harmless', 'result': 'clean'}, 'Abusix': {'method': 'blacklist', 'engine_name': 'Abusix', 'category': 'harmless', 'result': 'clean'}, 'ADMINUSLabs': {'method': 'blacklist', 'engine_name': 'ADMINUSLabs', 'category': 'harmless', 'result': 'clean'}, 'Lionic': {'method': 'blacklist', 'engine_name': 'Lionic', 'category': 'harmless', 'result': 'clean'}, 'Criminal IP': {'method': 'blacklist', 'engine_name': 'Criminal IP', 'category': 'undetected', 'result': 'unrated'}, 'AILabs (MONITORAPP)': {'method': 'blacklist', 'engine_name': 'AILabs (MONITORAPP)', 'category': 'harmless', 'result': 'clean'}, 'AlienVault': {'method': 'blacklist', 'engine_name': 'AlienVault', 'category': 'harmless', 'result': 'clean'}, 'alphaMountain.ai': {'method': 'blacklist', 'engine_name': 'alphaMountain.ai', 'category': 'undetected', 'result': 'unrated'}, 'AlphaSOC': {'method': 'blacklist', 'engine_name': 'AlphaSOC', 'category': 'undetected', 'result': 'unrated'}, 'Antiy-AVL': {'method': 'blacklist', 'engine_name': 'Antiy-AVL', 'category': 'harmless', 'result': 'clean'}, 'ArcSight Threat Intelligence': {'method': 'blacklist', 'engine_name': 'ArcSight Threat Intelligence', 'category': 'undetected', 'result': 'unrated'}, 'AutoShun': {'method': 'blacklist', 'engine_name': 'AutoShun', 'category': 'undetected', 'result': 'unrated'}, 'Axur': {'method': 'blacklist', 'engine_name': 'Axur', 'category': 'undetected', 'result': 'unrated'}, 'benkow.cc': {'method': 'blacklist', 'engine_name': 'benkow.cc', 'category': 'harmless', 'result': 'clean'}, 'Bfore.Ai PreCrime': {'method': 'blacklist', 'engine_name': 'Bfore.Ai PreCrime', 'category': 'undetected', 'result': 'unrated'}, 'BitDefender': {'method': 'blacklist', 'engine_name': 'BitDefender', 'category': 'harmless', 'result': 'clean'}, 'Bkav': {'method': 'blacklist', 'engine_name': 'Bkav', 'category': 'undetected', 'result': 'unrated'}, 'BlockList': {'method': 'blacklist', 'engine_name': 'BlockList', 'category': 'harmless', 'result': 'clean'}, 'Blueliv': {'method': 'blacklist', 'engine_name': 'Blueliv', 'category': 'harmless', 'result': 'clean'}, 'Certego': {'method': 'blacklist', 'engine_name': 'Certego', 'category': 'harmless', 'result': 'clean'}, 'ChainPatrol': {'method': 'blacklist', 'engine_name': 'ChainPatrol', 'category': 'undetected', 'result': 'unrated'}, 'Chong Lua Dao': {'method': 'blacklist', 'engine_name': 'Chong Lua Dao', 'category': 'harmless', 'result': 'clean'}, 'CINS Army': {'method': 'blacklist', 'engine_name': 'CINS Army', 'category': 'harmless', 'result': 'clean'}, 'Snort IP sample list': {'method': 'blacklist', 'engine_name': 'Snort IP sample list', 'category': 'harmless', 'result': 'clean'}, 'Cluster25': {'method': 'blacklist', 'engine_name': 'Cluster25', 'category': 'undetected', 'result': 'unrated'}, 'CMC Threat Intelligence': {'method': 'blacklist', 'engine_name': 'CMC Threat Intelligence', 'category': 'harmless', 'result': 'clean'}, 'Xcitium Verdict Cloud': {'method': 'blacklist', 'engine_name': 'Xcitium Verdict Cloud', 'category': 'harmless', 'result': 'clean'}, 'CRDF': {'method': 'blacklist', 'engine_name': 'CRDF', 'category': 'harmless', 'result': 'clean'}, 'CSIS Security Group': {'method': 'blacklist', 'engine_name': 'CSIS Security Group', 'category': 'undetected', 'result': 'unrated'}, 'Cyan': {'method': 'blacklist', 'engine_name': 'Cyan', 'category': 'undetected', 'result': 'unrated'}, 'Cyble': {'method': 'blacklist', 'engine_name': 'Cyble', 'category': 'harmless', 'result': 'clean'}, 'CyRadar': {'method': 'blacklist', 'engine_name': 'CyRadar', 'category': 'harmless', 'result': 'clean'}, 'desenmascara.me': {'method': 'blacklist', 'engine_name': 'desenmascara.me', 'category': 'harmless', 'result': 'clean'}, 'DNS8': {'method': 'blacklist', 'engine_name': 'DNS8', 'category': 'harmless', 'result': 'clean'}, 'Dr.Web': {'method': 'blacklist', 'engine_name': 'Dr.Web', 'category': 'harmless', 'result': 'clean'}, 'Emsisoft': {'method': 'blacklist', 'engine_name': 'Emsisoft', 'category': 'harmless', 'result': 'clean'}, 'Ermes': {'method': 'blacklist', 'engine_name': 'Ermes', 'category': 'undetected', 'result': 'unrated'}, 'ESET': {'method': 'blacklist', 'engine_name': 'ESET', 'category': 'harmless', 'result': 'clean'}, 'ESTsecurity': {'method': 'blacklist', 'engine_name': 'ESTsecurity', 'category': 'harmless', 'result': 'clean'}, 'EmergingThreats': {'method': 'blacklist', 'engine_name': 'EmergingThreats', 'category': 'harmless', 'result': 'clean'}, 'Feodo Tracker': {'method': 'blacklist', 'engine_name': 'Feodo Tracker', 'category': 'harmless', 'result': 'clean'}, 'Fortinet': {'method': 'blacklist', 'engine_name': 'Fortinet', 'category': 'harmless', 'result': 'clean'}, 'G-Data': {'method': 'blacklist', 'engine_name': 'G-Data', 'category': 'harmless', 'result': 'clean'}, 'Google Safebrowsing': {'method': 'blacklist', 'engine_name': 'Google Safebrowsing', 'category': 'harmless', 'result': 'clean'}, 'GCP Abuse Intelligence': {'method': 'blacklist', 'engine_name': 'GCP Abuse Intelligence', 'category': 'undetected', 'result': 'unrated'}, 'GreenSnow': {'method': 'blacklist', 'engine_name': 'GreenSnow', 'category': 'harmless', 'result': 'clean'}, 'Gridinsoft': {'method': 'blacklist', 'engine_name': 'Gridinsoft', 'category': 'undetected', 'result': 'unrated'}, 'Heimdal Security': {'method': 'blacklist', 'engine_name': 'Heimdal Security', 'category': 'harmless', 'result': 'clean'}, 'Hunt.io Intelligence': {'method': 'blacklist', 'engine_name': 'Hunt.io Intelligence', 'category': 'undetected', 'result': 'unrated'}, 'IPsum': {'method': 'blacklist', 'engine_name': 'IPsum', 'category': 'harmless', 'result': 'clean'}, 'Juniper Networks': {'method': 'blacklist', 'engine_name': 'Juniper Networks', 'category': 'harmless', 'result': 'clean'}, 'Kaspersky': {'method': 'blacklist', 'engine_name': 'Kaspersky', 'category': 'harmless', 'result': 'clean'}, 'Lumu': {'method': 'blacklist', 'engine_name': 'Lumu', 'category': 'undetected', 'result': 'unrated'}, 'Malwared': {'method': 'blacklist', 'engine_name': 'Malwared', 'category': 'harmless', 'result': 'clean'}, 'MalwareURL': {'method': 'blacklist', 'engine_name': 'MalwareURL', 'category': 'undetected', 'result': 'unrated'}, 'MalwarePatrol': {'method': 'blacklist', 'engine_name': 'MalwarePatrol', 'category': 'harmless', 'result': 'clean'}, 'malwares.com URL checker': {'method': 'blacklist', 'engine_name': 'malwares.com URL checker', 'category': 'harmless', 'result': 'clean'}, 'Mimecast': {'method': 'blacklist', 'engine_name': 'Mimecast', 'category': 'undetected', 'result': 'unrated'}, 'Netcraft': {'method': 'blacklist', 'engine_name': 'Netcraft', 'category': 'undetected', 'result': 'unrated'}, 'OpenPhish': {'method': 'blacklist', 'engine_name': 'OpenPhish', 'category': 'harmless', 'result': 'clean'}, '0xSI_f33d': {'method': 'blacklist', 'engine_name': '0xSI_f33d', 'category': 'undetected', 'result': 'unrated'}, 'Phishing Database': {'method': 'blacklist', 'engine_name': 'Phishing Database', 'category': 'harmless', 'result': 'clean'}, 'PhishFort': {'method': 'blacklist', 'engine_name': 'PhishFort', 'category': 'undetected', 'result': 'unrated'}, 'PhishLabs': {'method': 'blacklist', 'engine_name': 'PhishLabs', 'category': 'undetected', 'result': 'unrated'}, 'Phishtank': {'method': 'blacklist', 'engine_name': 'Phishtank', 'category': 'harmless', 'result': 'clean'}, 'PREBYTES': {'method': 'blacklist', 'engine_name': 'PREBYTES', 'category': 'harmless', 'result': 'clean'}, 'PrecisionSec': {'method': 'blacklist', 'engine_name': 'PrecisionSec', 'category': 'undetected', 'result': 'unrated'}, 'Quick Heal': {'method': 'blacklist', 'engine_name': 'Quick Heal', 'category': 'harmless', 'result': 'clean'}, 'Quttera': {'method': 'blacklist', 'engine_name': 'Quttera', 'category': 'harmless', 'result': 'clean'}, 'Rising': {'method': 'blacklist', 'engine_name': 'Rising', 'category': 'harmless', 'result': 'clean'}, 'SafeToOpen': {'method': 'blacklist', 'engine_name': 'SafeToOpen', 'category': 'undetected', 'result': 'unrated'}, 'Sangfor': {'method': 'blacklist', 'engine_name': 'Sangfor', 'category': 'harmless', 'result': 'clean'}, 'Sansec eComscan': {'method': 'blacklist', 'engine_name': 'Sansec eComscan', 'category': 'undetected', 'result': 'unrated'}, 'Scantitan': {'method': 'blacklist', 'engine_name': 'Scantitan', 'category': 'harmless', 'result': 'clean'}, 'SCUMWARE.org': {'method': 'blacklist', 'engine_name': 'SCUMWARE.org', 'category': 'harmless', 'result': 'clean'}, 'Seclookup': {'method': 'blacklist', 'engine_name': 'Seclookup', 'category': 'harmless', 'result': 'clean'}, 'SOCRadar': {'method': 'blacklist', 'engine_name': 'SOCRadar', 'category': 'undetected', 'result': 'unrated'}, 'Sophos': {'method': 'blacklist', 'engine_name': 'Sophos', 'category': 'harmless', 'result': 'clean'}, 'Spam404': {'method': 'blacklist', 'engine_name': 'Spam404', 'category': 'harmless', 'result': 'clean'}, 'StopForumSpam': {'method': 'blacklist', 'engine_name': 'StopForumSpam', 'category': 'harmless', 'result': 'clean'}, 'Sucuri SiteCheck': {'method': 'blacklist', 'engine_name': 'Sucuri SiteCheck', 'category': 'harmless', 'result': 'clean'}, 'securolytics': {'method': 'blacklist', 'engine_name': 'securolytics', 'category': 'harmless', 'result': 'clean'}, 'Threatsourcing': {'method': 'blacklist', 'engine_name': 'Threatsourcing', 'category': 'harmless', 'result': 'clean'}, 'ThreatHive': {'method': 'blacklist', 'engine_name': 'ThreatHive', 'category': 'harmless', 'result': 'clean'}, 'Trustwave': {'method': 'blacklist', 'engine_name': 'Trustwave', 'category': 'harmless', 'result': 'clean'}, 'Underworld': {'method': 'blacklist', 'engine_name': 'Underworld', 'category': 'undetected', 'result': 'unrated'}, 'URLhaus': {'method': 'blacklist', 'engine_name': 'URLhaus', 'category': 'harmless', 'result': 'clean'}, 'URLQuery': {'method': 'blacklist', 'engine_name': 'URLQuery', 'category': 'harmless', 'result': 'clean'}, 'Viettel Threat Intelligence': {'method': 'blacklist', 'engine_name': 'Viettel Threat Intelligence', 'category': 'harmless', 'result': 'clean'}, 'VIPRE': {'method': 'blacklist', 'engine_name': 'VIPRE', 'category': 'undetected', 'result': 'unrated'}, 'ViriBack': {'method': 'blacklist', 'engine_name': 'ViriBack', 'category': 'harmless', 'result': 'clean'}, 'VX Vault': {'method': 'blacklist', 'engine_name': 'VX Vault', 'category': 'harmless', 'result': 'clean'}, 'Webroot': {'method': 'blacklist', 'engine_name': 'Webroot', 'category': 'harmless', 'result': 'clean'}, 'Forcepoint ThreatSeeker': {'method': 'blacklist', 'engine_name': 'Forcepoint ThreatSeeker', 'category': 'harmless', 'result': 'clean'}, 'Yandex Safebrowsing': {'method': 'blacklist', 'engine_name': 'Yandex Safebrowsing', 'category': 'harmless', 'result': 'clean'}, 'ZeroCERT': {'method': 'blacklist', 'engine_name': 'ZeroCERT', 'category': 'harmless', 'result': 'clean'}, 'ZeroFox': {'method': 'blacklist', 'engine_name': 'ZeroFox', 'category': 'undetected', 'result': 'unrated'}}, 'total_votes': {'harmless': 0, 'malicious': 0}, 'last_final_url': 'https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1', 'url': 'https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1', 'reputation': 0, 'tags': ['external-resources', 'password-input'], 'categories': {'BitDefender': 'business', 'Sophos': 'information technology', 'Forcepoint ThreatSeeker': 'generative ai - text & code'}, 'redirection_chain': ['https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1'], 'last_http_response_code': 200, 'last_analysis_stats': {'malicious': 0, 'suspicious': 0, 'undetected': 30, 'harmless': 68, 'timeout': 0}}}}}
+2025-12-07 01:51:24,873 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=30 harmless=68 total=98 ratio=0/98 (results=0)
+2025-12-07 01:51:24,873 - app.logger - INFO - [VirusTotal] Parsed result (conservative): {'safe': True, 'threat_type': None, 'details': 'Проверено 98 антивирусами, угроз не обнаружено', 'external_scan': 'virustotal', 'confidence': 90, 'detection_ratio': '0/98', 'raw_data': {'malicious_detections': 0, 'suspicious_detections': 0, 'undetected': 30, 'harmless': 68, 'total_engines': 98, 'undetected_ratio': 0.30612244897959184, 'harmless_ratio': 0.6938775510204082, 'is_young': True}}
+2025-12-07 01:51:24,874 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': True, 'threat_type': None, 'details': 'Проверено 98 антивирусами, угроз не обнаружено', 'external_scan': 'virustotal', 'confidence': 90, 'detection_ratio': '0/98', 'raw_data': {'malicious_detections': 0, 'suspicious_detections': 0, 'undetected': 30, 'harmless': 68, 'total_engines': 98, 'undetected_ratio': 0.30612244897959184, 'harmless_ratio': 0.6938775510204082, 'is_young': True}}
+2025-12-07 01:51:24,874 - app.logger - INFO - At least one API returned safe=True (safe_count=1, enabled=2, total_checks=1), treating as safe
+2025-12-07 01:51:24,874 - app.logger - INFO - 🔍 Final external API result for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1: safe=True, threat_type=None, details=All external scans clean
+2025-12-07 01:51:24,874 - app.logger - INFO - 🔍 External API result: safe=True, threat_type=None
+2025-12-07 01:51:24,874 - app.logger - INFO - ✅ External APIs found https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1 to be safe
+2025-12-07 01:51:24,875 - app.logger - INFO - Not all external APIs returned results for https://chat.deepseek.com/a/chat/s/858be3a8-605d-4dce-ae59-bcdced84b3d1, but at least one returned safe=True, treating as safe
+2025-12-07 01:51:24,879 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=combined
+2025-12-07 01:51:25,897 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:25,898 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:25,899 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:27,085 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:27,086 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:27,087 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:28,276 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:28,278 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:28,279 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:29,474 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:29,475 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:29,476 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:30,663 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:30,665 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:30,666 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:31,860 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:31,861 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:31,863 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:33,059 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:33,060 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:33,062 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:34,272 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:34,274 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:34,275 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:35,468 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:35,469 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:35,470 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:36,681 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:36,682 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:36,683 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:37,871 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:37,873 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:37,874 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:39,066 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:39,066 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:39,067 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:40,262 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:40,263 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:40,265 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:41,480 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:41,482 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:41,483 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:43,729 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:43,731 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:43,732 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:44,957 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:44,959 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:44,960 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:46,190 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:46,191 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:46,193 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:47,397 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:47,399 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:47,400 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:48,635 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:48,637 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:48,638 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:49,854 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:49,855 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:49,856 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:51,099 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:51,099 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:51,101 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:52,310 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:52,311 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:52,312 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:53,531 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:53,532 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:53,533 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:54,739 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:54,741 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:54,742 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:55,931 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:55,931 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:55,933 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:57,145 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:57,146 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:57,147 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:58,396 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:58,397 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:58,399 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:51:59,606 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:51:59,607 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:51:59,608 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:00,815 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:00,816 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:00,817 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:02,031 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:02,033 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:02,035 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:03,227 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:03,229 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:03,230 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:04,425 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:04,426 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:04,427 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:05,622 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:05,623 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:05,624 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:06,830 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:06,831 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:06,833 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:08,048 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:08,049 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:08,051 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:09,248 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:09,249 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:09,250 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:10,458 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:10,460 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:10,461 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:11,689 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:11,691 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:11,692 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:12,917 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:12,918 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:12,920 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:14,137 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:14,138 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:14,140 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:15,338 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:15,339 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:15,340 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:16,518 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:16,519 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:16,520 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:17,706 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:17,708 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:17,709 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:18,918 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:18,920 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:18,921 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:20,112 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:20,113 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:20,115 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:21,298 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:21,299 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:21,300 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:22,494 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:22,496 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:22,498 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:23,733 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:23,734 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:23,735 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:24,930 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:24,931 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:24,933 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:26,164 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:26,165 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:26,166 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:27,390 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:27,391 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:27,392 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:28,613 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:28,615 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:28,616 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:29,844 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:29,846 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:29,847 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:31,049 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:31,050 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:31,051 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:32,248 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:32,249 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:32,250 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:33,423 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:33,424 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:33,426 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:34,629 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:34,630 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:34,632 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:35,841 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:35,842 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:35,844 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:36,954 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:52:37,043 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:37,044 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:37,045 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:37,137 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c775-000f-5001-9000-141ad3b7e436
+2025-12-07 01:52:37,138 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:52:37,141 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:52:37,144 - app.database - INFO - Created YooKassa payment 30c6c775-000f-5001-9000-141ad3b7e436 for user 696019842
+2025-12-07 01:52:38,260 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:38,260 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:38,261 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:39,468 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:39,470 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:39,471 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:40,672 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:40,673 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:40,674 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:41,366 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:52:41,369 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:52:41,885 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:41,886 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:41,887 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:43,057 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:52:43,059 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:52:43,124 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:43,124 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:43,125 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:44,346 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:44,347 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:44,348 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:45,565 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:45,566 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:45,567 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:46,779 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:46,780 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:46,781 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:47,976 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:47,978 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:47,980 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:49,174 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:49,176 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:49,177 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:50,403 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:50,404 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:50,406 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:51,610 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:51,612 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:51,613 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:52,820 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:52,821 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:52,822 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:54,034 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:54,036 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:54,037 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:55,269 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:55,270 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:55,271 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:56,464 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:56,465 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:56,466 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:57,656 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:57,657 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:57,659 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:52:58,848 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:52:58,849 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:52:58,850 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:00,067 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:00,069 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:00,070 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:01,281 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:01,281 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:01,282 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:02,484 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:02,485 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:02,486 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:03,686 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:03,687 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:03,689 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:04,941 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:04,942 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:04,944 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:06,168 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:06,169 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:06,170 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:07,380 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:07,380 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:07,382 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:08,602 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:08,603 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:08,604 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:09,822 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:09,824 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:09,825 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:11,003 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:11,003 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:11,004 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:12,202 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:12,203 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:12,204 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:13,433 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:13,434 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:13,435 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:14,636 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:14,637 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:14,638 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:15,842 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:15,843 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:15,845 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:17,048 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:17,050 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:17,051 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:18,250 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:18,251 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:18,252 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:19,443 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:19,445 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:19,446 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:20,632 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:20,634 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:20,635 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:21,828 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:21,830 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:21,831 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:22,759 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:53:22,760 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:53:23,402 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:53:23,404 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:53:23,407 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:53:23,514 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 01:53:23,515 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 01:53:23,515 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 01:53:23,590 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 01:53:23,591 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 01:53:23,592 - app.logger - INFO - Database connection established successfully
+2025-12-07 01:53:23,593 - app.database - INFO - Rate limits reset successfully
+2025-12-07 01:53:23,593 - app.logger - INFO - Rate limits reset
+2025-12-07 01:53:23,593 - app.logger - INFO - Background job manager started
+2025-12-07 01:53:23,593 - app.logger - INFO - Background job manager started
+2025-12-07 01:53:23,594 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 01:53:23,594 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 01:53:25,212 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:25,214 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:25,216 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:26,424 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:26,425 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:26,426 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:27,618 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:27,620 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:27,621 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:28,811 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:28,812 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:28,813 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:30,035 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:30,036 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:30,038 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:31,217 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:31,221 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:31,222 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:32,406 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:32,408 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:32,409 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:33,598 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:33,600 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:33,601 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:34,830 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:34,831 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:34,832 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:36,043 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:36,044 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:36,046 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:37,231 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:37,232 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:37,233 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:38,431 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:38,433 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:38,434 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:39,643 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:39,644 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:39,646 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:40,851 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:40,852 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:40,854 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:42,102 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:42,103 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:42,105 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:43,306 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:43,308 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:43,309 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:44,512 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:44,514 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:44,515 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:45,711 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:45,713 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:45,714 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:46,904 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:46,904 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:46,906 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:48,081 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:48,082 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:48,083 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:49,264 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:49,266 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:49,267 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:50,461 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:50,463 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:50,464 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:51,677 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:51,678 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:51,680 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:52,885 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:52,887 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:52,888 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:54,072 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:54,074 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:54,075 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:55,246 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:55,247 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:55,248 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:56,409 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:56,411 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:56,412 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:57,623 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:57,625 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:57,626 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:53:58,823 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:53:58,825 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:53:58,826 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:00,011 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:00,012 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:00,014 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:01,200 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:01,201 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:01,203 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:02,395 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:02,396 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:02,398 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:03,567 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:03,568 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:03,569 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:04,747 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:04,748 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:04,749 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:06,098 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:06,099 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:06,101 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:07,288 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:07,289 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:07,291 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:08,529 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:08,531 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:08,532 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:09,706 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:09,707 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:09,708 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:10,915 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:10,916 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:10,917 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:12,118 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:12,119 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:12,120 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:13,298 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:13,299 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:13,300 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:14,493 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:14,495 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:14,496 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:15,715 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:15,717 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:15,719 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:16,910 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:16,911 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:16,912 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:18,112 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:18,114 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:18,115 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:19,340 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:19,342 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:19,343 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:20,562 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:20,563 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:20,564 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:21,764 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:21,766 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:21,768 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:22,975 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:22,976 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:22,978 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:24,205 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:24,207 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:24,208 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:25,403 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:25,404 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:25,406 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:26,592 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:26,592 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:26,594 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:27,772 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:27,772 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:27,773 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:28,947 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:28,948 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:28,949 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:30,137 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:30,137 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:30,138 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:31,317 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:31,318 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:31,319 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:32,515 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:32,516 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:32,518 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:33,735 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:33,736 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:33,738 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:34,941 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:34,943 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:34,944 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:36,148 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:36,150 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:36,151 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:37,333 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:37,334 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:37,336 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:38,527 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:38,528 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:38,529 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:39,737 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:39,738 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:39,740 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:40,959 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:40,960 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:40,961 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:42,165 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:42,166 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:42,167 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:43,364 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:43,365 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:43,367 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:44,572 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:44,573 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:44,574 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:45,760 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:45,761 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:45,763 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:46,959 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:46,960 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:46,961 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:48,169 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:48,170 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:48,171 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:49,422 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:49,422 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:49,423 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:50,619 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:50,619 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:50,620 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:51,819 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:51,820 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:51,821 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:53,019 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:53,021 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:53,022 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:54,199 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:54,200 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:54,202 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:55,411 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:55,412 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:55,414 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:56,630 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:56,631 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:56,632 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:57,859 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:57,859 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:57,861 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:54:59,070 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:54:59,070 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:54:59,071 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:00,275 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:00,276 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:00,277 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:01,468 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:01,469 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:01,470 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:02,640 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:02,641 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:02,643 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:02,765 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://api.aegis.builders/admin/ui/keys, has_api_key=True, ip=185.46.16.165
+2025-12-07 01:55:02,766 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 01:55:02,772 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 01:55:02,778 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=internal_only
+2025-12-07 01:55:03,821 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:03,822 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:03,823 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:04,992 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:04,994 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:04,996 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:05,372 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://api.aegis.builders/admin/ui/keys, has_api_key=True, ip=185.46.16.165
+2025-12-07 01:55:05,373 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 01:55:05,373 - app.logger - WARNING - Ignoring cached safe=True result with source=internal_only for url:https://api.aegis.builders/admin/ui/keys
+2025-12-07 01:55:05,380 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 01:55:05,381 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=external_apis
+2025-12-07 01:55:05,384 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://api.aegis.builders/admin/ui/keys, has_api_key=True, ip=185.46.16.165
+2025-12-07 01:55:05,384 - app.logger - INFO - 🔍 Analyzing URL: https://api.aegis.builders/admin/ui/keys (ignore_db=False)
+2025-12-07 01:55:05,389 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://api.aegis.builders/admin/ui/keys
+2025-12-07 01:55:05,390 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=external_apis
+2025-12-07 01:55:06,200 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:06,201 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:06,203 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:07,410 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:07,411 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:07,413 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:08,629 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:08,630 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:08,631 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:09,840 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:09,842 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:09,844 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:11,019 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:11,021 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:11,022 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:12,213 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:12,214 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:12,215 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:13,407 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:13,407 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:13,408 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:14,592 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:14,593 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:14,594 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:15,762 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:15,764 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:15,765 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:16,954 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:16,956 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:16,957 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:18,170 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:18,171 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:18,172 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:19,367 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:19,369 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:19,370 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:20,576 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:20,578 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:20,579 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:21,782 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:21,783 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:21,785 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:22,982 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:22,984 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:22,985 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:24,187 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:24,188 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:24,189 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:25,386 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:25,388 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:25,389 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:26,635 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:26,636 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:26,638 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:27,849 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:27,850 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:27,852 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:29,031 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:29,032 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:29,033 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:30,204 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:30,206 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:30,207 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:31,377 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:55:31,381 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:55:31,402 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:31,403 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:31,404 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:32,606 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:32,607 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:32,609 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:33,828 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:33,830 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:33,832 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:33,847 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:55:34,035 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c825-000f-5000-b000-1adf49a79226
+2025-12-07 01:55:34,035 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:55:34,037 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:55:34,041 - app.database - INFO - Created YooKassa payment 30c6c825-000f-5000-b000-1adf49a79226 for user 696019842
+2025-12-07 01:55:35,055 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:35,056 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:35,057 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:35,210 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:55:35,213 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:55:36,263 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:36,264 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:36,266 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:37,472 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:37,473 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:37,474 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:38,059 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:55:38,062 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:55:38,682 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:38,683 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:38,685 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:39,869 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:39,870 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:39,871 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:41,059 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:41,059 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:41,060 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:42,282 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:42,283 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:42,284 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:43,488 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:43,489 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:43,490 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:44,715 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:44,717 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:44,718 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:45,938 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:45,939 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:45,941 - app.database - WARNING - API key not found: PREMIO-Q5S...
+2025-12-07 01:55:47,134 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:55:47,135 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:55:47,141 - app.logger - INFO - [WS] Client connected: id=375dce77-de1d-4dd9-8221-50b6e4d659c0, ip=185.46.16.165
+2025-12-07 01:56:05,832 - app.logger - INFO - [WS] Client disconnected gracefully: 375dce77-de1d-4dd9-8221-50b6e4d659c0
+2025-12-07 01:56:05,832 - app.logger - INFO - [WS] Client disconnected: id=375dce77-de1d-4dd9-8221-50b6e4d659c0, reason=cleanup
+2025-12-07 01:56:05,932 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:56:05,932 - app.logger - INFO - Background job manager stopped
+2025-12-07 01:56:06,643 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 01:56:06,645 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:56:06,648 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:56:06,771 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 01:56:06,771 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 01:56:06,772 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 01:56:06,858 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 01:56:06,860 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 01:56:06,861 - app.logger - INFO - Database connection established successfully
+2025-12-07 01:56:06,863 - app.database - INFO - Rate limits reset successfully
+2025-12-07 01:56:06,864 - app.logger - INFO - Rate limits reset
+2025-12-07 01:56:06,864 - app.logger - INFO - Background job manager started
+2025-12-07 01:56:06,864 - app.logger - INFO - Background job manager started
+2025-12-07 01:56:06,865 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 01:56:06,865 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 01:56:12,414 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 01:56:12,415 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 01:56:12,421 - app.logger - INFO - [WS] Client connected: id=1ecc40fa-49d8-424a-ac06-cb88a210441b, ip=185.46.16.165
+2025-12-07 01:57:36,844 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:57:36,848 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:57:37,953 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 01:57:38,111 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c8a2-000f-5000-b000-137fe4e04a49
+2025-12-07 01:57:38,112 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:57:38,115 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:57:38,118 - app.database - INFO - Created YooKassa payment 30c6c8a2-000f-5000-b000-137fe4e04a49 for user 696019842
+2025-12-07 01:57:38,982 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:57:38,985 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 01:57:39,984 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 01:57:39,987 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:02:23,416 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:02:23,421 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:02:25,728 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 02:02:25,874 - app.logger - INFO - [PAYMENTS] Payment created: 30c6c9c1-000f-5001-8000-1ec5d950eed7
+2025-12-07 02:02:25,875 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:02:25,878 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:02:25,882 - app.database - INFO - Created YooKassa payment 30c6c9c1-000f-5001-8000-1ec5d950eed7 for user 696019842
+2025-12-07 02:02:27,053 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:02:27,056 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:02:28,563 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:02:28,567 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:04:04,162 - app.logger - INFO - [WS] Client disconnected gracefully: 1ecc40fa-49d8-424a-ac06-cb88a210441b
+2025-12-07 02:04:04,164 - app.logger - INFO - [WS] Client disconnected: id=1ecc40fa-49d8-424a-ac06-cb88a210441b, reason=cleanup
+2025-12-07 02:07:47,578 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:07:47,582 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:07:49,256 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 02:07:49,408 - app.logger - INFO - [PAYMENTS] Payment created: 30c6cb05-000f-5000-b000-1dbd602399f9
+2025-12-07 02:07:49,409 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:07:49,412 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:07:49,415 - app.database - INFO - Created YooKassa payment 30c6cb05-000f-5000-b000-1dbd602399f9 for user 940965509
+2025-12-07 02:07:50,451 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:07:50,454 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:07:51,954 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:07:51,957 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:25:22,393 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:25:22,398 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:25:25,638 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 02:25:25,791 - app.logger - INFO - [PAYMENTS] Payment created: 30c6cf25-000f-5001-8000-145b08b2871c
+2025-12-07 02:25:25,791 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:25:25,795 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:25:25,799 - app.database - INFO - Created YooKassa payment 30c6cf25-000f-5001-8000-145b08b2871c for user 940965509
+2025-12-07 02:25:28,066 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:25:28,069 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:25:29,929 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:25:29,933 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:29,984 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:32:29,989 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:31,891 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 02:32:32,031 - app.logger - INFO - [PAYMENTS] Payment created: 30c6d0cf-000f-5000-b000-1072127b837f
+2025-12-07 02:32:32,032 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:32:32,035 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:32,039 - app.database - INFO - Created YooKassa payment 30c6d0cf-000f-5000-b000-1072127b837f for user 940965509
+2025-12-07 02:32:33,089 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:32:33,092 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:35,837 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:32:35,839 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:44,087 - app.logger - INFO - Background job manager stopped
+2025-12-07 02:32:44,087 - app.logger - INFO - Background job manager stopped
+2025-12-07 02:32:44,770 - app.logger - INFO - Logging system initialized with rotation
+2025-12-07 02:32:44,773 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:32:44,776 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:32:44,902 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-07 02:32:44,903 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-07 02:32:44,903 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-07 02:32:44,997 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-07 02:32:44,999 - app.logger - INFO - ✅ Database tables verified
+2025-12-07 02:32:45,000 - app.logger - INFO - Database connection established successfully
+2025-12-07 02:32:45,002 - app.database - INFO - Rate limits reset successfully
+2025-12-07 02:32:45,003 - app.logger - INFO - Rate limits reset
+2025-12-07 02:32:45,003 - app.logger - INFO - Background job manager started
+2025-12-07 02:32:45,003 - app.logger - INFO - Background job manager started
+2025-12-07 02:32:45,004 - app.logger - INFO - WebSocket cleanup task started
+2025-12-07 02:32:45,004 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-07 02:33:01,855 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:33:01,860 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:33:06,757 - app.logger - INFO - [PAYMENTS] Creating payment: user=940965509, type=monthly, amount=150
+2025-12-07 02:33:06,927 - app.logger - INFO - [PAYMENTS] Payment created: 30c6d0f2-000f-5001-8000-1a0ea91ba4b8
+2025-12-07 02:33:06,928 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:33:06,931 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:33:06,934 - app.database - INFO - Created YooKassa payment 30c6d0f2-000f-5001-8000-1a0ea91ba4b8 for user 940965509
+2025-12-07 02:33:09,973 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:33:09,975 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 02:33:11,469 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 02:33:11,472 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 04:53:44,384 - app.logger - WARNING - Blocked suspicious path: /.env
+2025-12-07 09:05:47,413 - app.logger - WARNING - Blocked suspicious path: /.env
+2025-12-07 09:38:18,837 - app.logger - WARNING - Blocked suspicious path: /.env
+2025-12-07 11:14:31,256 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:14:31,259 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:14:33,174 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 11:14:33,372 - app.logger - INFO - [PAYMENTS] Payment created: 30c74b29-000f-5000-8000-1a3086fccebd
+2025-12-07 11:14:33,373 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:14:33,376 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:14:33,379 - app.database - INFO - Created YooKassa payment 30c74b29-000f-5000-8000-1a3086fccebd for user 696019842
+2025-12-07 11:14:34,759 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:14:34,761 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:14:36,827 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:14:36,830 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:46:38,980 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:46:38,983 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:46:46,708 - app.logger - INFO - [PAYMENTS] Creating payment: user=696019842, type=monthly, amount=150
+2025-12-07 11:46:46,899 - app.logger - INFO - [PAYMENTS] Payment created: 30c752b6-000f-5001-8000-1ba966491e10
+2025-12-07 11:46:46,900 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:46:46,902 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:46:46,905 - app.database - INFO - Created YooKassa payment 30c752b6-000f-5001-8000-1ba966491e10 for user 696019842
+2025-12-07 11:46:54,861 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:46:54,864 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 11:46:56,192 - app.database - INFO - Initializing database at: /opt/Aegis/data/antivirus.db
+2025-12-07 11:46:56,195 - app.database - INFO - Database initialized successfully with all tables
+2025-12-07 12:03:17,067 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-07 12:03:17,069 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-07 12:03:17,077 - app.logger - INFO - [WS] Client connected: id=cae1a657-5b23-42d0-9d9d-a9f011b609ae, ip=185.46.16.165

@@ -240,23 +240,37 @@ async def check_payment(callback: CallbackQuery):
 
         status = status_data.get("status")
         logger.info(f"Статус платежа {payment_id}: {status}")
+        logger.debug(f"Полный ответ от backend: {status_data}")
 
         # Получаем информацию о платеже из БД
         payment_db = db.get_yookassa_payment(payment_id)
+        
+        # Извлекаем license_type из ответа backend (metadata) или из БД
+        metadata = status_data.get("metadata", {})
+        license_type = metadata.get("license_type") or (payment_db.get("license_type") if payment_db else "forever")
+        
         if not payment_db:
             logger.warning(f"Платеж {payment_id} не найден в БД")
-            # Пытаемся получить license_type из ответа backend
-            license_type = status_data.get("license_type", "forever")
         else:
-            license_type = payment_db.get("license_type", "forever")
             # Проверяем, что платеж принадлежит этому пользователю
-            if payment_db.get("user_id") != user_id:
+            db_user_id = payment_db.get("user_id")
+            backend_user_id = metadata.get("user_id")
+            if db_user_id and str(db_user_id) != str(user_id):
+                logger.warning(f"Платеж {payment_id} принадлежит другому пользователю: {db_user_id} != {user_id}")
+                await callback.answer("❌ Это не ваш платеж!", show_alert=True)
+                return
+            if backend_user_id and str(backend_user_id) != str(user_id):
+                logger.warning(f"Платеж {payment_id} принадлежит другому пользователю (из backend): {backend_user_id} != {user_id}")
                 await callback.answer("❌ Это не ваш платеж!", show_alert=True)
                 return
 
         # Обновляем статус в БД
         if payment_db:
-            db.update_yookassa_payment_status(payment_id, status)
+            try:
+                db.update_yookassa_payment_status(payment_id, status)
+                logger.info(f"Статус платежа {payment_id} обновлен в БД: {status}")
+            except Exception as update_err:
+                logger.error(f"Ошибка при обновлении статуса в БД: {update_err}", exc_info=True)
 
         if status == "pending":
             await callback.message.edit_text(
@@ -270,13 +284,13 @@ async def check_payment(callback: CallbackQuery):
 
         if status == "succeeded":
             logger.info(f"Платеж {payment_id} успешен, генерирую ключ для user={user_id}")
-            
+
             # Проверяем, не выдан ли уже ключ
             user = db.get_user(user_id)
             if user and user.get("has_license"):
-                # Ключ уже выдан
                 license_key = user.get("license_key", "N/A")
                 logger.info(f"Ключ уже выдан пользователю {user_id}: {license_key}")
+
                 text = f"""✅ У вас уже есть активная лицензия!
 
 Ваш лицензионный ключ:
@@ -286,70 +300,72 @@ async def check_payment(callback: CallbackQuery):
 Ссылка для установки расширения:
 {INSTALLATION_LINK}
 
-Инструкция по активации:
-1. Установите расширение по ссылке выше
-2. Откройте настройки расширения
-3. Введите ваш лицензионный ключ
-4. Расширение активировано
+Если возникнут вопросы — {SUPPORT_TECH}"""
 
-При возникновении вопросов: {SUPPORT_TECH}"""
             else:
                 # Генерируем новый ключ
                 is_lifetime = license_type == "forever"
-                logger.info(f"Генерация ключа для user={user_id}, is_lifetime={is_lifetime}")
-                
                 license_key = await generate_license_for_user(user_id, username, is_lifetime=is_lifetime)
-                
+
                 if not license_key:
-                    logger.error(f"Не удалось сгенерировать ключ для user={user_id}")
                     await callback.message.edit_text(
-                        f"❌ Произошла ошибка при генерации ключа. Обратитесь в поддержку: {SUPPORT_TECH}"
+                        f"❌ Ошибка при генерации ключа. Обратитесь в поддержку: {SUPPORT_TECH}"
                     )
                     return
-                
-                # Сохраняем ключ в БД
+
+                # Сохраняем ключ
                 db.update_user_license(user_id, license_key)
                 if payment_db:
                     db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
-                
-                logger.info(f"Ключ успешно выдан пользователю {user_id}: {license_key}")
-                
-                # Формируем сообщение в зависимости от типа лицензии
-                if license_type == "forever":
-                    license_text = "Ваш ключ действует бессрочно"
-                else:
+
+                # --- СОХРАНЕНИЕ ПОДПИСКИ ---
+                try:
                     from datetime import datetime, timedelta
+                    expires_at = None if license_type == "forever" else (
+                        datetime.now() + timedelta(days=30)
+                    ).strftime("%Y-%m-%d %H:%M:%S")
+
+                    if hasattr(db, "add_subscription"):
+                        db.add_subscription(user_id, license_key, license_type, expires_at)
+                    else:
+                        db.execute("""
+                            INSERT INTO subscriptions (user_id, license_key, license_type, expires_at)
+                            VALUES (?, ?, ?, ?)
+                        """, (user_id, license_key, license_type, expires_at))
+                        db.commit()
+
+                    logger.info(f"[BOT] Subscription saved for user={user_id}")
+                except Exception as e:
+                    logger.error(f"[BOT] Failed to save subscription: {e}", exc_info=True)
+                # ---------------------------
+
+                if license_type == "forever":
+                    license_text = "Ваш ключ действует бессрочно."
+                else:
                     expiry_date = datetime.now() + timedelta(days=30)
-                    license_text = f"Ваша подписка действует до {expiry_date.strftime('%d.%m.%Y')}. За 3 дня до окончания получите уведомление"
-                
+                    license_text = f"Подписка действует до {expiry_date.strftime('%d.%m.%Y')}."
+
                 text = f"""✅ Оплата подтверждена!
 
-Ваш лицензионный ключ:
+Ваш ключ:
 
 `{license_key}`
 
 {license_text}
 
-Ссылка для установки расширения:
-{INSTALLATION_LINK}
+Ссылка для установки: {INSTALLATION_LINK}
+"""
 
-Инструкция по активации:
-1. Установите расширение по ссылке выше
-2. Откройте настройки расширения
-3. Введите ваш лицензионный ключ
-4. Расширение активировано
-
-Расширение начнет работать сразу после активации. Просто продолжайте пользоваться браузером как обычно.
-
-При возникновении вопросов: {SUPPORT_TECH}"""
-            
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="📦 Ссылка на установку", url=INSTALLATION_LINK)],
-                [InlineKeyboardButton(text="❓ Помощь по активации", callback_data="help")],
+                [InlineKeyboardButton(text="📦 Установить расширение", url=INSTALLATION_LINK)],
                 [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
             ])
-            
-            await callback.message.edit_text(text, reply_markup=keyboard)
+
+            try:
+                await callback.message.edit_text(text, reply_markup=keyboard)
+            except Exception:
+                await callback.message.answer(text, reply_markup=keyboard)
+
             return
 
         if status == "canceled":
