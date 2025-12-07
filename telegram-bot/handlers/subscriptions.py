@@ -19,109 +19,133 @@ db = Database(DB_PATH)
 @router.message(Command("my_subscription"))
 async def cmd_my_subscription(message: Message):
     """Показать информацию о текущей подписке"""
-    user_id = message.from_user.id
-    username = message.from_user.username or ""
-    
-    user = db.get_user(user_id)
-    if not user or not user.get("has_license"):
-        await message.answer(
-            "❌ У вас нет активной подписки.\n\n"
-            "Выберите подходящий вариант:",
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🔐 Постоянный доступ (500₽)", callback_data="buy_forever")],
-                [InlineKeyboardButton(text="📅 Проверка на месяц (150₽)", callback_data="buy_monthly")]
-            ])
-        )
-        return
-    
-    license_key = user.get("license_key")
-    subscription = db.get_subscription(user_id)
-    
-    if not subscription:
-        # Проверяем по платежам, какой тип лицензии был куплен
-        # Если это месячная, но подписки нет - создаем её
-        try:
-            payment = db.get_yookassa_payment_by_license_key(license_key)
-            if payment and payment.get("license_type") == "monthly":
-                # Создаем подписку на основе платежа
-                from datetime import datetime, timedelta
-                created_at_str = payment.get("created_at")
-                if created_at_str:
-                    if isinstance(created_at_str, str):
-                        created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
-                    else:
-                        created_at = created_at_str
-                    # Если платеж был недавно (менее 30 дней назад), создаем подписку
-                    expires_at = created_at + timedelta(days=30)
-                    now = datetime.now()
-                    if expires_at.tzinfo:
-                        now = now.replace(tzinfo=expires_at.tzinfo)
-                    
-                    if expires_at > now:
-                        # Подписка еще не истекла, создаем запись
-                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
-                        subscription = db.get_subscription(user_id)
-                        logger.info(f"Создана подписка для существующего пользователя {user_id} на основе платежа")
-                    else:
-                        # Подписка уже истекла, но создаем для истории
-                        expires_at = now + timedelta(days=30)  # Даем еще 30 дней
-                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
-                        subscription = db.get_subscription(user_id)
-                        logger.info(f"Создана подписка для пользователя {user_id} (была истекшей)")
-                else:
-                    # Если даты нет, создаем с текущей датой + 30 дней
-                    expires_at = datetime.now() + timedelta(days=30)
-                    db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
-                    subscription = db.get_subscription(user_id)
-                    logger.info(f"Создана подписка для пользователя {user_id} (без даты платежа)")
-        except Exception as e:
-            logger.error(f"Ошибка при проверке платежей для создания подписки: {e}", exc_info=True)
+    try:
+        user_id = message.from_user.id
+        username = message.from_user.username or ""
         
-        if not subscription:
-            # Если не месячная или не удалось создать - это вечная лицензия
+        logger.info(f"[MY_SUBSCRIPTION] Запрос от user={user_id}")
+        
+        user = db.get_user(user_id)
+        if not user or not user.get("has_license"):
             await message.answer(
-                f"✅ У вас активная лицензия:\n\n"
-                f"`{license_key}`\n\n"
-                f"Тип: Постоянная (бессрочная)\n\n"
-                f"Ссылка для установки: {INSTALLATION_LINK}"
+                "❌ У вас нет активной подписки.\n\n"
+                "Выберите подходящий вариант:",
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="🔐 Постоянный доступ (500₽)", callback_data="buy_forever")],
+                    [InlineKeyboardButton(text="📅 Проверка на месяц (150₽)", callback_data="buy_monthly")]
+                ])
             )
             return
-    
-    expires_at_str = subscription.get("expires_at")
-    if expires_at_str:
-        if isinstance(expires_at_str, str):
-            expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
-        else:
-            expires_at = expires_at_str
         
-        now = datetime.now()
-        if expires_at.tzinfo:
-            now = now.replace(tzinfo=expires_at.tzinfo)
+        license_key = user.get("license_key")
+        subscription = db.get_subscription(user_id)
         
-        days_left = (expires_at - now).days
-        auto_renew = subscription.get("auto_renew", False)
-        renewal_count = subscription.get("renewal_count", 0)
+        if not subscription:
+            # Проверяем по платежам, какой тип лицензии был куплен
+            # Если это месячная, но подписки нет - создаем её
+            try:
+                payment = db.get_yookassa_payment_by_license_key(license_key)
+                if payment and payment.get("license_type") == "monthly":
+                    # Создаем подписку на основе платежа
+                    created_at_str = payment.get("created_at")
+                    if created_at_str:
+                        if isinstance(created_at_str, str):
+                            created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                        else:
+                            created_at = created_at_str
+                        # Если платеж был недавно (менее 30 дней назад), создаем подписку
+                        expires_at = created_at + timedelta(days=30)
+                        now = datetime.now()
+                        if expires_at.tzinfo:
+                            now = now.replace(tzinfo=expires_at.tzinfo)
+                        
+                        if expires_at > now:
+                            # Подписка еще не истекла, создаем запись
+                            db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                            subscription = db.get_subscription(user_id)
+                            logger.info(f"Создана подписка для существующего пользователя {user_id} на основе платежа")
+                        else:
+                            # Подписка уже истекла, но создаем для истории
+                            expires_at = now + timedelta(days=30)  # Даем еще 30 дней
+                            db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                            subscription = db.get_subscription(user_id)
+                            logger.info(f"Создана подписка для пользователя {user_id} (была истекшей)")
+                    else:
+                        # Если даты нет, создаем с текущей датой + 30 дней
+                        expires_at = datetime.now() + timedelta(days=30)
+                        db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+                        subscription = db.get_subscription(user_id)
+                        logger.info(f"Создана подписка для пользователя {user_id} (без даты платежа)")
+            except Exception as e:
+                logger.error(f"Ошибка при проверке платежей для создания подписки: {e}", exc_info=True)
+            
+            if not subscription:
+                # Если не месячная или не удалось создать - это вечная лицензия
+                await message.answer(
+                    f"✅ У вас активная лицензия:\n\n"
+                    f"`{license_key}`\n\n"
+                    f"Тип: Постоянная (бессрочная)\n\n"
+                    f"Ссылка для установки: {INSTALLATION_LINK}"
+                )
+                return
         
-        if days_left < 0:
-            status_text = "❌ Подписка истекла"
-            days_text = f"Истекла {abs(days_left)} дней назад"
-        elif days_left == 0:
-            status_text = "⚠️ Подписка истекает сегодня"
-            days_text = "Осталось менее 1 дня"
-        elif days_left <= 3:
-            status_text = "⚠️ Подписка скоро истечет"
-            days_text = f"Осталось {days_left} дня"
-        else:
-            status_text = "✅ Подписка активна"
-            days_text = f"Осталось {days_left} дней"
-        
-        expires_date = expires_at.strftime("%d.%m.%Y")
-        expires_time = expires_at.strftime("%H:%M")
-        
-        text = f"""{status_text}
+        expires_at_str = subscription.get("expires_at")
+        if expires_at_str:
+            if isinstance(expires_at_str, str):
+                expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+            else:
+                expires_at = expires_at_str
+            
+            now = datetime.now()
+            if expires_at.tzinfo:
+                now = now.replace(tzinfo=expires_at.tzinfo)
+            
+            days_left = (expires_at - now).days
+            hours_left = int((expires_at - now).total_seconds() / 3600)
+            auto_renew = subscription.get("auto_renew", False)
+            renewal_count = subscription.get("renewal_count", 0)
+            
+            # Форматирование таймера
+            if days_left < 0:
+                status_text = "❌ Подписка истекла"
+                timer_text = f"⏰ Истекла {abs(days_left)} дней назад"
+                timer_emoji = "❌"
+            elif days_left == 0:
+                status_text = "⚠️ Подписка истекает сегодня"
+                if hours_left > 0:
+                    timer_text = f"⏰ Осталось {hours_left} часов"
+                else:
+                    timer_text = "⏰ Осталось менее часа"
+                timer_emoji = "🔴"
+            elif days_left <= 3:
+                status_text = "⚠️ Подписка скоро истечет"
+                timer_text = f"⏰ Осталось {days_left} дня"
+                timer_emoji = "🟠"
+            elif days_left <= 7:
+                status_text = "✅ Подписка активна"
+                timer_text = f"⏰ Осталось {days_left} дней"
+                timer_emoji = "🟡"
+            else:
+                status_text = "✅ Подписка активна"
+                timer_text = f"⏰ Осталось {days_left} дней"
+                timer_emoji = "🟢"
+            
+            expires_date = expires_at.strftime("%d.%m.%Y")
+            expires_time = expires_at.strftime("%H:%M")
+            
+            # Текст для кнопки продления
+            if days_left > 0:
+                new_expires = expires_at + timedelta(days=30)
+                renew_button_text = f"🔄 Продлить (+30 дней, будет до {new_expires.strftime('%d.%m.%Y')})"
+            else:
+                renew_button_text = "🔄 Продлить подписку"
+            
+            text = f"""{status_text}
 
-📅 Срок действия: до {expires_date} в {expires_time}
-⏳ {days_text}
+{timer_emoji} <b>ТАЙМЕР ДО ОКОНЧАНИЯ:</b>
+{timer_text}
+
+📅 Дата окончания: {expires_date} в {expires_time}
 
 🔑 Ваш ключ:
 `{license_key}`
@@ -129,25 +153,36 @@ async def cmd_my_subscription(message: Message):
 🔄 Автопродление: {"✅ Включено" if auto_renew else "❌ Выключено"}
 📊 Продлений: {renewal_count}
 
+💡 <i>Вы можете продлить подписку заранее - к текущему сроку добавится еще 30 дней</i>
+
 Ссылка для установки: {INSTALLATION_LINK}"""
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔄 Продлить подписку", callback_data="renew_subscription")],
-            [InlineKeyboardButton(
-                text="🔄 " + ("Выключить" if auto_renew else "Включить") + " автопродление",
-                callback_data=f"toggle_auto_renew_{'off' if auto_renew else 'on'}"
-            )],
-            [InlineKeyboardButton(text="📜 История подписок", callback_data="subscription_history")],
-            [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
-        ])
-        
-        await message.answer(text, reply_markup=keyboard)
-    else:
-        await message.answer(
-            f"✅ У вас активная подписка\n\n"
-            f"Ключ: `{license_key}`\n\n"
-            f"Ссылка для установки: {INSTALLATION_LINK}"
-        )
+            
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text=renew_button_text, callback_data="renew_subscription")],
+                [InlineKeyboardButton(
+                    text="🔄 " + ("Выключить" if auto_renew else "Включить") + " автопродление",
+                    callback_data=f"toggle_auto_renew_{'off' if auto_renew else 'on'}"
+                )],
+                [InlineKeyboardButton(text="📜 История подписок", callback_data="subscription_history")],
+                [InlineKeyboardButton(text="🏠 В меню", callback_data="main_menu")]
+            ])
+            
+            await message.answer(text, reply_markup=keyboard)
+        else:
+            await message.answer(
+                f"✅ У вас активная подписка\n\n"
+                f"Ключ: `{license_key}`\n\n"
+                f"Ссылка для установки: {INSTALLATION_LINK}"
+            )
+    except Exception as e:
+        logger.error(f"[MY_SUBSCRIPTION] Ошибка при обработке команды для user={message.from_user.id}: {e}", exc_info=True)
+        try:
+            await message.answer(
+                f"❌ Произошла ошибка при получении информации о подписке.\n\n"
+                f"Обратитесь в поддержку: {SUPPORT_TECH}"
+            )
+        except:
+            pass
 
 
 @router.callback_query(F.data == "my_subscription")
