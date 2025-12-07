@@ -764,15 +764,14 @@ async def cmd_check_yookassa_direct(message: Message):
                 status_code = resp.status
                 response_text = await resp.text()
                 
-                result = f"""🔍 **Прямой запрос к ЮKassa API:**
+                # Формируем результат без Markdown для избежания ошибок парсинга
+                result = f"""🔍 Прямой запрос к ЮKassa API:
 
-**URL:** `{url}`
-**HTTP Status:** {status_code}
+URL: {url}
+HTTP Status: {status_code}
 
-**Ответ:**
-```
-{response_text[:2000]}
-```"""
+Ответ (первые 1500 символов):
+{response_text[:1500]}"""
                 
                 if status_code == 200:
                     try:
@@ -782,22 +781,32 @@ async def cmd_check_yookassa_direct(message: Message):
                         paid = data.get("paid", False)
                         captured_at = data.get("captured_at")
                         created_at = data.get("created_at")
+                        metadata = data.get("metadata", {})
                         
                         result += f"""
 
-**Статус:** `{yookassa_status}`
-**Оплачен (paid):** {paid}
-**Создан:** {created_at}
-**Захвачен (captured_at):** {captured_at or "N/A"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Метаданные:**
-```json
-{json.dumps(data.get("metadata", {}), indent=2, ensure_ascii=False)}
-```"""
+Статус: {yookassa_status}
+Оплачен (paid): {paid}
+Создан: {created_at}
+Захвачен (captured_at): {captured_at or "N/A"}
+
+Метаданные:
+"""
+                        # Безопасно форматируем метаданные
+                        try:
+                            metadata_str = json.dumps(metadata, indent=2, ensure_ascii=False)
+                            result += metadata_str[:500]  # Ограничиваем длину
+                            if len(metadata_str) > 500:
+                                result += "\n... (обрезано)"
+                        except Exception:
+                            result += str(metadata)[:500]
                     except Exception as parse_err:
                         result += f"\n\n⚠️ Не удалось распарсить JSON: {parse_err}"
                 
-                await message.answer(result, parse_mode="Markdown")
+                # Отправляем без parse_mode, чтобы избежать ошибок парсинга
+                await message.answer(result)
                 
     except aiohttp.ClientError as e:
         await message.answer(f"❌ Ошибка сети при запросе к ЮKassa: {e}")
