@@ -216,7 +216,6 @@ async def callback_my_subscription(callback: CallbackQuery):
             payment = db.get_yookassa_payment_by_license_key(license_key)
             if payment and payment.get("license_type") == "monthly":
                 # Создаем подписку на основе платежа
-                from datetime import datetime, timedelta
                 created_at_str = payment.get("created_at")
                 if created_at_str:
                     if isinstance(created_at_str, str):
