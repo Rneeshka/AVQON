@@ -19,10 +19,13 @@ db = Database(DB_PATH)
 # ID главных администраторов (для критических команд)
 MAIN_ADMIN_IDS = [696019842]
 
+# Дополнительные полноправные администраторы
+EXTRA_ADMIN_IDS = [940965509]
+
 
 def is_admin(user_id: int) -> bool:
     """Проверка, является ли пользователь админом"""
-    return user_id == ADMIN_ID
+    return user_id == ADMIN_ID or user_id in EXTRA_ADMIN_IDS
 
 
 def is_main_admin(user_id: int) -> bool:
