@@ -1,18 +1,17 @@
 {
   "manifest_version": 3,
   "name": "AEGIS - Антивирусное расширение",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Антивирусное расширение для защиты от вредоносных URL и файлов",
   "permissions": [
     "storage",
-    "scripting",
     "activeTab",
     "notifications",
     "alarms",
     "downloads",
     "sidePanel"
-],
- "host_permissions": [
+  ],
+  "host_permissions": [
     "https://api.aegis.builders/*",
     "wss://api.aegis.builders/*"
   ],

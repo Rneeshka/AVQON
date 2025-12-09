@@ -1395,3 +1395,7 @@ connector: <aiohttp.connector.TCPConnector object at 0x7fb9ef757e50>
 2025-12-09 00:52:15,580 - app.logger - INFO - 🔍 Analyzing URL: https://cursor.com/agents (ignore_db=False)
 2025-12-09 00:52:15,581 - app.logger - INFO - [WS] URL analysis completed for https://cursor.com/agents: safe=True, source=combined
 2025-12-09 00:52:15,581 - app.logger - INFO - [WS] Sent analysis_result for https://cursor.com/agents to client 8eb5b1c6-0f81-4a59-9fbc-ac2c0dc51693
+2025-12-09 01:01:23,976 - app.logger - INFO - [WS] Client disconnected gracefully: 8eb5b1c6-0f81-4a59-9fbc-ac2c0dc51693
+2025-12-09 01:01:23,977 - app.logger - INFO - [WS] Client disconnected: id=8eb5b1c6-0f81-4a59-9fbc-ac2c0dc51693, reason=cleanup
+2025-12-09 01:01:24,076 - app.logger - INFO - Background job manager stopped
+2025-12-09 01:01:24,077 - app.logger - INFO - Background job manager stopped

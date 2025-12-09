@@ -35,7 +35,10 @@ LICENSE_PRICE = LICENSE_PRICE_LIFETIME
 
 # Ссылки
 OWNERS_CHAT_LINK = os.getenv("OWNERS_CHAT_LINK", "https://t.me/aegis_owners")
-INSTALLATION_LINK = os.getenv("INSTALLATION_LINK", "https://chromewebstore.google.com")
+INSTALLATION_LINK = os.getenv(
+    "INSTALLATION_LINK",
+    "https://chromewebstore.google.com/detail/bedaaeaeddnodmmkfmfealepbbbdoegl"
+)
 SUPPORT_TECH = os.getenv("SUPPORT_TECH", "@aegis_tech")
 SUPPORT_FINANCE = os.getenv("SUPPORT_FINANCE", "@aegis_finance")
 SUPPORT_PARTNERS = os.getenv("SUPPORT_PARTNERS", "@aegis_partners")
