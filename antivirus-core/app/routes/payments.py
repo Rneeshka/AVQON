@@ -2,6 +2,8 @@
 import os
 import uuid
 import aiohttp
+from datetime import datetime, timedelta
+from typing import Optional, Dict
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -210,36 +212,348 @@ async def create_payment(request_data: BotPaymentRequest):
         )
 
 
-# ==== WEBHOOK ====
-@router.post("/webhook")
-async def yookassa_webhook(request: Request):
-    event = await request.json()
-    event_type = event.get("event")
-    obj = event.get("object", {})
-
-    if event_type != "payment.succeeded":
-        return JSONResponse({"status": "ignored"})
-
-    metadata = obj.get("metadata", {})
-    payment_id = obj.get("id")
-
-    telegram_id = metadata.get("telegram_id")
-    license_type = metadata.get("license_type")
-
-    if not telegram_id or not license_type:
-        logger.warning(f"[PAYMENTS] Missing metadata in webhook: {metadata}")
-        return JSONResponse({"status": "error", "message": "Invalid metadata"}, status_code=400)
-
-    db = DatabaseManager()
-
-    logger.info(f"[PAYMENTS] Payment succeeded: {payment_id}. Issuing license to {telegram_id}")
-
+# ==== HELPER FUNCTIONS ====
+async def generate_license_key_internal(user_id: int, username: str, is_lifetime: bool = True) -> Optional[str]:
+    """Генерирует ключ через внутренний API"""
     try:
-        await db.update_yookassa_payment_status(payment_id, "succeeded")
+        admin_token = os.getenv("ADMIN_API_TOKEN", "")
+        if not admin_token:
+            logger.error("[PAYMENTS] ADMIN_API_TOKEN not configured")
+            return None
+        
+        expires_days = 36500 if is_lifetime else 30
+        license_type = "Lifetime" if is_lifetime else "Monthly"
+        
+        data = {
+            "user_id": str(user_id),
+            "username": username or "",
+            "name": f"Telegram User {user_id}",
+            "description": f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else ""),
+            "access_level": "premium",
+            "daily_limit": 1000,
+            "hourly_limit": 100,
+            "expires_days": expires_days
+        }
+        
+        # Используем внутренний URL (localhost)
+        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        api_url = f"{base_url}/admin/api-keys/create"
+        
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(api_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    license_key = result.get("license_key") or result.get("api_key")
+                    if license_key:
+                        logger.info(f"[PAYMENTS] Generated license key for user {user_id}: {license_key[:10]}...")
+                        return license_key
+                    else:
+                        logger.error(f"[PAYMENTS] API returned success but no key: {result}")
+                        return None
+                else:
+                    error_text = await response.text()
+                    logger.error(f"[PAYMENTS] API error: {response.status} - {error_text}")
+                    return None
     except Exception as e:
-        logger.error(f"[PAYMENTS] Failed to update DB payment status: {e}")
+        logger.error(f"[PAYMENTS] Error generating license key: {e}", exc_info=True)
+        return None
 
-    return JSONResponse({"status": "ok"})
+
+async def renew_license_internal(license_key: str, extend_days: int = 30) -> bool:
+    """Продлевает лицензию через внутренний API"""
+    try:
+        admin_token = os.getenv("ADMIN_API_TOKEN", "")
+        if not admin_token:
+            logger.error("[PAYMENTS] ADMIN_API_TOKEN not configured")
+            return False
+        
+        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        extend_url = f"{base_url}/admin/api-keys/extend"
+        
+        data = {
+            "api_key": license_key,
+            "extend_days": extend_days
+        }
+        
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(extend_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                if response.status == 200:
+                    logger.info(f"[PAYMENTS] License {license_key[:10]}... extended by {extend_days} days")
+                    return True
+                else:
+                    error_text = await response.text()
+                    logger.error(f"[PAYMENTS] Extend error: {response.status} - {error_text}")
+                    return False
+    except Exception as e:
+        logger.error(f"[PAYMENTS] Error renewing license: {e}", exc_info=True)
+        return False
+
+
+async def process_payment_succeeded(payment_data: Dict) -> bool:
+    """
+    Обработка успешного платежа:
+    1. Извлекает user_id из metadata
+    2. Проверяет тип лицензии
+    3. Выдаёт ключ или продлевает существующий
+    4. Обновляет статус в БД
+    """
+    try:
+        payment_id = payment_data.get("id")
+        if not payment_id:
+            logger.error("[PAYMENTS] Payment ID missing in webhook")
+            return False
+        
+        logger.info(f"[PAYMENTS] Processing payment {payment_id}")
+        
+        # Извлекаем метаданные
+        metadata = payment_data.get("metadata", {})
+        user_id_str = metadata.get("telegram_id") or metadata.get("user_id")
+        
+        if not user_id_str:
+            logger.error(f"[PAYMENTS] User ID missing in metadata for payment {payment_id}")
+            return False
+        
+        try:
+            user_id = int(user_id_str)
+        except (ValueError, TypeError):
+            logger.error(f"[PAYMENTS] Invalid user_id in metadata: {user_id_str}")
+            return False
+        
+        # Получаем тип лицензии
+        license_type = metadata.get("license_type", "forever")
+        is_lifetime = license_type == "forever"
+        
+        logger.info(f"[PAYMENTS] Payment {payment_id}: user_id={user_id}, license_type={license_type}")
+        
+        db = DatabaseManager()
+        
+        # Получаем информацию о платеже из БД
+        payment_db = await db.get_yookassa_payment(payment_id)
+        
+        if not payment_db:
+            logger.warning(f"[PAYMENTS] Payment {payment_id} not found in DB, creating record")
+            # Создаём запись о платеже
+            amount_obj = payment_data.get("amount", {})
+            amount_value = 0
+            if isinstance(amount_obj, dict) and "value" in amount_obj:
+                try:
+                    amount_value = int(float(amount_obj["value"]) * 100)  # в копейках
+                except (ValueError, TypeError):
+                    pass
+            
+            is_renewal = metadata.get("is_renewal", False)
+            try:
+                await db.create_yookassa_payment(
+                    payment_id=payment_id,
+                    user_id=user_id,
+                    amount=amount_value,
+                    license_type=license_type,
+                    is_renewal=is_renewal
+                )
+                payment_db = await db.get_yookassa_payment(payment_id)
+            except Exception as e:
+                logger.error(f"[PAYMENTS] Error creating payment record: {e}", exc_info=True)
+        
+        # Проверяем, не обработан ли уже этот платеж
+        if payment_db and payment_db.get("status") == "succeeded" and payment_db.get("license_key"):
+            logger.info(f"[PAYMENTS] Payment {payment_id} already processed")
+            return True
+        
+        # Проверяем, является ли это продлением (из БД или метаданных)
+        is_renewal = False
+        if payment_db:
+            is_renewal = payment_db.get("is_renewal", False)
+        if not is_renewal:
+            is_renewal = metadata.get("is_renewal", False)
+        
+        if is_renewal:
+            # ПРОДЛЕНИЕ ПОДПИСКИ
+            logger.info(f"[PAYMENTS] Renewal for user={user_id}")
+            
+            user = db.get_user(user_id)
+            if not user or not user.get("has_license"):
+                logger.error(f"[PAYMENTS] User {user_id} has no active license for renewal")
+                return False
+            
+            existing_license_key = user.get("license_key")
+            if not existing_license_key:
+                logger.error(f"[PAYMENTS] User {user_id} has no license_key")
+                return False
+            
+            # Продлеваем лицензию через API
+            renewal_success = await renew_license_internal(existing_license_key, extend_days=30)
+            
+            if not renewal_success:
+                logger.error(f"[PAYMENTS] Failed to renew license for user={user_id}")
+                return False
+            
+            # Обновляем подписку в БД
+            subscription = db.get_subscription(user_id)
+            if subscription:
+                expires_at_str = subscription.get("expires_at")
+                if expires_at_str:
+                    if isinstance(expires_at_str, str):
+                        current_expires = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    else:
+                        current_expires = expires_at_str
+                    
+                    now = datetime.now()
+                    if current_expires.tzinfo:
+                        now = now.replace(tzinfo=current_expires.tzinfo)
+                    
+                    if current_expires < now:
+                        new_expires_at = now + timedelta(days=30)
+                    else:
+                        new_expires_at = current_expires + timedelta(days=30)
+                    
+                    db.update_subscription_expiry(user_id, new_expires_at)
+                    logger.info(f"[PAYMENTS] Subscription extended to {new_expires_at} for user={user_id}")
+            else:
+                # Если подписки нет, создаем новую
+                new_expires_at = datetime.now() + timedelta(days=30)
+                db.create_subscription(user_id, existing_license_key, "monthly", new_expires_at)
+                logger.info(f"[PAYMENTS] Created new subscription for user={user_id}")
+            
+            # Обновляем статус платежа
+            await db.update_yookassa_payment_status(payment_id, "succeeded", existing_license_key)
+            
+            logger.info(f"[PAYMENTS] ✅ Subscription renewed for user={user_id}, payment={payment_id}")
+            return True
+        
+        # НОВАЯ ПОКУПКА
+        user = db.get_user(user_id)
+        username = user.get("username", "") if user else ""
+        
+        # Проверяем, есть ли уже ключ у пользователя
+        if user and user.get("has_license"):
+            existing_key = user.get("license_key")
+            logger.info(f"[PAYMENTS] User {user_id} already has key: {existing_key[:10]}...")
+            
+            # Обновляем статус платежа
+            await db.update_yookassa_payment_status(payment_id, "succeeded", existing_key)
+            
+            # Создаем подписку для месячных лицензий, если её нет
+            if license_type == "monthly":
+                subscription = db.get_subscription(user_id)
+                if not subscription:
+                    expires_at = datetime.now() + timedelta(days=30)
+                    db.create_subscription(user_id, existing_key, "monthly", expires_at, auto_renew=False)
+                    logger.info(f"[PAYMENTS] Created subscription for user={user_id}")
+            
+            logger.info(f"[PAYMENTS] ✅ Payment {payment_id} processed (key already issued)")
+            return True
+        
+        # Генерируем новый ключ
+        logger.info(f"[PAYMENTS] Generating new key for user={user_id}, is_lifetime={is_lifetime}")
+        license_key = await generate_license_key_internal(user_id, username, is_lifetime=is_lifetime)
+        
+        if not license_key:
+            logger.error(f"[PAYMENTS] Failed to generate key for user={user_id}")
+            return False
+        
+        logger.info(f"[PAYMENTS] Key generated for user={user_id}: {license_key[:10]}...")
+        
+        # Сохраняем ключ в БД
+        db.update_user_license(user_id, license_key)
+        
+        # Обновляем статус платежа
+        await db.update_yookassa_payment_status(payment_id, "succeeded", license_key)
+        
+        # Создаем подписку для месячных лицензий
+        if license_type == "monthly":
+            expires_at = datetime.now() + timedelta(days=30)
+            db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
+            logger.info(f"[PAYMENTS] Created subscription for user={user_id}, expires_at={expires_at}")
+        
+        logger.info(f"[PAYMENTS] ✅ Key issued for user={user_id}, payment={payment_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"[PAYMENTS] Critical error processing payment: {e}", exc_info=True)
+        return False
+
+
+# ==== WEBHOOK ====
+@router.post("/webhook/yookassa")
+async def yookassa_webhook(request: Request):
+    """
+    Обработка webhook'ов от ЮKassa
+    Принимает уведомления о платежах и автоматически выдаёт ключи
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    logger.info(f"[PAYMENTS] Webhook request from IP: {client_ip}")
+    
+    try:
+        # Получаем JSON данные
+        data = await request.json()
+        logger.info(f"[PAYMENTS] Webhook data received: {data}")
+        
+        # Проверяем тип события
+        event_type = data.get("type")
+        event = data.get("event")
+        
+        if event_type != "notification":
+            logger.warning(f"[PAYMENTS] Unknown notification type: {event_type}")
+            return JSONResponse(
+                status_code=200,
+                content={"status": "ignored", "reason": "unknown_type"}
+            )
+        
+        if event != "payment.succeeded":
+            logger.info(f"[PAYMENTS] Ignoring event: {event}")
+            return JSONResponse(
+                status_code=200,
+                content={"status": "ignored", "reason": f"event_{event}"}
+            )
+        
+        # Извлекаем данные платежа
+        payment_object = data.get("object")
+        if not payment_object:
+            logger.error("[PAYMENTS] Payment object missing in webhook")
+            return JSONResponse(
+                status_code=200,
+                content={"status": "error", "reason": "no_payment_object"}
+            )
+        
+        # Проверяем статус и paid
+        payment_status = payment_object.get("status")
+        paid = payment_object.get("paid", False)
+        
+        if payment_status != "succeeded" or not paid:
+            logger.info(f"[PAYMENTS] Payment not paid: status={payment_status}, paid={paid}")
+            return JSONResponse(
+                status_code=200,
+                content={"status": "ignored", "reason": "not_paid"}
+            )
+        
+        # Обрабатываем платеж
+        success = await process_payment_succeeded(payment_object)
+        
+        if success:
+            logger.info(f"[PAYMENTS] ✅ Payment successfully processed")
+            return JSONResponse(
+                status_code=200,
+                content={"status": "success", "message": "Payment processed"}
+            )
+        else:
+            logger.error(f"[PAYMENTS] ❌ Payment processing failed")
+            # Всегда возвращаем 200, чтобы ЮKassa не повторял запрос
+            return JSONResponse(
+                status_code=200,
+                content={"status": "error", "message": "Processing failed"}
+            )
+    
+    except Exception as e:
+        logger.error(f"[PAYMENTS] Critical error in webhook: {e}", exc_info=True)
+        # Всегда возвращаем 200 OK, чтобы ЮKassa не повторял запрос
+        return JSONResponse(
+            status_code=200,
+            content={"status": "error", "message": "Internal server error"}
+        )
 
 # ==== CHECK PAYMENT STATUS FOR BOT ====
 @router.get("/status/{payment_id}")

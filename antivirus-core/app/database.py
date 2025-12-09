@@ -1988,19 +1988,19 @@ class DatabaseManager:
             logger.error(f"Clear all database data error: {e}")
             return {}
 
-    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str):
+    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str, is_renewal: bool = False):
         """Создает запись о платеже ЮKassa"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     """INSERT INTO yookassa_payments 
-                       (payment_id, user_id, amount, license_type, status) 
-                       VALUES (?, ?, ?, ?, 'pending')""",
-                    (payment_id, user_id, amount, license_type)
+                       (payment_id, user_id, amount, license_type, status, is_renewal) 
+                       VALUES (?, ?, ?, ?, 'pending', ?)""",
+                    (payment_id, user_id, amount, license_type, is_renewal)
                 )
                 conn.commit()
-                logger.info(f"Created YooKassa payment {payment_id} for user {user_id}")
+                logger.info(f"Created YooKassa payment {payment_id} for user {user_id}, is_renewal={is_renewal}")
                 return True
         except sqlite3.IntegrityError:
             logger.warning(f"Payment {payment_id} already exists in database")
@@ -2014,7 +2014,7 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.execute(
-                    "SELECT payment_id, user_id, amount, license_type, status, license_key, created_at, updated_at "
+                    "SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at "
                     "FROM yookassa_payments WHERE payment_id = ?",
                     (payment_id,)
                 )
@@ -2027,8 +2027,9 @@ class DatabaseManager:
                         "license_type": row[3],
                         "status": row[4],
                         "license_key": row[5],
-                        "created_at": row[6],
-                        "updated_at": row[7]
+                        "is_renewal": bool(row[6]) if row[6] is not None else False,
+                        "created_at": row[7],
+                        "updated_at": row[8]
                     }
                 return None
         except Exception as e:
@@ -2061,6 +2062,161 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Update YooKassa payment status error: {e}", exc_info=True)
             return False
+    
+    def get_user(self, user_id: int):
+        """Получает пользователя Telegram бота по ID"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    "SELECT user_id, username, has_license, license_key, created_at FROM users WHERE user_id = ?",
+                    (user_id,)
+                )
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        "user_id": row[0],
+                        "username": row[1],
+                        "has_license": bool(row[2]),
+                        "license_key": row[3],
+                        "created_at": row[4]
+                    }
+                return None
+        except Exception as e:
+            logger.error(f"Get user error: {e}", exc_info=True)
+            return None
+    
+    def create_user(self, user_id: int, username: str = None):
+        """Создает пользователя Telegram бота"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)""",
+                    (user_id, username)
+                )
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Create user error: {e}", exc_info=True)
+            return False
+    
+    def update_user_license(self, user_id: int, license_key: str):
+        """Обновляет лицензию пользователя"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Сначала создаем пользователя, если его нет
+                cursor.execute(
+                    """INSERT OR IGNORE INTO users (user_id) VALUES (?)""",
+                    (user_id,)
+                )
+                # Обновляем лицензию
+                cursor.execute(
+                    """UPDATE users SET has_license = TRUE, license_key = ? WHERE user_id = ?""",
+                    (license_key, user_id)
+                )
+                conn.commit()
+                logger.info(f"Updated license for user {user_id}")
+                return True
+        except Exception as e:
+            logger.error(f"Update user license error: {e}", exc_info=True)
+            return False
+    
+    def get_subscription(self, user_id: int):
+        """Получает активную подписку пользователя"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    """SELECT id, user_id, license_key, license_type, expires_at, auto_renew, renewal_count, status, created_at, updated_at
+                       FROM subscriptions WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1""",
+                    (user_id,)
+                )
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        "id": row[0],
+                        "user_id": row[1],
+                        "license_key": row[2],
+                        "license_type": row[3],
+                        "expires_at": row[4],
+                        "auto_renew": bool(row[5]),
+                        "renewal_count": row[6],
+                        "status": row[7],
+                        "created_at": row[8],
+                        "updated_at": row[9]
+                    }
+                return None
+        except Exception as e:
+            logger.error(f"Get subscription error: {e}", exc_info=True)
+            return None
+    
+    def create_subscription(self, user_id: int, license_key: str, license_type: str, expires_at, auto_renew: bool = False):
+        """Создает подписку для пользователя"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                from datetime import datetime
+                if isinstance(expires_at, str):
+                    expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                cursor.execute(
+                    """INSERT INTO subscriptions (user_id, license_key, license_type, expires_at, auto_renew, status)
+                       VALUES (?, ?, ?, ?, ?, 'active')""",
+                    (user_id, license_key, license_type, expires_at, auto_renew)
+                )
+                conn.commit()
+                logger.info(f"Created subscription for user {user_id}, expires_at={expires_at}")
+                return True
+        except Exception as e:
+            logger.error(f"Create subscription error: {e}", exc_info=True)
+            return False
+    
+    def update_subscription_expiry(self, user_id: int, expires_at):
+        """Обновляет дату окончания подписки"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                from datetime import datetime
+                if isinstance(expires_at, str):
+                    expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                cursor.execute(
+                    """UPDATE subscriptions 
+                       SET expires_at = ?, renewal_count = renewal_count + 1, updated_at = ?
+                       WHERE user_id = ? AND status = 'active'""",
+                    (expires_at, datetime.now(), user_id)
+                )
+                conn.commit()
+                logger.info(f"Updated subscription expiry for user {user_id}, expires_at={expires_at}")
+                return True
+        except Exception as e:
+            logger.error(f"Update subscription expiry error: {e}", exc_info=True)
+            return False
+    
+    async def get_yookassa_payment_by_license_key(self, license_key: str):
+        """Получает платеж ЮKassa по license_key"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    """SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at
+                       FROM yookassa_payments WHERE license_key = ? ORDER BY created_at DESC LIMIT 1""",
+                    (license_key,)
+                )
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        "payment_id": row[0],
+                        "user_id": row[1],
+                        "amount": row[2],
+                        "license_type": row[3],
+                        "status": row[4],
+                        "license_key": row[5],
+                        "is_renewal": bool(row[6]) if row[6] is not None else False,
+                        "created_at": row[7],
+                        "updated_at": row[8]
+                    }
+                return None
+        except Exception as e:
+            logger.error(f"Get payment by license key error: {e}", exc_info=True)
+            return None
             
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
