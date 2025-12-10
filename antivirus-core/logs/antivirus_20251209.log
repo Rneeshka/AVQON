@@ -5612,3 +5612,11 @@ connector: <aiohttp.connector.TCPConnector object at 0x7febaaf57e50>
 2025-12-10 15:41:34,880 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/watch?v=2Jla1ubP7fI
 2025-12-10 15:41:34,881 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/watch?v=2Jla1ubP7fI&pp=ugUEEgJydQ%3D%3D: safe=True, source=external_apis
 2025-12-10 15:41:34,881 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/watch?v=2Jla1ubP7fI&pp=ugUEEgJydQ%3D%3D to client 5f47df65-d93d-4675-a957-0314636246d2
+2025-12-10 15:43:53,672 - app.logger - INFO - [WS] Client disconnected gracefully: 5f47df65-d93d-4675-a957-0314636246d2
+2025-12-10 15:43:53,672 - app.logger - INFO - [WS] Client disconnected: id=5f47df65-d93d-4675-a957-0314636246d2, reason=cleanup
+2025-12-10 15:43:53,673 - app.logger - INFO - [WS] Client disconnected gracefully: 7de115ea-ad54-42f1-9e54-7dff0a50c647
+2025-12-10 15:43:53,673 - app.logger - INFO - [WS] Client disconnected: id=7de115ea-ad54-42f1-9e54-7dff0a50c647, reason=cleanup
+2025-12-10 15:43:53,673 - app.logger - INFO - [WS] Client disconnected gracefully: 2eb82909-699e-4055-a49f-099784bf5291
+2025-12-10 15:43:53,673 - app.logger - INFO - [WS] Client disconnected: id=2eb82909-699e-4055-a49f-099784bf5291, reason=cleanup
+2025-12-10 15:43:53,769 - app.logger - INFO - Background job manager stopped
+2025-12-10 15:43:53,770 - app.logger - INFO - Background job manager stopped
