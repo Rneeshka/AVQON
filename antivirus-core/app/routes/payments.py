@@ -4,6 +4,7 @@ import uuid
 import aiohttp
 from datetime import datetime, timedelta
 from typing import Optional, Dict
+import json
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -230,8 +231,9 @@ async def generate_license_key_internal(user_id: int, username: str, is_lifetime
             "name": f"Telegram User {user_id}",
             "description": f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else ""),
             "access_level": "premium",
-            "daily_limit": 1000,
-            "hourly_limit": 100,
+            # Без ограничений запросов
+            "daily_limit": None,
+            "hourly_limit": None,
             "expires_days": expires_days
         }
         
@@ -470,11 +472,59 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
             logger.info(f"[PAYMENTS] Created subscription for user={user_id}, expires_at={expires_at}")
         
         logger.info(f"[PAYMENTS] ✅ Key issued for user={user_id}, payment={payment_id}")
+
+        # Отправляем сообщение пользователю с ключом
+        await notify_user_with_key(user_id, license_key, license_type)
         return True
         
     except Exception as e:
         logger.error(f"[PAYMENTS] Critical error processing payment: {e}", exc_info=True)
         return False
+
+
+async def notify_user_with_key(user_id: int, license_key: str, license_type: str):
+    """
+    Отправляет сообщение в Telegram пользователю с выданным ключом.
+    """
+    bot_token = os.getenv("BOT_TOKEN", "")
+    if not bot_token:
+        logger.warning("[PAYMENTS] BOT_TOKEN not configured; cannot notify user")
+        return
+
+    install_link = os.getenv(
+        "INSTALLATION_LINK",
+        "https://chromewebstore.google.com/detail/bedaaeaeddnodmmkfmfealepbbbdoegl"
+    )
+
+    if license_type == "forever":
+        license_text = "Ваш ключ действует бессрочно."
+    else:
+        license_text = "Ваша подписка активирована на 30 дней."
+
+    text = (
+        "🎉 Оплата успешно получена!\n\n"
+        f"Ваш лицензионный ключ:\n`{license_key}`\n\n"
+        f"{license_text}\n\n"
+        f"Ссылка для установки расширения:\n{install_link}"
+    )
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": user_id,
+        "text": text,
+        "parse_mode": "Markdown"
+    }
+    try:
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(url, data=payload) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    logger.error(f"[PAYMENTS] Failed to send Telegram message: {resp.status}, body={body}")
+                else:
+                    logger.info(f"[PAYMENTS] Notification sent to user {user_id}")
+    except Exception as e:
+        logger.error(f"[PAYMENTS] Error sending Telegram notification: {e}", exc_info=True)
 
 
 # ==== WEBHOOK ====
