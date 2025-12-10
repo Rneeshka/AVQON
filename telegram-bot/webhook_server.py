@@ -364,7 +364,7 @@ try:
                 content={"status": "error", "message": "Internal server error"}
             )
     
-    def run_server(host: str = "0.0.0.0", port: int = 8000):
+    def run_server(host: str = "0.0.0.0", port: int = 8010):
         """Запуск веб-сервера"""
         logger.info(f"[WEBHOOK] Запуск веб-сервера на {host}:{port}")
         logger.info(f"[WEBHOOK] Webhook endpoint: http://{host}:{port}/webhook/yookassa")
@@ -374,7 +374,7 @@ try:
         import argparse
         parser = argparse.ArgumentParser(description="AEGIS Webhook Server")
         parser.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
-        parser.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
+        parser.add_argument("--port", type=int, default=8010, help="Port to bind (default: 8000)")
         args = parser.parse_args()
         
         run_server(host=args.host, port=args.port)

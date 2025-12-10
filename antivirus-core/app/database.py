@@ -502,13 +502,15 @@ class DatabaseManager:
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Error parsing expiration date: {e}")
                 
-                # Проверяем daily rate limit
-                if result["requests_today"] >= result["rate_limit_daily"]:
+                # Локальные лимиты (None или <=0 = без ограничений)
+                daily_limit = result["rate_limit_daily"]
+                hourly_limit = result["rate_limit_hourly"]
+
+                if daily_limit is not None and daily_limit > 0 and result["requests_today"] >= daily_limit:
                     logger.warning(f"Daily rate limit exceeded for key: {api_key[:10]}...")
                     return False, "Daily rate limit exceeded"
                 
-                # Проверяем hourly rate limit
-                if result["requests_hour"] >= result["rate_limit_hourly"]:
+                if hourly_limit is not None and hourly_limit > 0 and result["requests_hour"] >= hourly_limit:
                     logger.warning(f"Hourly rate limit exceeded for key: {api_key[:10]}...")
                     return False, "Hourly rate limit exceeded"
                 
@@ -531,17 +533,24 @@ class DatabaseManager:
             return False, f"Database error: {str(e)}"
     
     def create_api_key(self, name: str, description: str = "", 
-                      access_level: str = "basic", daily_limit: int = 1000, 
-                      hourly_limit: int = 100, expires_days: int = 365) -> Optional[str]:
+                      access_level: str = "basic", daily_limit: Optional[int] = 1000, 
+                      hourly_limit: Optional[int] = 100, expires_days: int = 365) -> Optional[str]:
         """Создает новый API ключ в формате XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"""
         try:
             safe_name = (name or "").strip() or "Client"
             safe_desc = (description or "").strip()
-            try:
-                daily_limit = max(1, int(daily_limit))
-                hourly_limit = max(1, int(hourly_limit))
-            except Exception:
-                daily_limit, hourly_limit = 1000, 100
+            # Поддержка «без лимитов»: None или <=0 означает без ограничений
+            def _normalize_limit(value: Optional[int], default: int) -> Optional[int]:
+                try:
+                    if value is None:
+                        return None
+                    val_int = int(value)
+                    return None if val_int <= 0 else val_int
+                except Exception:
+                    return default
+
+            daily_limit = _normalize_limit(daily_limit, 1000)
+            hourly_limit = _normalize_limit(hourly_limit, 100)
 
             # Генерируем ключ в новом формате
             api_key = self._generate_formatted_key(access_level)

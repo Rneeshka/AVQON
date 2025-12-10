@@ -250,6 +250,29 @@ async def cancel_reset_all(callback: CallbackQuery):
     await callback.message.edit_text("❌ Очистка базы данных отменена")
 
 
+@router.message(Command("admin_reset_me"))
+async def cmd_admin_reset_me(message: Message):
+    """Сброс данных только текущего главного админа, не затрагивая других пользователей"""
+    user_id = message.from_user.id
+
+    if not is_main_admin(user_id):
+        await message.answer("❌ Эта команда доступна только главному администратору.")
+        return
+
+    await message.answer("🔄 Очищаю только ваши данные (платежи, подписки, лицензия)...")
+
+    stats = db.reset_user_data(user_id)
+
+    await message.answer(
+        "✅ Сброс выполнен только для вас.\n"
+        f"Удалено:\n"
+        f"• Подписок: {stats.get('subscriptions', 0)}\n"
+        f"• Платежей ЮKassa: {stats.get('yookassa_payments', 0)}\n"
+        f"• Старых платежей: {stats.get('payments', 0)}\n"
+        f"• Запись пользователя: {stats.get('users', 0)}\n\n"
+        "Можете заново пройти оплату — данные остальных пользователей не затронуты."
+    )
+
 @router.message(Command("debug_payment"))
 async def cmd_debug_payment(message: Message):
     """Проверка связи с backend платежей (Aegis Payments)"""

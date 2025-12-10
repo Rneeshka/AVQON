@@ -21,7 +21,18 @@ class RateLimiter:
             window_start = now - minute_window_seconds
             # Получаем лимит из БД
             key_info = db_manager.get_api_key_info(api_key)
-            per_minute_limit =  max(10, int((key_info.get('rate_limit_hourly', 100) or 100) / 60)) if key_info else 60
+            hourly_limit = None
+            if key_info:
+                try:
+                    hourly_limit = key_info.get('rate_limit_hourly')
+                except Exception:
+                    hourly_limit = None
+
+            # Без лимитов
+            if hourly_limit is None or hourly_limit <= 0:
+                return False
+
+            per_minute_limit = max(10, int(hourly_limit / 60))
             # Очистка старых отметок
             timestamps = [t for t in self._cache.get(key, []) if t >= window_start]
             if len(timestamps) >= per_minute_limit:

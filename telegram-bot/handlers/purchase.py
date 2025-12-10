@@ -157,11 +157,9 @@ async def buy_forever(callback: CallbackQuery):
 Ссылка для оплаты:
 {confirmation_url}
 
-После оплаты нажмите кнопку ниже:
-"""
+После успешной оплаты ключ придет автоматически (вебхук)."""
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔄 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
         [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
     ])
 
@@ -228,11 +226,9 @@ async def buy_monthly(callback: CallbackQuery):
 Ссылка для оплаты:
 {confirmation_url}
 
-После оплаты нажмите кнопку ниже:
-"""
+После успешной оплаты ключ придет автоматически (вебхук)."""
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔄 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
         [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment")]
     ])
 

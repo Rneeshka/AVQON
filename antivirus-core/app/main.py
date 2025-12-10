@@ -1178,8 +1178,8 @@ async def create_api_key(request: Request):
         name = body.get("name")
         description = body.get("description", "")
         access_level = body.get("access_level", "premium")
-        daily_limit = body.get("daily_limit", 1000)
-        hourly_limit = body.get("hourly_limit", 100)
+        daily_limit = body.get("daily_limit")  # None или <=0 = без лимитов
+        hourly_limit = body.get("hourly_limit")  # None или <=0 = без лимитов
         expires_days = body.get("expires_days", 30)
         
         # Для Telegram-бота: если передан user_id, используем expires_days из запроса

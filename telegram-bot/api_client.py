@@ -28,8 +28,9 @@ async def generate_license_for_user(user_id: int, username: str, is_lifetime: bo
         "name": f"Telegram User {user_id}",
         "description": f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else ""),
         "access_level": "premium",
-        "daily_limit": 1000,
-        "hourly_limit": 100,
+        # Без лимитов запросов для оплаченных ключей
+        "daily_limit": None,
+        "hourly_limit": None,
         "expires_days": expires_days
     }
     

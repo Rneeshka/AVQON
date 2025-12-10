@@ -590,6 +590,40 @@ class Database:
         conn.close()
         logger.warning(f"База данных очищена. Очищены таблицы: {', '.join(cleared_tables)}")
     
+    def reset_user_data(self, user_id: int) -> Dict[str, int]:
+        """
+        Точечный сброс данных только для одного пользователя (для главного админа).
+        Удаляет его платежи, подписки и лицензию, не затрагивая других.
+        Возвращает статистику удаленных записей.
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        stats = {"users": 0, "payments": 0, "yookassa_payments": 0, "subscriptions": 0}
+
+        try:
+            cursor.execute("DELETE FROM subscriptions WHERE user_id = ?", (user_id,))
+            stats["subscriptions"] = cursor.rowcount
+
+            cursor.execute("DELETE FROM yookassa_payments WHERE user_id = ?", (user_id,))
+            stats["yookassa_payments"] = cursor.rowcount
+
+            cursor.execute("DELETE FROM payments WHERE user_id = ?", (user_id,))
+            stats["payments"] = cursor.rowcount
+
+            cursor.execute("DELETE FROM users WHERE user_id = ?", (user_id,))
+            stats["users"] = cursor.rowcount
+
+            conn.commit()
+            logger.info(f"[RESET_USER] Cleared data for user {user_id}: {stats}")
+        except Exception as e:
+            logger.error(f"[RESET_USER] Error while clearing data for user {user_id}: {e}", exc_info=True)
+            conn.rollback()
+        finally:
+            conn.close()
+
+        return stats
+    
     def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str, is_renewal: bool = False):
         """Создать запись о платеже ЮKassa"""
         conn = self._get_connection()

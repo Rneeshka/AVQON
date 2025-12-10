@@ -453,7 +453,6 @@ async def renew_subscription(callback: CallbackQuery):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)],
-        [InlineKeyboardButton(text="🔍 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_payment")]
     ])
     
@@ -656,7 +655,6 @@ async def cmd_renew(message: Message):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)],
-        [InlineKeyboardButton(text="🔍 Проверить оплату", callback_data=f"check_payment_{payment_id}")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_payment")]
     ])
     
