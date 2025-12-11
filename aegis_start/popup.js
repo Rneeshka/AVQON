@@ -880,56 +880,56 @@
     }
   }
 
-  // async function handleForgotPassword() {
-  //   const emailEl = document.getElementById('forgot-email');
-  //   const forgotBtn = document.getElementById('forgot-btn');
+  async function handleForgotPassword() {
+    const emailEl = document.getElementById('forgot-email');
+    const forgotBtn = document.getElementById('forgot-btn');
     
-  //   if (!emailEl) return;
+    if (!emailEl) return;
     
-  //   const email = emailEl.value.trim();
-  //   if (!email) {
-  //     showInternalNotification('⚠️ Введите email', 'warning');
-  //     return;
-  //   }
+    const email = emailEl.value.trim();
+    if (!email) {
+      showInternalNotification('⚠️ Введите email', 'warning');
+      return;
+    }
     
-  //   try {
-  //     if (forgotBtn) {
-  //       forgotBtn.disabled = true;
-  //       forgotBtn.textContent = 'Отправляем...';
-  //     }
+    try {
+      if (forgotBtn) {
+        forgotBtn.disabled = true;
+        forgotBtn.textContent = 'Отправляем...';
+      }
       
-  //     const apiBase = normalizeApiBase(state.settings.apiBase);
-  //     const controller = new AbortController();
-  //     const timeout = setTimeout(() => controller.abort(), 10000);
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       
-  //     const res = await fetch(`${apiBase}/auth/forgot-password`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ email }),
-  //       signal: controller.signal
-  //     });
+      const res = await fetch(`${apiBase}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        signal: controller.signal
+      });
       
-  //     clearTimeout(timeout);
+      clearTimeout(timeout);
       
-  //     if (!res.ok) {
-  //       const error = await res.json().catch(() => ({ detail: 'Ошибка отправки' }));
-  //       throw new Error(error?.detail || 'Ошибка отправки');
-  //     }
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: 'Ошибка отправки' }));
+        throw new Error(error?.detail || 'Ошибка отправки');
+      }
       
-  //     const resetCodeSection = document.getElementById('reset-code-section');
-  //     if (resetCodeSection) resetCodeSection.style.display = 'block';
+      const resetCodeSection = document.getElementById('reset-code-section');
+      if (resetCodeSection) resetCodeSection.style.display = 'block';
       
-  //     showInternalNotification('✅ Письмо отправлено. Проверьте почту.', 'success');
-  //   } catch (error) {
-  //     console.error('[Aegis] Forgot password error:', error);
-  //     showInternalNotification('❌ ' + (error.message || 'Ошибка отправки'), 'error');
-  //   } finally {
-  //     if (forgotBtn) {
-  //       forgotBtn.disabled = false;
-  //       forgotBtn.textContent = 'Отправить код';
-  //     }
-  //   }
-  // }
+      showInternalNotification('✅ Письмо отправлено. Проверьте почту.', 'success');
+    } catch (error) {
+      console.error('[Aegis] Forgot password error:', error);
+      showInternalNotification('❌ ' + (error.message || 'Ошибка отправки'), 'error');
+    } finally {
+      if (forgotBtn) {
+        forgotBtn.disabled = false;
+        forgotBtn.textContent = 'Отправить код';
+      }
+    }
+  }
 
   async function handleResetPassword() {
     const emailEl = document.getElementById('forgot-email');
