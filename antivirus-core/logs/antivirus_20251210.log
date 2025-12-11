@@ -3682,3 +3682,25 @@ RuntimeError: WebSocket is not connected. Need to call "accept" first.
 2025-12-11 17:54:33,926 - app.logger - INFO - [WS] Client disconnected: id=3a1474d5-b4e9-477c-b8c0-c484b318fa98, reason=cleanup
 2025-12-11 17:55:50,870 - app.logger - INFO - [WS] Client disconnected gracefully: 8f42dbfd-1bc0-4ed4-accf-3edb6927e539
 2025-12-11 17:55:50,871 - app.logger - INFO - [WS] Client disconnected: id=8f42dbfd-1bc0-4ed4-accf-3edb6927e539, reason=cleanup
+2025-12-11 18:15:15,760 - app.logger - INFO - [WS] WebSocket connection attempt from 79.137.194.89
+2025-12-11 18:15:15,762 - app.logger - INFO - [WS] WebSocket connection accepted from 79.137.194.89
+2025-12-11 18:15:15,762 - app.logger - INFO - [WS] Client connected: id=03d3f3ce-85c1-4a71-a0d7-3c4ec5a2134d, ip=79.137.194.89
+2025-12-11 18:16:19,013 - app.auth - INFO - Account created: username=artemy228, user_id=9
+2025-12-11 18:16:54,031 - app.database - INFO - Replaced session for user_id=9, new device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:16:54,039 - app.auth - INFO - User logged in: username=tematemaru846@gmail.com, user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:20:37,101 - app.database - INFO - Updated session expiry for user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:20:37,108 - app.auth - INFO - Reusing existing session token for user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:20:37,113 - app.auth - INFO - User logged in: username=tematemaru846@gmail.com, user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:21:15,015 - app.database - INFO - Updated session expiry for user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:21:15,017 - app.auth - INFO - Reusing existing session token for user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:21:15,020 - app.auth - INFO - User logged in: username=tematemaru846@gmail.com, user_id=9, device_id=device_1765116044762_u85mvs94v
+2025-12-11 18:29:55,115 - app.logger - INFO - [WS] Client disconnected gracefully: 03d3f3ce-85c1-4a71-a0d7-3c4ec5a2134d
+2025-12-11 18:29:55,120 - app.logger - INFO - [WS] Client disconnected: id=03d3f3ce-85c1-4a71-a0d7-3c4ec5a2134d, reason=cleanup
+2025-12-11 18:29:55,244 - app.logger - INFO - [WS] WebSocket connection attempt from 85.175.196.109
+2025-12-11 18:29:55,245 - app.logger - INFO - [WS] WebSocket connection accepted from 85.175.196.109
+2025-12-11 18:29:55,245 - app.logger - INFO - [WS] Client connected: id=82f96331-f106-41ed-b636-1adc42b5e38e, ip=85.175.196.109
+2025-12-11 18:39:56,245 - app.logger - INFO - [WS] Client disconnected gracefully: 82f96331-f106-41ed-b636-1adc42b5e38e
+2025-12-11 18:39:56,249 - app.logger - INFO - [WS] Client disconnected: id=82f96331-f106-41ed-b636-1adc42b5e38e, reason=cleanup
+2025-12-11 18:40:05,102 - app.logger - INFO - [WS] WebSocket connection attempt from 79.137.194.89
+2025-12-11 18:40:05,103 - app.logger - INFO - [WS] WebSocket connection accepted from 79.137.194.89
+2025-12-11 18:40:05,103 - app.logger - INFO - [WS] Client connected: id=5ef97fd5-211a-4bc3-ab6c-7e9fa61b74a0, ip=79.137.194.89
