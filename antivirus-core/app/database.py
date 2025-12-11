@@ -2227,5 +2227,100 @@ class DatabaseManager:
             logger.error(f"Get payment by license key error: {e}", exc_info=True)
             return None
             
+        # --- МЕТОДЫ ДЛЯ ВОССТАНОВЛЕНИЯ ПАРОЛЯ ---
+
+    def save_reset_token(self, user_id: int, token: str, expires_at) -> bool:
+        """
+        Сохраняет токен восстановления пароля.
+        Предварительно удаляет старые токены этого пользователя, чтобы не засорять БД.
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # 1. Удаляем старые токены для этого пользователя (опционально, для чистоты)
+                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
+                
+                # 2. Вставляем новый токен
+                cursor.execute(
+                    "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)",
+                    (user_id, token, expires_at)
+                )
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error saving reset token: {e}")
+            return False
+
+    def get_user_id_by_token(self, token: str) -> Optional[int]:
+        """
+        Ищет user_id по токену, проверяя срок действия.
+        Возвращает ID только если токен существует и время не истекло.
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Выбираем запись
+                cursor.execute(
+                    "SELECT user_id, expires_at FROM password_resets WHERE token = ?", 
+                    (token,)
+                )
+                result = cursor.fetchone()
+                
+                if not result:
+                    return None
+                
+                user_id, expires_at_str = result
+                
+                # Обработка времени (SQLite хранит даты как строки)
+                # Если у вас expires_at уже объект datetime — конвертация не нужна
+                if isinstance(expires_at_str, str):
+                    # Пример формата: '2023-10-25 14:30:00.123456'
+                    expires_at = datetime.fromisoformat(expires_at_str)
+                else:
+                    expires_at = expires_at_str
+
+                # Проверка времени
+                if datetime.now() > expires_at:
+                    # Токен просрочен
+                    self.delete_reset_tokens(user_id) # Можно сразу удалить
+                    return None
+                
+                return user_id
+        except Exception as e:
+            logger.error(f"Error verifying token: {e}")
+            return None
+
+    def update_password(self, user_id: int, password_hash: str) -> bool:
+        """
+        Обновляет хеш пароля пользователя.
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE accounts SET password_hash = ? WHERE id = ?",
+                    (password_hash, user_id)
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Error updating password: {e}")
+            return False
+
+    def delete_reset_tokens(self, user_id: int) -> bool:
+        """
+        Удаляет все токены восстановления для пользователя.
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error deleting reset tokens: {e}")
+            return False
 # Глобальный экземпляр менеджера базы данных
 db_manager = DatabaseManager()
