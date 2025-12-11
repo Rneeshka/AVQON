@@ -3704,3 +3704,8 @@ RuntimeError: WebSocket is not connected. Need to call "accept" first.
 2025-12-11 18:40:05,102 - app.logger - INFO - [WS] WebSocket connection attempt from 79.137.194.89
 2025-12-11 18:40:05,103 - app.logger - INFO - [WS] WebSocket connection accepted from 79.137.194.89
 2025-12-11 18:40:05,103 - app.logger - INFO - [WS] Client connected: id=5ef97fd5-211a-4bc3-ab6c-7e9fa61b74a0, ip=79.137.194.89
+2025-12-11 18:54:32,543 - app.logger - INFO - [WS] Client disconnected gracefully: 5ef97fd5-211a-4bc3-ab6c-7e9fa61b74a0
+2025-12-11 18:54:32,545 - app.logger - INFO - [WS] Client disconnected: id=5ef97fd5-211a-4bc3-ab6c-7e9fa61b74a0, reason=cleanup
+2025-12-11 18:54:40,963 - app.logger - INFO - [WS] WebSocket connection attempt from 79.137.194.89
+2025-12-11 18:54:40,965 - app.logger - INFO - [WS] WebSocket connection accepted from 79.137.194.89
+2025-12-11 18:54:40,965 - app.logger - INFO - [WS] Client connected: id=b246146f-a53d-4b34-9b6e-8466d20180e7, ip=79.137.194.89
