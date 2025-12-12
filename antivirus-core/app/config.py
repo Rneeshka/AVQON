@@ -70,8 +70,8 @@ class ExternalAPIConfig:
     MAX_RETRIES = 3
     
     # Лимиты запросов
-    VIRUSTOTAL_HOURLY_LIMIT = 500
-    GOOGLE_DAILY_LIMIT = 10000
+    # VIRUSTOTAL_HOURLY_LIMIT = 500
+    # GOOGLE_DAILY_LIMIT = 10000
 
 config = ExternalAPIConfig()
 
