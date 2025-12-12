@@ -528,7 +528,7 @@ async def optional_auth_middleware(request: Request, call_next):
         "/health", "/health/minimal", "/health/hover", 
         "/docs", "/redoc", "/", "/favicon.ico", "/openapi.json",
         "/auth/register", "/auth/login", "/auth/reset-password",  # Эндпоинты аутентификации
-        "/payments/debug", "/payments/create", "/payments/webhook", "/payments/webhook/yookassa"  # Эндпоинты платежей для бота
+        "/auth/forgot-password", "/payments/debug", "/payments/create", "/payments/webhook", "/payments/webhook/yookassa"  # Эндпоинты платежей для бота
     ]
     admin_paths = ["/admin/stats", "/admin/add/malicious-hash", "/admin/api-keys/toggle", 
                    "/admin/api-keys/"]
