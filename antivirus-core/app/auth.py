@@ -15,11 +15,13 @@ from .database import db_manager
 
 logger = logging.getLogger(__name__)
 
-# Настройки SMTP (Вынести в конфиг .env в продакшене!)
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "your_email@gmail.com"
-SMTP_PASSWORD = "your_app_password" 
+import os
+
+# Настройки SMTP из env.env
+SMTP_SERVER = os.getenv("SMTP_HOST", "smtp.mail.ru")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASS", "")
 
 class AuthManager:
     """Менеджер аутентификации и управления аккаунтами."""

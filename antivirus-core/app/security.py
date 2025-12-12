@@ -6,7 +6,7 @@ from app.database import db_manager
 from app.logger import logger
 
 class RateLimiter:
-    def __init__(self):
+    def __init__(self): 
         self._cache = {}
     
     def is_rate_limited(self, api_key: str, endpoint: str) -> bool:
@@ -50,6 +50,16 @@ class APIKeyAuth(HTTPBearer):
         self.rate_limiter = rate_limiter
     
     async def __call__(self, request: Request) -> Dict[str, Any]:
+        # --- PUBLIC ENDPOINTS (NO API KEY REQUIRED) ---
+        PUBLIC_PATHS = {
+            "/auth/forgot-password",
+            "/auth/reset-password",
+            "/auth/login",
+            "/auth/register",
+        }
+
+        if request.url.path in PUBLIC_PATHS:
+            return {}  # пропускаем без API ключа
         # 1) Пытаемся извлечь Bearer токен
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         api_key = None

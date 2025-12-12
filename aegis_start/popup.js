@@ -961,7 +961,7 @@
       const res = await fetch(`${apiBase}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, new_password: newPassword }),
+        body: JSON.stringify({ email, code, newpassword: newPassword }),
         signal: controller.signal
       });
       
