@@ -1652,25 +1652,42 @@ class DatabaseManager:
             return False
     
     def generate_reset_code(self, email: str) -> Optional[str]:
-        """Генерирует код восстановления для email."""
+        """
+        Генерирует код восстановления и сохраняет его в таблицу password_resets.
+        """
         try:
-            import secrets
-            reset_code = secrets.token_hex(16)
-            expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
-            
+            # 1. Сначала находим ID пользователя по email
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE accounts 
-                    SET reset_code = ?, reset_code_expires = ?
-                    WHERE email = ?
-                """, (reset_code, expires_at, email))
+                cursor.execute("SELECT id FROM accounts WHERE email = ?", (email,))
+                result = cursor.fetchone()
                 
-                if cursor.rowcount == 0:
-                    return None  # Email не найден
+                if not result:
+                    return None  # Пользователь не найден
+                
+                user_id = result[0]
+                
+                # 2. Генерируем 6-значный код
+                import secrets
+                # Число от 100000 до 999999
+                code = str(secrets.randbelow(900000) + 100000)
+                
+                # 3. Срок действия 1 час
+                expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
+                
+                # 4. Удаляем старые коды этого пользователя (чтобы не дублировать)
+                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
+                
+                # 5. Вставляем новый код в ПРАВИЛЬНУЮ таблицу
+                cursor.execute("""
+                    INSERT INTO password_resets (user_id, code, expires_at)
+                    VALUES (?, ?, ?)
+                """, (user_id, code, expires_at))
                 
                 conn.commit()
-                return reset_code
+                logger.info(f"Generated reset code {code} for user_id {user_id}")
+                return code
+                
         except sqlite3.Error as e:
             logger.error(f"Generate reset code error: {e}")
             return None
