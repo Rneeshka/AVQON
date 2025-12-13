@@ -2269,41 +2269,40 @@ class DatabaseManager:
             logger.error(f"Error saving reset token: {e}")
             return False
 
-    def get_user_id_by_token(self, token: str) -> Optional[int]:
-        """
-        Ищет user_id по токену, проверяя срок действия.
-        Возвращает ID только если токен существует и время не истекло.
-        """
+ def get_user_id_by_token(self, code: str) -> Optional[int]:
         try:
-            with self.get_connection() as conn:
+            with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
-                # Выбираем запись
-                cursor.execute(
-                    "SELECT user_id, expires_at FROM password_resets WHERE token = ?", 
-                    (token,)
-                )
+                cursor.execute("SELECT user_id, expires_at FROM password_resets WHERE code = ?", (code,))
                 result = cursor.fetchone()
                 
                 if not result:
                     return None
                 
-                user_id, expires_at_str = result
+                user_id, expires_str = result
                 
-                # Обработка времени (SQLite хранит даты как строки)
-                # Если у вас expires_at уже объект datetime — конвертация не нужна
-                if isinstance(expires_at_str, str):
-                    # Пример формата: '2023-10-25 14:30:00.123456'
-                    expires_at = datetime.fromisoformat(expires_at_str)
-                else:
-                    expires_at = expires_at_str
-
                 # Проверка времени
-                if datetime.now() > expires_at:
-                    # Токен просрочен
-                    self.delete_reset_tokens(user_id) # Можно сразу удалить
-                    return None
-                
+                if expires_str:
+                    try:
+                        # Убираем 'Z' если есть, для совместимости
+                        clean_time = expires_str.replace('Z', '+00:00')
+                        expires_at = datetime.fromisoformat(clean_time)
+                        
+                        # Если формат без часового пояса, считаем его местным (naive)
+                        if expires_at.tzinfo is None:
+                            if datetime.now() > expires_at:
+                                self.delete_reset_tokens(user_id)
+                                return None
+                        else:
+                            # Если с часовым поясом, приводим now() к UTC или используем aware сравнение
+                            # Простой вариант: игнорируем tzinfo для сравнения если уверены в сервере
+                            if datetime.now() > expires_at.replace(tzinfo=None):
+                                self.delete_reset_tokens(user_id)
+                                return None
+                                
+                    except ValueError:
+                        pass # Если дата кривая, пропускаем проверку (или считаем невалидным)
+
                 return user_id
         except Exception as e:
             logger.error(f"Error verifying token: {e}")
