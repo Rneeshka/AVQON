@@ -477,7 +477,9 @@ async def filter_invalid_requests(request: Request, call_next):
 async def optional_auth_middleware(request: Request, call_next):
     """Опциональная проверка ключей для расширенных функций"""
     # КРИТИЧНО: Все вызовы БД обернуты в try-except
-    
+    # ПРОПУСКАЕМ ВСЮ АУТЕНТИФИКАЦИЮ БЕЗ API KEY
+    if request.url.path.startswith("/auth/"):
+        return await call_next(request)
     # Создание ключей теперь доступно без admin токена
     if request.url.path == "/admin/api-keys/create":
         return await call_next(request)
@@ -1441,7 +1443,19 @@ async def forgot_password(request: Request):
         
         # Генерируем код восстановления
         reset_code = db_manager.generate_reset_code(email)
-        
+    
+    # ====== EMAIL SENDING ======
+        from app.auth import AuthManager
+
+        sent = AuthManager._send_email(
+            to_email=email,
+            subject="Aegis Password Reset Code",
+            body=f"Ваш код восстановления пароля: {reset_code}"
+        )
+
+        if not sent:
+            logger.error(f"FAILED TO SEND EMAIL TO {email}")
+    # ===========================
         if not reset_code:
             # Не показываем, что email не найден (безопасность)
             return {
@@ -1464,7 +1478,6 @@ async def forgot_password(request: Request):
     except Exception as e:
         logger.error(f"Forgot password error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
 @app.post("/auth/reset-password")
 async def reset_password(request: Request):
     """
@@ -1472,38 +1485,40 @@ async def reset_password(request: Request):
     """
     try:
         body = await request.json()
-        email = body.get("email", "").strip().lower()
-        code = body.get("code", "").strip()
+        code = (body.get("token") or body.get("code", "")).strip()
         new_password = body.get("new_password", "").strip()
-        
-        if not all([email, code, new_password]):
-            raise HTTPException(status_code=400, detail="All fields are required")
-        
+
+        if not code or not new_password:
+            raise HTTPException(status_code=400, detail="Code and new_password are required")
+
         if len(new_password) < 6:
             raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-        
-        # Проверяем код восстановления
-        if not db_manager.verify_reset_code(email, code):
-            raise HTTPException(status_code=400, detail="Invalid or expired reset code")
-        
-        # Хешируем новый пароль
+
+        # Проверяем код восстановления → получаем user_id
+        user_id = db_manager.get_user_id_by_token(code)
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Invalid or expired code")
+
+        # Хешируем пароль
         password_hash = auth_manager.hash_password(new_password)
-        
-        # Сбрасываем пароль
-        if not db_manager.reset_password(email, password_hash):
+
+        # Обновляем пароль
+        if not db_manager.update_password(user_id, password_hash):
             raise HTTPException(status_code=500, detail="Failed to reset password")
-        
+
+        # Удаляем токен восстановления
+        db_manager.delete_reset_tokens(user_id)
+
         return {
             "status": "success",
             "message": "Пароль успешно изменен"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Reset password error: {e}")
+        logger.error(f"Password reset error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
 # ===== ACCOUNT AUTHENTICATION ENDPOINTS =====
 
 @app.post("/auth/register")

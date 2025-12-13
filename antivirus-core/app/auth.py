@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from fastapi import HTTPException, status
 from .database import db_manager
+import ssl
 
 logger = logging.getLogger(__name__)
 
@@ -111,112 +112,6 @@ class AuthManager:
         logger.info(f"User logged in: username={username}, user_id={account['id']}")
         return True, account_data, session_token, None
 
-    # --- НОВЫЙ ФУНКЦИОНАЛ ВОССТАНОВЛЕНИЯ ПАРОЛЯ ---
-
-    @staticmethod
-    def request_password_reset(email: str) -> Tuple[bool, str]:
-        """
-        Инициирует процесс сброса пароля: генерирует токен и отправляет email.
-        
-        Args:
-            email (str): Email пользователя
-            
-        Returns:
-            Tuple[bool, str]: (Успех, Сообщение)
-        """
-        # 1. Проверяем существование пользователя
-        account = db_manager.get_account_by_email(email)
-        if not account:
-            # Из соображений безопасности можно вернуть True, чтобы не раскрывать наличие email в базе,
-            # но для удобства разработки пока вернем ошибку.
-            return False, "Пользователь с таким email не найден"
-
-        # 2. Генерируем токен сброса (URL-safe)
-        reset_token = secrets.token_urlsafe(32)
-        
-        # 3. Устанавливаем время жизни токена (например, 1 час)
-        expires_at = datetime.now() + timedelta(hours=1)
-        
-        # 4. Сохраняем токен в БД
-        # ВАЖНО: В db_manager должен быть реализован метод save_reset_token
-        if not db_manager.save_reset_token(account['id'], reset_token, expires_at):
-            return False, "Ошибка базы данных при создании токена"
-
-        # 5. Отправляем Email
-        # Ссылка, которую пользователь откроет в расширении или браузере
-        reset_link = f"https://your-extension-site.com/reset-password?token={reset_token}"
-        
-        email_sent = AuthManager._send_email(
-            to_email=email,
-            subject="Восстановление пароля",
-            body=f"Для сброса пароля перейдите по ссылке:\n\n{reset_link}\n\nСсылка действительна 1 час."
-        )
-        
-        if not email_sent:
-            return False, "Не удалось отправить письмо"
-            
-        logger.info(f"Password reset requested for user_id={account['id']}")
-        return True, "Инструкция по сбросу пароля отправлена на почту"
-
-    @staticmethod
-    def reset_password_with_token(token: str, new_password: str) -> Tuple[bool, str]:
-        """
-        Устанавливает новый пароль, используя токен восстановления.
-        
-        Args:
-            token (str): Токен из email
-            new_password (str): Новый пароль
-            
-        Returns:
-            Tuple[bool, str]: (Успех, Сообщение)
-        """
-        if len(new_password) < 6:
-            return False, "Пароль должен быть не менее 6 символов"
-
-        # 1. Проверяем токен в БД
-        # Метод должен вернуть user_id только если токен существует И expires_at > now
-        user_id = db_manager.get_user_id_by_token(token)
-        
-        if not user_id:
-            return False, "Токен недействителен или истек"
-            
-        # 2. Хешируем новый пароль
-        new_password_hash = AuthManager.hash_password(new_password)
-        
-        # 3. Обновляем пароль пользователя
-        if not db_manager.update_password(user_id, new_password_hash):
-            return False, "Ошибка при обновлении пароля"
-            
-        # 4. Удаляем использованные токены (или конкретно этот токен)
-        db_manager.delete_reset_tokens(user_id)
-        
-        logger.info(f"Password successfully reset for user_id={user_id}")
-        return True, "Пароль успешно изменен"
-
-    @staticmethod
-    def _send_email(to_email: str, subject: str, body: str) -> bool:
-        """
-        Внутренний метод для отправки email через SMTP.
-        """
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = SMTP_USER
-            msg['To'] = to_email
-            msg['Subject'] = subject
-            msg.attach(MIMEText(body, 'plain'))
-
-            # В продакшене лучше использовать асинхронную отправку (celery/fastapi background tasks)
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            text = msg.as_string()
-            server.sendmail(SMTP_USER, to_email, text)
-            server.quit()
-            return True
-        except Exception as e:
-            logger.error(f"Email sending failed: {e}")
-            return False
-            
     # ... (get_user_from_api_key остается без изменений) ...
     @staticmethod
     def get_user_from_api_key(api_key: str) -> Optional[dict]:
