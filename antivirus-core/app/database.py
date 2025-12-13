@@ -260,8 +260,21 @@ class DatabaseManager:
                         FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
                     )
                 """)
+
+                # 11. Таблица для кодов восстановления пароля
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS password_resets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        code TEXT NOT NULL,
+                        expires_at TIMESTAMP NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_password_resets_code ON password_resets(code)")
                 
-                # 11. Таблица пользователей Telegram бота
+                # 12. Таблица пользователей Telegram бота
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS users (
                         user_id BIGINT PRIMARY KEY,
@@ -274,7 +287,7 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_has_license ON users(has_license)")
                 
-                # 12. Таблица платежей (старая, для совместимости)
+                # 13. Таблица платежей (старая, для совместимости)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS payments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -292,7 +305,7 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_payments_payment_id ON payments(payment_id)")
                 
-                # 13. Таблица платежей ЮKassa
+                # 14. Таблица платежей ЮKassa
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS yookassa_payments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -311,7 +324,7 @@ class DatabaseManager:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id)")
                 
-                # 14. Таблица подписок (для месячных лицензий)
+                # 15. Таблица подписок (для месячных лицензий)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS subscriptions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,

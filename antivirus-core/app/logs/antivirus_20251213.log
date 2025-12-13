@@ -2919,3 +2919,170 @@
 2025-12-13 11:40:01,527 - app.logger - WARNING - ⚠️ Private/internal URL detected, skipping external APIs: https://emcd.io/pool/dashboard/watcher
 2025-12-13 11:40:01,530 - app.logger - INFO - [WS] URL analysis completed for https://emcd.io/pool/dashboard/watcher: safe=True, source=internal_only
 2025-12-13 11:40:01,531 - app.logger - INFO - [WS] Sent analysis_result for https://emcd.io/pool/dashboard/watcher to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:42:03,527 - app.logger - INFO - [WS] Client disconnected gracefully: 57706b4f-9958-43b4-8775-155006986c57
+2025-12-13 11:42:03,530 - app.logger - INFO - [WS] Client disconnected: id=57706b4f-9958-43b4-8775-155006986c57, reason=cleanup
+2025-12-13 11:42:04,435 - app.logger - INFO - [WS] WebSocket connection attempt from 79.137.194.89
+2025-12-13 11:42:04,435 - app.logger - INFO - [WS] WebSocket connection accepted from 79.137.194.89
+2025-12-13 11:42:04,436 - app.logger - INFO - [WS] Client connected: id=789d184a-5975-4a7b-b21f-b925f97b0bf9, ip=79.137.194.89
+2025-12-13 11:42:22,883 - app.auth - ERROR - 🔥 SMTP DEBUG: _send_email() CALLED
+2025-12-13 11:42:22,884 - app.auth - ERROR - 🔥 SMTP DEBUG: host=smtp.yandex.ru port=587 user=noreply@aegis.builders
+2025-12-13 11:42:23,495 - app.auth - ERROR - 🔥 SMTP DEBUG: Email sent successfully
+2025-12-13 11:42:23,495 - app.logger - INFO - Password reset code for tematemaru846@gmail.com: 4ca96977f87cd9cdbc8329ab280e4d82
+2025-12-13 11:42:46,600 - app.database - ERROR - Error verifying token: 'DatabaseManager' object has no attribute 'get_connection'
+2025-12-13 11:43:36,910 - app.logger - INFO - [WS] Starting URL analysis for: https://fkwallet.io/personal/bank-cards (context: link_check)
+2025-12-13 11:43:36,911 - app.logger - INFO - 🔍 Analyzing URL: https://fkwallet.io/personal/bank-cards (ignore_db=False)
+2025-12-13 11:43:36,918 - app.logger - INFO - 🔍 Checking external APIs for: https://fkwallet.io/personal/bank-cards
+2025-12-13 11:43:36,920 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:43:36,920 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:43:36,921 - app.logger - INFO - 🔍 Combining external results for https://fkwallet.io/personal/bank-cards: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:43:36,921 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:43:36,921 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:43:36,922 - app.logger - INFO - 🔍 Final external API result for https://fkwallet.io/personal/bank-cards: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:43:36,922 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:43:36,922 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://fkwallet.io/personal/bank-cards: safe=None
+2025-12-13 11:43:36,922 - app.logger - WARNING - External APIs returned None for https://fkwallet.io/personal/bank-cards, using heuristic analysis
+2025-12-13 11:43:36,925 - app.logger - INFO - [WS] URL analysis completed for https://fkwallet.io/personal/bank-cards: safe=True, source=heuristic
+2025-12-13 11:43:36,925 - app.logger - INFO - [WS] Sent analysis_result for https://fkwallet.io/personal/bank-cards to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:44:56,713 - app.logger - INFO - [WS] Starting URL analysis for: https://fkwallet.io/personal/invoices (context: link_check)
+2025-12-13 11:44:56,714 - app.logger - INFO - 🔍 Analyzing URL: https://fkwallet.io/personal/invoices (ignore_db=False)
+2025-12-13 11:44:56,722 - app.logger - INFO - 🔍 Checking external APIs for: https://fkwallet.io/personal/invoices
+2025-12-13 11:44:56,723 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:44:56,724 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:44:56,724 - app.logger - INFO - 🔍 Combining external results for https://fkwallet.io/personal/invoices: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:44:56,725 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:44:56,725 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:44:56,726 - app.logger - INFO - 🔍 Final external API result for https://fkwallet.io/personal/invoices: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:44:56,726 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:44:56,726 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://fkwallet.io/personal/invoices: safe=None
+2025-12-13 11:44:56,727 - app.logger - WARNING - External APIs returned None for https://fkwallet.io/personal/invoices, using heuristic analysis
+2025-12-13 11:44:56,730 - app.logger - INFO - [WS] URL analysis completed for https://fkwallet.io/personal/invoices: safe=True, source=heuristic
+2025-12-13 11:44:56,730 - app.logger - INFO - [WS] Sent analysis_result for https://fkwallet.io/personal/invoices to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:45:00,335 - app.logger - INFO - [WS] Starting URL analysis for: https://fkwallet.io/personal/payments (context: link_check)
+2025-12-13 11:45:00,336 - app.logger - INFO - 🔍 Analyzing URL: https://fkwallet.io/personal/payments (ignore_db=False)
+2025-12-13 11:45:00,343 - app.logger - INFO - 🔍 Checking external APIs for: https://fkwallet.io/personal/payments
+2025-12-13 11:45:00,344 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:00,344 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:00,345 - app.logger - INFO - 🔍 Combining external results for https://fkwallet.io/personal/payments: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:45:00,345 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:45:00,345 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:45:00,345 - app.logger - INFO - 🔍 Final external API result for https://fkwallet.io/personal/payments: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:45:00,345 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:45:00,345 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://fkwallet.io/personal/payments: safe=None
+2025-12-13 11:45:00,345 - app.logger - WARNING - External APIs returned None for https://fkwallet.io/personal/payments, using heuristic analysis
+2025-12-13 11:45:00,348 - app.logger - INFO - [WS] URL analysis completed for https://fkwallet.io/personal/payments: safe=True, source=heuristic
+2025-12-13 11:45:00,348 - app.logger - INFO - [WS] Sent analysis_result for https://fkwallet.io/personal/payments to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:45:03,644 - app.logger - INFO - [WS] Starting URL analysis for: https://fkwallet.io/personal (context: link_check)
+2025-12-13 11:45:03,644 - app.logger - INFO - 🔍 Analyzing URL: https://fkwallet.io/personal (ignore_db=False)
+2025-12-13 11:45:03,652 - app.logger - INFO - 🔍 Checking external APIs for: https://fkwallet.io/personal
+2025-12-13 11:45:03,653 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:03,654 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:03,655 - app.logger - INFO - 🔍 Combining external results for https://fkwallet.io/personal: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:45:03,655 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:45:03,656 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:45:03,656 - app.logger - INFO - 🔍 Final external API result for https://fkwallet.io/personal: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:45:03,657 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:45:03,657 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://fkwallet.io/personal: safe=None
+2025-12-13 11:45:03,658 - app.logger - WARNING - External APIs returned None for https://fkwallet.io/personal, using heuristic analysis
+2025-12-13 11:45:03,663 - app.logger - INFO - [WS] URL analysis completed for https://fkwallet.io/personal: safe=True, source=heuristic
+2025-12-13 11:45:03,665 - app.logger - INFO - [WS] Sent analysis_result for https://fkwallet.io/personal to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:45:34,945 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/profile (context: link_check)
+2025-12-13 11:45:34,946 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/profile (ignore_db=False)
+2025-12-13 11:45:34,953 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/profile
+2025-12-13 11:45:34,954 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:34,955 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:34,955 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/profile: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:45:34,955 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:45:34,955 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:45:34,955 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/profile: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:45:34,955 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:45:34,955 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/profile: safe=None
+2025-12-13 11:45:34,956 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/profile, using heuristic analysis
+2025-12-13 11:45:34,958 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/profile: safe=True, source=heuristic
+2025-12-13 11:45:34,959 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/profile to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:45:48,894 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/pay (context: link_check)
+2025-12-13 11:45:48,894 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/pay (ignore_db=False)
+2025-12-13 11:45:48,898 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/pay
+2025-12-13 11:45:48,899 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:48,899 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:48,899 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/pay: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:45:48,900 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:45:48,900 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:45:48,900 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/pay: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:45:48,900 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:45:48,900 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/pay: safe=None
+2025-12-13 11:45:48,900 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/pay, using heuristic analysis
+2025-12-13 11:45:48,903 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/pay: safe=True, source=heuristic
+2025-12-13 11:45:48,904 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/pay to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:45:51,203 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/profile (context: link_check)
+2025-12-13 11:45:51,204 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/profile (ignore_db=False)
+2025-12-13 11:45:51,204 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://intrade27.bar/profile
+2025-12-13 11:45:51,211 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/profile
+2025-12-13 11:45:51,212 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:51,213 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:45:51,213 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/profile: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:45:51,214 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:45:51,214 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:45:51,214 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/profile: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:45:51,215 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:45:51,215 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/profile: safe=None
+2025-12-13 11:45:51,215 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/profile, using heuristic analysis
+2025-12-13 11:45:51,218 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/profile: safe=True, source=heuristic
+2025-12-13 11:45:51,218 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/profile to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:46:04,262 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/pay (context: link_check)
+2025-12-13 11:46:04,263 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/pay (ignore_db=False)
+2025-12-13 11:46:04,263 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://intrade27.bar/pay
+2025-12-13 11:46:04,271 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/pay
+2025-12-13 11:46:04,273 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:04,273 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:04,274 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/pay: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:46:04,274 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:46:04,274 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:46:04,275 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/pay: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:46:04,275 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:46:04,275 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/pay: safe=None
+2025-12-13 11:46:04,276 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/pay, using heuristic analysis
+2025-12-13 11:46:04,279 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/pay: safe=True, source=heuristic
+2025-12-13 11:46:04,279 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/pay to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:46:13,442 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/profile (context: link_check)
+2025-12-13 11:46:13,443 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/profile (ignore_db=False)
+2025-12-13 11:46:13,443 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://intrade27.bar/profile
+2025-12-13 11:46:13,449 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/profile
+2025-12-13 11:46:13,450 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:13,451 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:13,451 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/profile: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:46:13,451 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:46:13,452 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:46:13,452 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/profile: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:46:13,452 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:46:13,452 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/profile: safe=None
+2025-12-13 11:46:13,453 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/profile, using heuristic analysis
+2025-12-13 11:46:13,455 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/profile: safe=True, source=heuristic
+2025-12-13 11:46:13,455 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/profile to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:46:24,404 - app.logger - INFO - [WS] Starting URL analysis for: https://intrade27.bar/ (context: link_check)
+2025-12-13 11:46:24,404 - app.logger - INFO - 🔍 Analyzing URL: https://intrade27.bar/ (ignore_db=False)
+2025-12-13 11:46:24,408 - app.logger - INFO - 🔍 Checking external APIs for: https://intrade27.bar/
+2025-12-13 11:46:24,409 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:24,409 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:24,409 - app.logger - INFO - 🔍 Combining external results for https://intrade27.bar/: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:46:24,410 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:46:24,410 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:46:24,410 - app.logger - INFO - 🔍 Final external API result for https://intrade27.bar/: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:46:24,410 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:46:24,410 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://intrade27.bar/: safe=None
+2025-12-13 11:46:24,410 - app.logger - WARNING - External APIs returned None for https://intrade27.bar/, using heuristic analysis
+2025-12-13 11:46:24,415 - app.logger - INFO - [WS] URL analysis completed for https://intrade27.bar/: safe=True, source=heuristic
+2025-12-13 11:46:24,416 - app.logger - INFO - [WS] Sent analysis_result for https://intrade27.bar/ to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
+2025-12-13 11:46:26,489 - app.logger - INFO - [WS] Starting URL analysis for: https://t.me/intradebar_official/563 (context: link_check)
+2025-12-13 11:46:26,490 - app.logger - INFO - 🔍 Analyzing URL: https://t.me/intradebar_official/563 (ignore_db=False)
+2025-12-13 11:46:26,494 - app.logger - INFO - 🔍 Checking external APIs for: https://t.me/intradebar_official/563
+2025-12-13 11:46:26,495 - app.logger - ERROR - virustotal API error (attempt 1/2): AttributeError: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:26,495 - app.logger - ERROR - virustotal check failed: 'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'
+2025-12-13 11:46:26,495 - app.logger - INFO - 🔍 Combining external results for https://t.me/intradebar_official/563: {'virustotal': {'error': "'ExternalAPIConfig' object has no attribute 'VIRUSTOTAL_HOURLY_LIMIT'"}}
+2025-12-13 11:46:26,496 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-13 11:46:26,496 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-13 11:46:26,496 - app.logger - INFO - 🔍 Final external API result for https://t.me/intradebar_official/563: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-13 11:46:26,496 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-13 11:46:26,497 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://t.me/intradebar_official/563: safe=None
+2025-12-13 11:46:26,497 - app.logger - WARNING - External APIs returned None for https://t.me/intradebar_official/563, using heuristic analysis
+2025-12-13 11:46:26,500 - app.logger - INFO - [WS] URL analysis completed for https://t.me/intradebar_official/563: safe=True, source=heuristic
+2025-12-13 11:46:26,501 - app.logger - INFO - [WS] Sent analysis_result for https://t.me/intradebar_official/563 to client 6fcb9bfe-e230-4609-ba5c-3a73e94692db
