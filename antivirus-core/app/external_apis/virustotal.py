@@ -29,12 +29,14 @@ class VirusTotalClient(BaseAPIClient):
         endpoint = f"/urls/{url_id}"
         response = await self._make_request("GET", endpoint)
         
+        # КРИТИЧНО: Если response не None и содержит data - URL найден в базе
         if response and 'data' in response:
             logger.info(f"Found URL in VirusTotal database: {url}")
             return response
         
-        # Если URL не найден — отправляем новый анализ и ждём результатов
-        logger.info(f"URL not found in VirusTotal database, submitting for analysis: {url}")
+        # КРИТИЧНО: Если response None (404 или другая ошибка) - URL не найден, отправляем на анализ
+        # Если response есть, но нет 'data' - тоже считаем что не найден
+        logger.info(f"URL not found in VirusTotal database (response: {response is not None}), submitting for analysis: {url}")
 
         if not self.session:
             logger.error("VirusTotal session is not initialized")
@@ -42,14 +44,16 @@ class VirusTotalClient(BaseAPIClient):
 
         submit_url = f"{self.base_url}/urls"
         # КРИТИЧНО: VirusTotal v3 ожидает application/x-www-form-urlencoded
-        form_body = f"url={urllib.parse.quote(url, safe='')}"
+        # Используем aiohttp.FormData для правильной кодировки
+        from aiohttp import FormData
+        form_data = FormData()
+        form_data.add_field('url', url)
         headers = {
             "x-apikey": self.api_key,
-            "Content-Type": "application/x-www-form-urlencoded",
         }
 
         try:
-            async with self.session.post(submit_url, data=form_body, headers=headers) as resp:
+            async with self.session.post(submit_url, data=form_data, headers=headers) as resp:
                 text = await resp.text()
                 if resp.status in (200, 201):
                     try:

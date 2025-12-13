@@ -60,6 +60,10 @@ class BaseAPIClient:
                     
                     if response.status == 200:
                         return await response.json()
+                    elif response.status == 404:
+                        # 404 - ресурс не найден, это нормально для некоторых API (например, VirusTotal когда URL не в базе)
+                        logger.debug(f"Resource not found (404) for {endpoint}")
+                        return None
                     elif response.status == 429:  # Rate limit
                         wait_time = 2 ** attempt  # Exponential backoff
                         logger.warning(f"Rate limit hit, waiting {wait_time}s")
@@ -70,7 +74,8 @@ class BaseAPIClient:
                         await asyncio.sleep(1)
                         continue
                     else:
-                        logger.error(f"API error {response.status}: {await response.text()}")
+                        error_text = await response.text()
+                        logger.error(f"API error {response.status} for {endpoint}: {error_text[:500]}")
                         return None
                         
             except aiohttp.ClientError as e:

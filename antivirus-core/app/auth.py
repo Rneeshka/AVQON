@@ -125,4 +125,25 @@ class AuthManager:
             logger.error(f"Get user from API key error: {e}")
             return None
 
+    @staticmethod
+    def _send_email(to_email: str, subject: str, body: str) -> bool:
+        try:
+            msg = MIMEMultipart()
+            msg["From"] = SMTP_USER
+            msg["To"] = to_email
+            msg["Subject"] = subject
+            msg.attach(MIMEText(body, "plain"))
+
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, to_email, msg.as_string())
+            server.quit()
+
+            return True
+        
+        except Exception as e:
+            logger.error(f"SMTP ERROR: {e}", exc_info=True)
+            return False
+
 auth_manager = AuthManager()

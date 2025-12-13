@@ -272,7 +272,6 @@ class DatabaseManager:
                         FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
                     )
                 """)
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_password_resets_code ON password_resets(code)")
                 
                 # 12. Таблица пользователей Telegram бота
                 cursor.execute("""
@@ -1669,40 +1668,34 @@ class DatabaseManager:
         Генерирует код восстановления и сохраняет его в таблицу password_resets.
         """
         try:
-            # 1. Сначала находим ID пользователя по email
             with self._get_connection() as conn:
                 cursor = conn.cursor()
+
                 cursor.execute("SELECT id FROM accounts WHERE email = ?", (email,))
                 result = cursor.fetchone()
-                
                 if not result:
-                    return None  # Пользователь не найден
-                
+                    return None
+
                 user_id = result[0]
-                
-                # 2. Генерируем 6-значный код
+
                 import secrets
-                # Число от 100000 до 999999
                 code = str(secrets.randbelow(900000) + 100000)
-                
-                # 3. Срок действия 1 час
+
                 expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
-                
-                # 4. Удаляем старые коды этого пользователя (чтобы не дублировать)
+
                 cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
-                
-                # 5. Вставляем новый код в ПРАВИЛЬНУЮ таблицу
+
                 cursor.execute("""
-                    INSERT INTO password_resets (user_id, code, expires_at)
+                    INSERT INTO password_resets (user_id, token, expires_at)
                     VALUES (?, ?, ?)
                 """, (user_id, code, expires_at))
-                
+
                 conn.commit()
                 logger.info(f"Generated reset code {code} for user_id {user_id}")
                 return code
-                
-        except sqlite3.Error as e:
-            logger.error(f"Generate reset code error: {e}")
+
+        except Exception as e:
+            logger.error(f"Generate reset code error: {e}", exc_info=True)
             return None
     
     def verify_reset_code(self, email: str, code: str) -> bool:
@@ -2265,7 +2258,7 @@ class DatabaseManager:
         Предварительно удаляет старые токены этого пользователя, чтобы не засорять БД.
         """
         try:
-            with self.get_connection() as conn:
+            with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
                 # 1. Удаляем старые токены для этого пользователя (опционально, для чистоты)
@@ -2282,51 +2275,54 @@ class DatabaseManager:
             logger.error(f"Error saving reset token: {e}")
             return False
 
- def get_user_id_by_token(self, code: str) -> Optional[int]:
+            logger.error(f"Error saving reset token: {e}")
+            return False
+
+    def get_user_id_by_token(self, token: str) -> Optional[int]:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT user_id, expires_at FROM password_resets WHERE code = ?", (code,))
+                cursor.execute(
+                    "SELECT user_id, expires_at FROM password_resets WHERE token = ?",
+                    (token,)
+                )
                 result = cursor.fetchone()
-                
+
                 if not result:
                     return None
-                
+
                 user_id, expires_str = result
-                
-                # Проверка времени
+
                 if expires_str:
                     try:
-                        # Убираем 'Z' если есть, для совместимости
-                        clean_time = expires_str.replace('Z', '+00:00')
+                        clean_time = expires_str.replace("Z", "+00:00")
                         expires_at = datetime.fromisoformat(clean_time)
-                        
-                        # Если формат без часового пояса, считаем его местным (naive)
-                        if expires_at.tzinfo is None:
-                            if datetime.now() > expires_at:
-                                self.delete_reset_tokens(user_id)
-                                return None
-                        else:
-                            # Если с часовым поясом, приводим now() к UTC или используем aware сравнение
-                            # Простой вариант: игнорируем tzinfo для сравнения если уверены в сервере
+
+                        # Сравнение даты
+                        if expires_at.tzinfo:
                             if datetime.now() > expires_at.replace(tzinfo=None):
                                 self.delete_reset_tokens(user_id)
                                 return None
-                                
-                    except ValueError:
-                        pass # Если дата кривая, пропускаем проверку (или считаем невалидным)
+                        else:
+                            if datetime.now() > expires_at:
+                                self.delete_reset_tokens(user_id)
+                                return None
+
+                    except Exception as e:
+                        logger.error(f"Error parsing expires_at: {e}")
+                        return None
 
                 return user_id
+
         except Exception as e:
             logger.error(f"Error verifying token: {e}")
             return None
-
     def update_password(self, user_id: int, password_hash: str) -> bool:
         """
         Обновляет хеш пароля пользователя.
         """
         try:
-            with self.get_connection() as conn:
+            with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "UPDATE accounts SET password_hash = ? WHERE id = ?",
@@ -2343,7 +2339,7 @@ class DatabaseManager:
         Удаляет все токены восстановления для пользователя.
         """
         try:
-            with self.get_connection() as conn:
+            with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
                 conn.commit()
