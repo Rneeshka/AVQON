@@ -70,8 +70,10 @@ class ExternalAPIConfig:
     MAX_RETRIES = 3
     
     # Лимиты запросов
-    # VIRUSTOTAL_HOURLY_LIMIT = 500
-    # GOOGLE_DAILY_LIMIT = 10000
+    # VirusTotal: бесплатный тариф - 500 запросов в сутки, ставим 20 в час для безопасности
+    VIRUSTOTAL_HOURLY_LIMIT = int(os.getenv("VIRUSTOTAL_HOURLY_LIMIT", "2000"))
+    # Google Safe Browsing: обычно 10000 запросов в сутки
+    GOOGLE_DAILY_LIMIT = int(os.getenv("GOOGLE_DAILY_LIMIT", "10000"))
 
 config = ExternalAPIConfig()
 
