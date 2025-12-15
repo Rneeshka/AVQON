@@ -1151,7 +1151,17 @@
     window.addEventListener('focus', () => {
       checkConnectionStatus();
       scanActiveTab();
+      
     });
+    // Обработчик для кнопки Telegram бота
+    const botLink = document.getElementById('open-telegram-bot');
+    if (botLink) {
+      botLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Укажите здесь ссылку на вашего бота
+        chrome.tabs.create({ url: 'https://t.me/AegisShieldWeb_bot' }); 
+      });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
