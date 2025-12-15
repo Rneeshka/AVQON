@@ -9137,3 +9137,748 @@ RuntimeError: Session is closed
 2025-12-15 18:55:36,303 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/puhovik-columbia-kurtka-muzhskaya-zimnyaya-uteplennaya-s-flisom-2925262430/, using heuristic analysis
 2025-12-15 18:55:36,308 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/puhovik-columbia-kurtka-muzhskaya-zimnyaya-uteplennaya-s-flisom-2925262430/: safe=True, source=heuristic
 2025-12-15 18:55:36,309 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/puhovik-columbia-kurtka-muzhskaya-zimnyaya-uteplennaya-s-flisom-2925262430/ to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 18:56:36,873 - app.logger - INFO - [WS] Client disconnected gracefully: 428eacdd-d435-4c25-a34e-d6f23f3f40eb
+2025-12-15 18:56:36,875 - app.logger - INFO - [WS] Client disconnected: id=428eacdd-d435-4c25-a34e-d6f23f3f40eb, reason=cleanup
+2025-12-15 18:57:44,322 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9 (context: link_check)
+2025-12-15 18:57:44,323 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9 (ignore_db=False)
+2025-12-15 18:57:44,330 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9
+2025-12-15 18:57:44,634 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9
+2025-12-15 18:57:44,984 - app.logger - INFO - URL submitted for analysis, ID: u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd
+2025-12-15 18:57:45,270 - app.logger - INFO - VirusTotal analysis status (u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd): completed (attempt 1/5)
+2025-12-15 18:57:45,272 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9: {'virustotal': {'data': {'id': 'u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd'}, 'attributes': {'date': 1765814264, 'status': 'completed', 'results': {}, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9'}}, 'meta': {'url_info': {'id': '8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 18:57:45,272 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 18:57:45,272 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5-d1ec0acd'}, 'attributes': {'date': 1765814264, 'status': 'completed', 'results': {}, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9'}}, 'meta': {'url_info': {'id': '8fa454788d621f77995dde2ae7bd2dbb64d65d1a36854f3dc195301e538babe5', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 18:57:45,272 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 18:57:45,272 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 18:57:45,272 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 18:57:45,273 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 18:57:45,273 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9: safe=None
+2025-12-15 18:57:45,273 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9, using heuristic analysis
+2025-12-15 18:57:45,275 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9: safe=True, source=heuristic
+2025-12-15 18:57:45,276 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/puhovik-columbia-1715748435/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9 to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 18:57:48,160 - app.logger - INFO - [WS] WebSocket connection attempt from 31.181.92.250
+2025-12-15 18:57:48,162 - app.logger - INFO - [WS] WebSocket connection accepted from 31.181.92.250
+2025-12-15 18:57:48,162 - app.logger - INFO - [WS] Client connected: id=ca46a4b5-8964-4bdd-b29f-f18d57476fdf, ip=31.181.92.250
+2025-12-15 18:57:59,595 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/ (context: link_check)
+2025-12-15 18:57:59,595 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/ (ignore_db=False)
+2025-12-15 18:57:59,600 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/: safe=False, source=local_db
+2025-12-15 18:57:59,600 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:07,774 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/3/ (context: link_check)
+2025-12-15 18:58:07,775 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/3/ (ignore_db=False)
+2025-12-15 18:58:07,779 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/3/: safe=False, source=local_db
+2025-12-15 18:58:07,779 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/3/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:12,445 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/4/ (context: link_check)
+2025-12-15 18:58:12,446 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/4/ (ignore_db=False)
+2025-12-15 18:58:12,450 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/4/: safe=False, source=local_db
+2025-12-15 18:58:12,451 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/4/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:17,298 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/5/ (context: link_check)
+2025-12-15 18:58:17,298 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/5/ (ignore_db=False)
+2025-12-15 18:58:17,303 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/5/: safe=False, source=local_db
+2025-12-15 18:58:17,304 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/5/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:21,843 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/6/ (context: link_check)
+2025-12-15 18:58:21,843 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/6/ (ignore_db=False)
+2025-12-15 18:58:21,848 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/6/: safe=False, source=local_db
+2025-12-15 18:58:21,849 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/6/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:32,239 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/7/ (context: link_check)
+2025-12-15 18:58:32,240 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/7/ (ignore_db=False)
+2025-12-15 18:58:32,245 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/7/: safe=False, source=local_db
+2025-12-15 18:58:32,246 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/7/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:34,179 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false (context: link_check)
+2025-12-15 18:58:34,179 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false (ignore_db=False)
+2025-12-15 18:58:34,184 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false
+2025-12-15 18:58:34,525 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false
+2025-12-15 18:58:34,924 - app.logger - INFO - URL submitted for analysis, ID: u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25
+2025-12-15 18:58:35,172 - app.logger - INFO - VirusTotal analysis status (u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25): completed (attempt 1/5)
+2025-12-15 18:58:35,173 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false: {'virustotal': {'data': {'id': 'u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25'}, 'attributes': {'results': {}, 'user_agent': '', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'status': 'completed', 'date': 1765814314}}, 'meta': {'url_info': {'id': 'aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 18:58:35,174 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 18:58:35,174 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394-75acec25'}, 'attributes': {'results': {}, 'user_agent': '', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'status': 'completed', 'date': 1765814314}}, 'meta': {'url_info': {'id': 'aa7a5b96c5a42ef9e72814eb2beb6451459fc91e24ed2a54908e86765a883394', 'url': 'https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 18:58:35,174 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 18:58:35,174 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 18:58:35,174 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 18:58:35,174 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 18:58:35,174 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false: safe=None
+2025-12-15 18:58:35,175 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false, using heuristic analysis
+2025-12-15 18:58:35,177 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false: safe=True, source=heuristic
+2025-12-15 18:58:35,178 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/puhovik-columbia-1715749098/?at=57twLWqn5cGlED2gHAwz0GXIOyo1N2s5E92NpTQG3Dl9&from_sku=1715748435&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 18:58:39,601 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/8/ (context: link_check)
+2025-12-15 18:58:39,603 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/8/ (ignore_db=False)
+2025-12-15 18:58:39,607 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/8/: safe=False, source=local_db
+2025-12-15 18:58:39,608 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/8/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:47,385 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/9/ (context: link_check)
+2025-12-15 18:58:47,386 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/9/ (ignore_db=False)
+2025-12-15 18:58:47,391 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/9/: safe=False, source=local_db
+2025-12-15 18:58:47,392 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/9/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:58:55,576 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/10/ (context: link_check)
+2025-12-15 18:58:55,576 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/10/ (ignore_db=False)
+2025-12-15 18:58:55,583 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/10/: safe=False, source=local_db
+2025-12-15 18:58:55,584 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/10/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:00,287 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/11/ (context: link_check)
+2025-12-15 18:59:00,287 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/11/ (ignore_db=False)
+2025-12-15 18:59:00,293 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/11/: safe=False, source=local_db
+2025-12-15 18:59:00,293 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/11/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:05,975 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/page/12/ (context: link_check)
+2025-12-15 18:59:05,976 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/page/12/ (ignore_db=False)
+2025-12-15 18:59:05,980 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/page/12/: safe=False, source=local_db
+2025-12-15 18:59:05,980 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/page/12/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:12,997 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/serialy-2025/ (context: link_check)
+2025-12-15 18:59:12,998 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/serialy-2025/ (ignore_db=False)
+2025-12-15 18:59:13,005 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/serialy-2025/: safe=False, source=local_db
+2025-12-15 18:59:13,006 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/serialy-2025/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:24,216 - app.logger - INFO - [WS] Starting URL analysis for: https://zonafilm.click/filmy-2025-hd/ (context: link_check)
+2025-12-15 18:59:24,217 - app.logger - INFO - 🔍 Analyzing URL: https://zonafilm.click/filmy-2025-hd/ (ignore_db=False)
+2025-12-15 18:59:24,221 - app.logger - INFO - [WS] URL analysis completed for https://zonafilm.click/filmy-2025-hd/: safe=False, source=local_db
+2025-12-15 18:59:24,222 - app.logger - INFO - [WS] Sent analysis_result for https://zonafilm.click/filmy-2025-hd/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:29,944 - app.logger - INFO - [WS] Starting URL analysis for: https://w6.filmworld01.buzz/serials-2025/ (context: link_check)
+2025-12-15 18:59:29,944 - app.logger - INFO - 🔍 Analyzing URL: https://w6.filmworld01.buzz/serials-2025/ (ignore_db=False)
+2025-12-15 18:59:29,948 - app.logger - INFO - 🔍 Checking external APIs for: https://w6.filmworld01.buzz/serials-2025/
+2025-12-15 18:59:31,327 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://w6.filmworld01.buzz/serials-2025/
+2025-12-15 18:59:31,612 - app.logger - INFO - URL submitted for analysis, ID: u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df
+2025-12-15 18:59:32,021 - app.logger - INFO - VirusTotal analysis status (u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df): queued (attempt 1/5)
+2025-12-15 18:59:33,902 - app.logger - INFO - VirusTotal analysis status (u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df): queued (attempt 2/5)
+2025-12-15 18:59:37,190 - app.logger - INFO - VirusTotal analysis status (u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df): completed (attempt 3/5)
+2025-12-15 18:59:37,192 - app.logger - INFO - 🔍 Combining external results for https://w6.filmworld01.buzz/serials-2025/: {'virustotal': {'data': {'id': 'u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df'}, 'attributes': {'user_agent': '', 'url': 'https://w6.filmworld01.buzz/serials-2025/', 'status': 'completed', 'results': {}, 'date': 1765814371, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': '14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b', 'url': 'https://w6.filmworld01.buzz/serials-2025/'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 18:59:37,193 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 18:59:37,193 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b-1cb437df'}, 'attributes': {'user_agent': '', 'url': 'https://w6.filmworld01.buzz/serials-2025/', 'status': 'completed', 'results': {}, 'date': 1765814371, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': '14951ea33a16db273af3b2d36638574acfd0a2c41b82f336ddf3dce6c7c94a3b', 'url': 'https://w6.filmworld01.buzz/serials-2025/'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 18:59:37,193 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 18:59:37,194 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 18:59:37,194 - app.logger - INFO - 🔍 Final external API result for https://w6.filmworld01.buzz/serials-2025/: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 18:59:37,194 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 18:59:37,195 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://w6.filmworld01.buzz/serials-2025/: safe=None
+2025-12-15 18:59:37,195 - app.logger - WARNING - External APIs returned None for https://w6.filmworld01.buzz/serials-2025/, using heuristic analysis
+2025-12-15 18:59:37,198 - app.logger - INFO - [WS] URL analysis completed for https://w6.filmworld01.buzz/serials-2025/: safe=True, source=heuristic
+2025-12-15 18:59:37,199 - app.logger - INFO - [WS] Sent analysis_result for https://w6.filmworld01.buzz/serials-2025/ to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 18:59:39,226 - app.logger - INFO - [WS] Starting URL analysis for: https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html (context: link_check)
+2025-12-15 18:59:39,227 - app.logger - INFO - 🔍 Analyzing URL: https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html (ignore_db=False)
+2025-12-15 18:59:39,231 - app.logger - INFO - 🔍 Checking external APIs for: https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html
+2025-12-15 18:59:39,735 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html
+2025-12-15 18:59:41,022 - app.logger - INFO - URL submitted for analysis, ID: u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0
+2025-12-15 18:59:42,205 - app.logger - INFO - VirusTotal analysis status (u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0): completed (attempt 1/5)
+2025-12-15 18:59:42,207 - app.logger - INFO - 🔍 Combining external results for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html: {'virustotal': {'data': {'id': 'u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0'}, 'attributes': {'status': 'completed', 'url': 'https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html', 'date': 1765814379, 'results': {}, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': ''}}, 'meta': {'url_info': {'id': '5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8', 'url': 'https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 18:59:42,207 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 18:59:42,207 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8-6d7739f0'}, 'attributes': {'status': 'completed', 'url': 'https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html', 'date': 1765814379, 'results': {}, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': ''}}, 'meta': {'url_info': {'id': '5765b7656a94e18be9143962c8956aafb6e1192a2dc13c702a3cb011be4d5fe8', 'url': 'https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 18:59:42,207 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 18:59:42,207 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 18:59:42,208 - app.logger - INFO - 🔍 Final external API result for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 18:59:42,208 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 18:59:42,209 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html: safe=None
+2025-12-15 18:59:42,209 - app.logger - WARNING - External APIs returned None for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html, using heuristic analysis
+2025-12-15 18:59:42,213 - app.logger - INFO - [WS] URL analysis completed for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html: safe=True, source=heuristic
+2025-12-15 18:59:42,213 - app.logger - INFO - [WS] Sent analysis_result for https://w6.filmworld01.buzz/filmy-na-hellouin-2025/50730-ono-dobro-pozhalovat-v-derri.html to client 1ba3e32f-73e8-4319-b552-9c0849bc2f15
+2025-12-15 19:00:11,620 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0%20%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F%20%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F (context: link_check)
+2025-12-15 19:00:11,621 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0%20%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F%20%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F (ignore_db=False)
+2025-12-15 19:00:11,625 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F
+2025-12-15 19:00:14,343 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F
+2025-12-15 19:00:16,736 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-15 19:00:16,736 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-15 19:00:16,741 - app.logger - INFO - [WS] Client connected: id=28668cd2-26ec-40ef-9198-f0957bbebcfa, ip=185.46.16.165
+2025-12-15 19:00:16,865 - app.logger - INFO - URL submitted for analysis, ID: u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe
+2025-12-15 19:00:16,872 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-15 19:00:16,873 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-15 19:00:16,874 - app.logger - INFO - [WS] Client connected: id=0b4ace81-a98e-4b2b-a734-f4bfabe1fd5f, ip=185.46.16.165
+2025-12-15 19:00:18,820 - app.logger - INFO - VirusTotal analysis status (u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe): completed (attempt 1/5)
+2025-12-15 19:00:18,822 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F: {'virustotal': {'data': {'id': 'u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe'}, 'attributes': {'url': 'https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F', 'results': {}, 'date': 1765814415, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'status': 'completed'}}, 'meta': {'url_info': {'id': '504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8', 'url': 'https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:00:18,822 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:00:18,822 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8-be6b9efe'}, 'attributes': {'url': 'https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F', 'results': {}, 'date': 1765814415, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'status': 'completed'}}, 'meta': {'url_info': {'id': '504763fb1545f4f8e0a9ed1878665bfd96c1bee68412d56495cc5b2dfcb8e0b8', 'url': 'https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:00:18,823 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:00:18,823 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:00:18,823 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:00:18,823 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:00:18,823 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F: safe=None
+2025-12-15 19:00:18,824 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0+%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F+%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F, using heuristic analysis
+2025-12-15 19:00:18,829 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0%20%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F%20%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F: safe=True, source=heuristic
+2025-12-15 19:00:18,830 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/search/?from_global=true&text=%D0%BF%D0%B0%D1%80%D0%BA%D0%B0%20%D0%BC%D1%83%D0%B6%D1%81%D0%BA%D0%B0%D1%8F%20%D0%B7%D0%B8%D0%BC%D0%BD%D1%8F%D1%8F to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:00:26,501 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7 (context: link_check)
+2025-12-15 19:00:26,502 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7 (ignore_db=False)
+2025-12-15 19:00:26,506 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7
+2025-12-15 19:00:27,837 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7
+2025-12-15 19:00:31,066 - app.logger - INFO - URL submitted for analysis, ID: u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098
+2025-12-15 19:00:32,954 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-15 19:00:32,955 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-15 19:00:32,955 - app.logger - INFO - [WS] Client connected: id=2d50dea4-0068-4680-8aee-4ad86946ce22, ip=185.46.16.165
+2025-12-15 19:00:34,229 - app.logger - INFO - VirusTotal analysis status (u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098): completed (attempt 1/5)
+2025-12-15 19:00:34,232 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7: {'virustotal': {'data': {'id': 'u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098'}, 'attributes': {'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'results': {}, 'date': 1765814430, 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7'}}, 'meta': {'url_info': {'id': '622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:00:34,232 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:00:34,232 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4-569ae098'}, 'attributes': {'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'user_agent': '', 'results': {}, 'date': 1765814430, 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7'}}, 'meta': {'url_info': {'id': '622e6d0d96e8fd1f4d011baf6a18bcba3a490cd3f73a044c3f161b35fce07af4', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:00:34,233 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:00:34,233 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:00:34,233 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:00:34,234 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:00:34,234 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7: safe=None
+2025-12-15 19:00:34,234 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7, using heuristic analysis
+2025-12-15 19:00:34,238 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7: safe=True, source=heuristic
+2025-12-15 19:00:34,239 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7 to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:00:53,356 - app.logger - INFO - [WS] Client disconnected gracefully: 0b4ace81-a98e-4b2b-a734-f4bfabe1fd5f
+2025-12-15 19:00:53,357 - app.logger - INFO - [WS] Client disconnected: id=0b4ace81-a98e-4b2b-a734-f4bfabe1fd5f, reason=cleanup
+2025-12-15 19:01:04,958 - app.logger - INFO - [WS] WebSocket connection attempt from 185.46.16.165
+2025-12-15 19:01:04,959 - app.logger - INFO - [WS] WebSocket connection accepted from 185.46.16.165
+2025-12-15 19:01:04,960 - app.logger - INFO - [WS] Client connected: id=5a7ece0a-4896-4617-9371-9281bd1e4df4, ip=185.46.16.165
+2025-12-15 19:01:43,429 - app.logger - INFO - [WS] Starting URL analysis for: https://vk.com/audios826952128?section=all (context: link_check)
+2025-12-15 19:01:43,430 - app.logger - INFO - 🔍 Analyzing URL: https://vk.com/audios826952128?section=all (ignore_db=False)
+2025-12-15 19:01:43,438 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://vk.com/audios826952128?section=all
+2025-12-15 19:01:43,438 - app.logger - INFO - [WS] URL analysis completed for https://vk.com/audios826952128?section=all: safe=True, source=external_apis
+2025-12-15 19:01:43,439 - app.logger - INFO - [WS] Sent analysis_result for https://vk.com/audios826952128?section=all to client 53dc7014-8128-4689-8b7a-75aaae45d400
+2025-12-15 19:01:49,261 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:01:49,261 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:01:49,266 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:49,604 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:49,925 - app.logger - INFO - URL submitted for analysis, ID: u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45
+2025-12-15 19:01:50,299 - app.logger - INFO - VirusTotal analysis status (u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45): completed (attempt 1/5)
+2025-12-15 19:01:50,300 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: {'virustotal': {'data': {'id': 'u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45'}, 'attributes': {'date': 1765814509, 'user_agent': '', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'results': {}, 'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': 'db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:01:50,301 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:01:50,302 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c-b89cef45'}, 'attributes': {'date': 1765814509, 'user_agent': '', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'results': {}, 'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': 'db2fd3b36a9eacba4f062baabe0a4ca9f909c452baba4378cb3faed9fe8b440c', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:01:50,302 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:01:50,303 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:01:50,303 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:01:50,303 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:01:50,304 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None
+2025-12-15 19:01:50,304 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:01:50,308 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:01:50,309 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-202484535/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:01:54,668 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:01:54,668 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:01:54,673 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:54,993 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:55,551 - app.logger - INFO - URL submitted for analysis, ID: u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99
+2025-12-15 19:01:55,848 - app.logger - INFO - VirusTotal analysis status (u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99): completed (attempt 1/5)
+2025-12-15 19:01:55,849 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: {'virustotal': {'data': {'id': 'u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99'}, 'attributes': {'date': 1765814515, 'results': {}, 'user_agent': '', 'status': 'completed', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': 'b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:01:55,849 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:01:55,849 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809-2df91c99'}, 'attributes': {'date': 1765814515, 'results': {}, 'user_agent': '', 'status': 'completed', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}}}, 'meta': {'url_info': {'id': 'b9c23019931cda52afacd04da0c5fd36961f99e871b00ffdebfc98373020b809', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:01:55,849 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:01:55,849 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:01:55,850 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:01:55,850 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:01:55,850 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None
+2025-12-15 19:01:55,851 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:01:55,853 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:01:55,854 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-202484488/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:01:57,206 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:01:57,207 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:01:57,212 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:57,533 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:01:57,805 - app.logger - INFO - URL submitted for analysis, ID: u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150
+2025-12-15 19:01:58,102 - app.logger - INFO - VirusTotal analysis status (u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150): completed (attempt 1/5)
+2025-12-15 19:01:58,103 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: {'virustotal': {'data': {'id': 'u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150'}, 'attributes': {'results': {}, 'date': 1765814517, 'user_agent': '', 'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}}, 'meta': {'url_info': {'id': 'fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:01:58,103 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:01:58,104 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c-ac7fb150'}, 'attributes': {'results': {}, 'date': 1765814517, 'user_agent': '', 'status': 'completed', 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}}, 'meta': {'url_info': {'id': 'fdf6b689fa1e0aff58105d683e858119f5377770ccc6a2cb258b5910302e208c', 'url': 'https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:01:58,104 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:01:58,105 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:01:58,105 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:01:58,105 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:01:58,106 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None
+2025-12-15 19:01:58,106 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:01:58,109 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:01:58,110 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-202484543/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:02:10,267 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:02:10,267 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:02:10,272 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:10,615 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:10,901 - app.logger - INFO - URL submitted for analysis, ID: u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0
+2025-12-15 19:02:11,168 - app.logger - INFO - VirusTotal analysis status (u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0): completed (attempt 1/5)
+2025-12-15 19:02:11,169 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: {'virustotal': {'data': {'id': 'u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0'}, 'attributes': {'status': 'completed', 'user_agent': '', 'url': 'https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'date': 1765814530, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'results': {}}}, 'meta': {'url_info': {'id': '3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9', 'url': 'https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:02:11,170 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:02:11,170 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9-c81a68f0'}, 'attributes': {'status': 'completed', 'user_agent': '', 'url': 'https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'date': 1765814530, 'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'results': {}}}, 'meta': {'url_info': {'id': '3406f43e11ef7afe2837f98cde02af6f5e06587c149edceea0e33746b63187b9', 'url': 'https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:02:11,170 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:02:11,170 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:02:11,170 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:02:11,170 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:02:11,171 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None
+2025-12-15 19:02:11,171 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:02:11,174 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:02:11,174 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:02:13,980 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:02:13,980 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:02:13,986 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:14,301 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:14,625 - app.logger - INFO - URL submitted for analysis, ID: u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3
+2025-12-15 19:02:14,884 - app.logger - INFO - VirusTotal analysis status (u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3): completed (attempt 1/5)
+2025-12-15 19:02:14,885 - app.logger - INFO - 🔍 Combining external results for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: {'virustotal': {'data': {'id': 'u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3'}, 'attributes': {'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'url': 'https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'results': {}, 'status': 'completed', 'user_agent': '', 'date': 1765814534}}, 'meta': {'url_info': {'id': 'c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6', 'url': 'https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}}
+2025-12-15 19:02:14,886 - app.logger - INFO - [VirusTotal] Raw stats: malicious=0 suspicious=0 undetected=0 harmless=0 total=0 ratio=0/0 (results=0)
+2025-12-15 19:02:14,886 - app.logger - WARNING - [VirusTotal] No analysis stats available for result: {'data': {'id': 'u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3', 'type': 'url_analysis', 'links': {'self': 'https://www.virustotal.com/api/v3/url_analyses/u-c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6-fad2b6f3'}, 'attributes': {'stats': {'malicious': 0, 'suspicious': 0, 'undetected': 0, 'harmless': 0, 'timeout': 0, 'confirmed_timeout': 0, 'failure': 0, 'type_unsupported': 0}, 'url': 'https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false', 'results': {}, 'status': 'completed', 'user_agent': '', 'date': 1765814534}}, 'meta': {'url_info': {'id': 'c2ec33be684ac1eaebe08ea57e2b4ba4ef0f187e85b9248d64c59313627916b6', 'url': 'https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false'}, 'file_info': {'sha256': ''}}}, returning None for heuristic fallback
+2025-12-15 19:02:14,887 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'threat_type': None, 'details': 'VirusTotal: No analysis data available', 'external_scan': 'virustotal', 'confidence': 0, 'detection_ratio': '0/0'}
+2025-12-15 19:02:14,887 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:02:14,888 - app.logger - INFO - 🔍 Final external API result for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:02:14,888 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:02:14,888 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=None
+2025-12-15 19:02:14,889 - app.logger - WARNING - External APIs returned None for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:02:14,893 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:02:14,894 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-416534990/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:02:17,508 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (context: link_check)
+2025-12-15 19:02:17,508 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false (ignore_db=False)
+2025-12-15 19:02:17,509 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:17,516 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:17,795 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:02:19,023 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:02:21,266 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:02:25,267 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:25,518 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false
+2025-12-15 19:02:25,518 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false, using heuristic analysis
+2025-12-15 19:02:25,521 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:02:25,522 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-sprut-237196133/?at=K8tZ5rE9lCL9PqxPfGwyWpzcxzQzL1ULo720PCAA32M7&from_sku=202484543&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:02:36,058 - app.logger - INFO - [WS] Starting URL analysis for: https://www.youtube.com/watch?v=ReuTyIhBesk (context: hover)
+2025-12-15 19:02:36,059 - app.logger - INFO - 🔍 Analyzing URL: https://www.youtube.com/watch?v=ReuTyIhBesk (ignore_db=False)
+2025-12-15 19:02:36,065 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/watch?v=ReuTyIhBesk
+2025-12-15 19:02:36,066 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/watch?v=ReuTyIhBesk: safe=True, source=external_apis
+2025-12-15 19:02:36,067 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/watch?v=ReuTyIhBesk to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:02:37,081 - app.logger - INFO - [WS] Starting URL analysis for: https://www.youtube.com/@PJAlphaMusic (context: hover)
+2025-12-15 19:02:37,082 - app.logger - INFO - 🔍 Analyzing URL: https://www.youtube.com/@PJAlphaMusic (ignore_db=False)
+2025-12-15 19:02:37,086 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/@PJAlphaMusic
+2025-12-15 19:02:37,087 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/@PJAlphaMusic: safe=True, source=external_apis
+2025-12-15 19:02:37,088 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/@PJAlphaMusic to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:02:44,558 - app.logger - INFO - [WS] Starting URL analysis for: https://www.youtube.com/watch?v=QlQS-Y_8-iA (context: hover)
+2025-12-15 19:02:44,558 - app.logger - INFO - 🔍 Analyzing URL: https://www.youtube.com/watch?v=QlQS-Y_8-iA (ignore_db=False)
+2025-12-15 19:02:44,562 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/watch?v=QlQS-Y_8-iA
+2025-12-15 19:02:44,563 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/watch?v=QlQS-Y_8-iA: safe=True, source=external_apis
+2025-12-15 19:02:44,563 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/watch?v=QlQS-Y_8-iA to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:02:46,034 - app.logger - INFO - [WS] Starting URL analysis for: https://www.youtube.com/watch?v=vyQdm3EzP7M (context: hover)
+2025-12-15 19:02:46,034 - app.logger - INFO - 🔍 Analyzing URL: https://www.youtube.com/watch?v=vyQdm3EzP7M (ignore_db=False)
+2025-12-15 19:02:46,042 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/watch?v=vyQdm3EzP7M
+2025-12-15 19:02:46,043 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/watch?v=vyQdm3EzP7M: safe=True, source=external_apis
+2025-12-15 19:02:46,043 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/watch?v=vyQdm3EzP7M to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:04,935 - app.logger - INFO - [WS] Starting URL analysis for: https://www.youtube.com/watch?v=80s7EjyT_jk&list=RD80s7EjyT_jk&start_radio=1&pp=0gcJCbAEOCosWNin (context: hover)
+2025-12-15 19:03:04,935 - app.logger - INFO - 🔍 Analyzing URL: https://www.youtube.com/watch?v=80s7EjyT_jk&list=RD80s7EjyT_jk&start_radio=1&pp=0gcJCbAEOCosWNin (ignore_db=False)
+2025-12-15 19:03:04,940 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.youtube.com/watch?v=80s7EjyT_jk
+2025-12-15 19:03:04,940 - app.logger - INFO - [WS] URL analysis completed for https://www.youtube.com/watch?v=80s7EjyT_jk&list=RD80s7EjyT_jk&start_radio=1&pp=0gcJCbAEOCosWNin: safe=True, source=external_apis
+2025-12-15 19:03:04,941 - app.logger - INFO - [WS] Sent analysis_result for https://www.youtube.com/watch?v=80s7EjyT_jk&list=RD80s7EjyT_jk&start_radio=1&pp=0gcJCbAEOCosWNin to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:19,401 - app.logger - INFO - [WS] Starting URL analysis for: https://www.twitch.tv/meoline_ (context: hover)
+2025-12-15 19:03:19,401 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/meoline_ (ignore_db=False)
+2025-12-15 19:03:19,406 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/meoline_
+2025-12-15 19:03:19,704 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:21,036 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:23,296 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:27,298 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.twitch.tv/meoline_
+2025-12-15 19:03:27,408 - app.logger - ERROR - External API check timed out for https://www.twitch.tv/meoline_
+2025-12-15 19:03:27,409 - app.logger - WARNING - External APIs did not return result for https://www.twitch.tv/meoline_, using heuristic analysis
+2025-12-15 19:03:27,412 - app.logger - INFO - [WS] URL analysis completed for https://www.twitch.tv/meoline_: safe=True, source=heuristic
+2025-12-15 19:03:27,413 - app.logger - INFO - [WS] Sent analysis_result for https://www.twitch.tv/meoline_ to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:27,413 - app.logger - INFO - [WS] Starting URL analysis for: https://www.twitch.tv/dota2_paragon_ru (context: link_check)
+2025-12-15 19:03:27,414 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/dota2_paragon_ru (ignore_db=False)
+2025-12-15 19:03:27,418 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:28,565 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:29,800 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:30,396 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE (context: link_check)
+2025-12-15 19:03:30,397 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE (ignore_db=False)
+2025-12-15 19:03:30,401 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE
+2025-12-15 19:03:30,403 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d4e7130>
+2025-12-15 19:03:30,404 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d6056c0>, 1273756.05850406)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d669d50>
+2025-12-15 19:03:30,695 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:32,017 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:32,170 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:34,249 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:35,420 - app.logger - ERROR - External API check timed out for https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:35,421 - app.logger - WARNING - External APIs did not return result for https://www.twitch.tv/dota2_paragon_ru, using heuristic analysis
+2025-12-15 19:03:35,423 - app.logger - INFO - [WS] URL analysis completed for https://www.twitch.tv/dota2_paragon_ru: safe=True, source=heuristic
+2025-12-15 19:03:35,424 - app.logger - INFO - [WS] Sent analysis_result for https://www.twitch.tv/dota2_paragon_ru to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:35,424 - app.logger - INFO - [WS] Starting URL analysis for: https://www.twitch.tv/dota2_paragon_ru (context: hover)
+2025-12-15 19:03:35,424 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/dota2_paragon_ru (ignore_db=False)
+2025-12-15 19:03:35,425 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:35,432 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:35,759 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:36,612 - app.logger - INFO - [CHECK_URL] Request from HOVER: url=https://www.twitch.tv/dota2_paragon_ru, has_api_key=True, ip=146.158.118.28
+2025-12-15 19:03:36,613 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/dota2_paragon_ru (ignore_db=False)
+2025-12-15 19:03:36,619 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:36,620 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794f7b19c0>
+2025-12-15 19:03:36,621 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d555780>, 1273762.017278114)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d611f00>
+2025-12-15 19:03:36,925 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:37,434 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:38,217 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:38,250 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE
+2025-12-15 19:03:38,403 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE
+2025-12-15 19:03:38,403 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE, using heuristic analysis
+2025-12-15 19:03:38,407 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE: safe=True, source=heuristic
+2025-12-15 19:03:38,407 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/parka-puhoviki-muzhskie-2234559073/?at=LZtlnYjXATorNoErszRBlPqsK853oKTVZNR7jTJ907YE to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:03:39,435 - app.logger - ERROR - virustotal API error (attempt 1/2): RuntimeError: Session is closed
+2025-12-15 19:03:39,436 - app.logger - ERROR - virustotal check failed: Session is closed
+2025-12-15 19:03:39,436 - app.logger - INFO - 🔍 Combining external results for https://www.twitch.tv/dota2_paragon_ru: {'virustotal': {'error': 'Session is closed'}}
+2025-12-15 19:03:39,436 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-15 19:03:39,436 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:03:39,436 - app.logger - INFO - 🔍 Final external API result for https://www.twitch.tv/dota2_paragon_ru: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:03:39,437 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:03:39,437 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://www.twitch.tv/dota2_paragon_ru: safe=None
+2025-12-15 19:03:39,437 - app.logger - WARNING - External APIs returned None for https://www.twitch.tv/dota2_paragon_ru, using heuristic analysis
+2025-12-15 19:03:39,441 - app.logger - INFO - [WS] URL analysis completed for https://www.twitch.tv/dota2_paragon_ru: safe=True, source=heuristic
+2025-12-15 19:03:39,442 - app.logger - INFO - [WS] Sent analysis_result for https://www.twitch.tv/dota2_paragon_ru to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:39,442 - app.logger - INFO - [WS] Starting URL analysis for: https://www.twitch.tv/dota2_paragon_ru (context: hover)
+2025-12-15 19:03:39,443 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/dota2_paragon_ru (ignore_db=False)
+2025-12-15 19:03:39,443 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:39,450 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:39,752 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:40,185 - app.logger - INFO - [CHECK_URL] Request from HOVER: url=https://www.twitch.tv/dota2_paragon_ru, has_api_key=True, ip=146.158.118.28
+2025-12-15 19:03:40,185 - app.logger - INFO - 🔍 Analyzing URL: https://www.twitch.tv/dota2_paragon_ru (ignore_db=False)
+2025-12-15 19:03:40,190 - app.logger - INFO - 🔍 Checking external APIs for: https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:40,190 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d68d630>
+2025-12-15 19:03:40,191 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794f7ab580>, 1273766.010734691)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d57de70>
+2025-12-15 19:03:40,654 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:03:40,725 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:40,996 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:42,078 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:03:43,609 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:44,484 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:03:44,621 - app.logger - ERROR - External API check timed out for https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:44,622 - app.logger - WARNING - External APIs did not return result for https://www.twitch.tv/dota2_paragon_ru, using heuristic analysis
+2025-12-15 19:03:44,625 - app.logger - INFO - [CHECK_URL] Result (HOVER): safe=True, source=heuristic
+2025-12-15 19:03:47,451 - app.logger - ERROR - External API check timed out for https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:47,452 - app.logger - WARNING - External APIs did not return result for https://www.twitch.tv/dota2_paragon_ru, using heuristic analysis
+2025-12-15 19:03:47,455 - app.logger - INFO - [WS] URL analysis completed for https://www.twitch.tv/dota2_paragon_ru: safe=True, source=heuristic
+2025-12-15 19:03:47,456 - app.logger - INFO - [WS] Sent analysis_result for https://www.twitch.tv/dota2_paragon_ru to client 1e490438-1bed-4624-8c73-a77d490e7c14
+2025-12-15 19:03:48,190 - app.logger - ERROR - External API check timed out for https://www.twitch.tv/dota2_paragon_ru
+2025-12-15 19:03:48,191 - app.logger - WARNING - External APIs did not return result for https://www.twitch.tv/dota2_paragon_ru, using heuristic analysis
+2025-12-15 19:03:48,194 - app.logger - INFO - [CHECK_URL] Result (HOVER): safe=True, source=heuristic
+2025-12-15 19:04:31,876 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30 (context: link_check)
+2025-12-15 19:04:31,877 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30 (ignore_db=False)
+2025-12-15 19:04:31,881 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30
+2025-12-15 19:04:32,540 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:04:34,558 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:04:37,009 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:04:39,883 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30
+2025-12-15 19:04:39,883 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30, using heuristic analysis
+2025-12-15 19:04:39,886 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30: safe=True, source=heuristic
+2025-12-15 19:04:39,887 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-yoge-2925930767/?at=46tRK706yIOMmoRpukV09qPT9r0x5DtNN8pKKcglKM30 to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:06:08,177 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq (context: link_check)
+2025-12-15 19:06:08,179 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq (ignore_db=False)
+2025-12-15 19:06:08,188 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq
+2025-12-15 19:06:08,500 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:06:09,742 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:06:11,984 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:06:15,985 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq
+2025-12-15 19:06:16,190 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq
+2025-12-15 19:06:16,191 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq, using heuristic analysis
+2025-12-15 19:06:16,194 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq: safe=True, source=heuristic
+2025-12-15 19:06:16,194 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-kitamba-2704980872/?at=r2t4lDV6ph5WwQr4cvjAr4NhLPKqoRS9k7NwPI89A1gq to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:06:40,748 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY (context: link_check)
+2025-12-15 19:06:40,748 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY (ignore_db=False)
+2025-12-15 19:06:40,753 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY
+2025-12-15 19:06:41,067 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:06:42,305 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:06:44,565 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:06:48,566 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY
+2025-12-15 19:06:48,755 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY
+2025-12-15 19:06:48,755 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY, using heuristic analysis
+2025-12-15 19:06:48,758 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY: safe=True, source=heuristic
+2025-12-15 19:06:48,759 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-1278981078/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:06:56,114 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false (context: link_check)
+2025-12-15 19:06:56,114 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false (ignore_db=False)
+2025-12-15 19:06:56,122 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:06:56,427 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:06:57,661 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:06:59,882 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:07:03,884 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:07:04,124 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:07:04,125 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false, using heuristic analysis
+2025-12-15 19:07:04,131 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:07:04,131 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-utsenennyy-tovar-3210170482/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:07:19,697 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false (context: link_check)
+2025-12-15 19:07:19,697 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false (ignore_db=False)
+2025-12-15 19:07:19,705 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:07:20,069 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:07:21,326 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:07:23,591 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:07:27,591 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:07:27,707 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false
+2025-12-15 19:07:27,707 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false, using heuristic analysis
+2025-12-15 19:07:27,710 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:07:27,711 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-yarmarka-palto-zimnyaya-735184177/?at=Eqtk569nmFNNw3Gxc4XQw39UlD1KwkSmMXEZzigVAJRY&from_sku=1278981078&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:07:34,473 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3 (context: link_check)
+2025-12-15 19:07:34,473 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3 (ignore_db=False)
+2025-12-15 19:07:34,480 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3
+2025-12-15 19:07:34,776 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:07:36,020 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:07:38,881 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:07:42,482 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3
+2025-12-15 19:07:42,483 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3, using heuristic analysis
+2025-12-15 19:07:42,486 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3: safe=True, source=heuristic
+2025-12-15 19:07:42,487 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-2770299196/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3 to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:07:50,252 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false (context: link_check)
+2025-12-15 19:07:50,252 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false (ignore_db=False)
+2025-12-15 19:07:50,257 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false
+2025-12-15 19:07:50,621 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:07:51,871 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:07:54,163 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:07:58,165 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false
+2025-12-15 19:07:58,259 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false
+2025-12-15 19:07:58,260 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false, using heuristic analysis
+2025-12-15 19:07:58,266 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:07:58,268 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-2505125919/?at=x6tPoQMByCPz1R0QigW5GRruqmD3BkukRw5V9fNwPmq3&from_sku=2770299196&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:08:11,809 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM (context: link_check)
+2025-12-15 19:08:11,809 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM (ignore_db=False)
+2025-12-15 19:08:11,814 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM
+2025-12-15 19:08:12,135 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:08:13,408 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:08:15,633 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:08:19,633 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM
+2025-12-15 19:08:19,815 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM
+2025-12-15 19:08:19,816 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM, using heuristic analysis
+2025-12-15 19:08:19,819 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM: safe=True, source=heuristic
+2025-12-15 19:08:19,819 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/kurtka-kerna-kurtka-2812949429/?at=A6tGA16Vgcq4kxR7sD92XAgcq56VzmF5691KLH6RPNJM to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:08:42,147 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G (context: link_check)
+2025-12-15 19:08:42,148 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G (ignore_db=False)
+2025-12-15 19:08:42,157 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G
+2025-12-15 19:08:42,681 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:08:43,983 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:08:46,233 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:08:50,159 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G
+2025-12-15 19:08:50,160 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G, using heuristic analysis
+2025-12-15 19:08:50,163 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G: safe=True, source=heuristic
+2025-12-15 19:08:50,163 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/parka-1709459937/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:09:33,001 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:09:33,003 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:09:33,011 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:33,308 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:09:34,541 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:09:36,758 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:09:40,509 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false (context: link_check)
+2025-12-15 19:09:40,510 - app.logger - INFO - 🔍 Analyzing URL: https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false (ignore_db=False)
+2025-12-15 19:09:40,517 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false
+2025-12-15 19:09:40,518 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d669060>
+2025-12-15 19:09:40,518 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d607f40>, 1274123.016915172)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d68cac0>
+2025-12-15 19:09:40,760 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:40,878 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:09:41,013 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:09:41,013 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:09:41,016 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=heuristic
+2025-12-15 19:09:41,017 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:09:41,017 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:09:41,018 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:09:41,018 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://tarkov-market.com/maps/streets
+2025-12-15 19:09:41,024 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:41,395 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:09:42,118 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:09:42,797 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:09:44,358 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:09:45,098 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:09:48,359 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false
+2025-12-15 19:09:48,519 - app.logger - ERROR - External API check timed out for https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false
+2025-12-15 19:09:48,519 - app.logger - WARNING - External APIs did not return result for https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false, using heuristic analysis
+2025-12-15 19:09:48,522 - app.logger - INFO - [WS] URL analysis completed for https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false: safe=True, source=heuristic
+2025-12-15 19:09:48,523 - app.logger - INFO - [WS] Sent analysis_result for https://www.ozon.ru/product/parka-1709459968/?at=6WtZYGOMECBDKWJYsAQ2gJ7HQz28WLs71EkxvuXjY61G&from_sku=1709459937&oos_search=false to client 4fda66c7-e2a0-4614-801c-05f2a85e7a75
+2025-12-15 19:09:49,025 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:09:49,026 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:09:49,029 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=heuristic
+2025-12-15 19:09:49,029 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:09:49,030 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:09:49,030 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:09:49,030 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://tarkov-market.com/maps/streets
+2025-12-15 19:09:49,037 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:49,384 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:09:50,737 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:09:52,974 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:09:56,975 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:57,038 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:09:57,039 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:09:57,042 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=heuristic
+2025-12-15 19:09:57,043 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:09:57,043 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:09:57,043 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:09:57,044 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://tarkov-market.com/maps/streets
+2025-12-15 19:09:57,049 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:09:57,362 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:09:58,678 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:01,122 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:01,977 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://tarkov-market.com/maps/streets#, has_api_key=False, ip=145.255.9.45
+2025-12-15 19:10:01,978 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:01,984 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:01,985 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d64e7a0>
+2025-12-15 19:10:01,986 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d6b0040>, 1274147.380289953)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d64e1d0>
+2025-12-15 19:10:02,551 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:02,994 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://tarkov-market.com/maps/streets#, has_api_key=False, ip=145.255.9.45
+2025-12-15 19:10:02,995 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:02,999 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:03,000 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d68fdf0>
+2025-12-15 19:10:03,001 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d6b2020>, 1274148.809772826)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d68e500>
+2025-12-15 19:10:03,308 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:03,784 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:03,853 - app.logger - INFO - [WS] Starting URL analysis for: https://www.minispelletjes.com/spel/red-ball-5 (context: link_check)
+2025-12-15 19:10:03,854 - app.logger - INFO - 🔍 Analyzing URL: https://www.minispelletjes.com/spel/red-ball-5 (ignore_db=False)
+2025-12-15 19:10:03,858 - app.logger - INFO - 🔍 Checking external APIs for: https://www.minispelletjes.com/spel/red-ball-5
+2025-12-15 19:10:03,859 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d4d9480>
+2025-12-15 19:10:03,859 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d6b18a0>, 1274150.042726344)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d4db790>
+2025-12-15 19:10:04,020 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://tarkov-market.com/maps/streets#, has_api_key=False, ip=145.255.9.45
+2025-12-15 19:10:04,021 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:04,027 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:04,311 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d636bf0>
+2025-12-15 19:10:04,312 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d6b1a80>, 1274150.569166615)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d5daad0>
+2025-12-15 19:10:04,312 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:04,479 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:04,571 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:05,051 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:10:05,053 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:05,057 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=heuristic
+2025-12-15 19:10:05,057 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:10:05,058 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:10:05,059 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:05,059 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://tarkov-market.com/maps/streets
+2025-12-15 19:10:05,066 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:05,455 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:05,648 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:05,768 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:06,036 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:06,812 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:06,907 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:07,012 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://tarkov-market.com/maps/streets#, has_api_key=False, ip=145.255.9.45
+2025-12-15 19:10:07,012 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:07,017 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:07,018 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d5d8400>
+2025-12-15 19:10:07,019 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d3cdc60>, 1274153.071138379), (<aiohttp.client_proto.ResponseHandler object at 0x7f794d579060>, 1274153.165766694)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d5dbb50>
+2025-12-15 19:10:07,727 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:08,102 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:08,210 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:09,020 - app.logger - INFO - [CHECK_URL] Request from POPUP: url=https://tarkov-market.com/maps/streets#, has_api_key=False, ip=145.255.9.45
+2025-12-15 19:10:09,021 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:09,025 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:09,179 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:10:09,252 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f794d4db7c0>
+2025-12-15 19:10:09,253 - asyncio - ERROR - Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f794d3cfa60>, 1274155.437883483), (<aiohttp.client_proto.ResponseHandler object at 0x7f794d604a60>, 1274155.510706292)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f794d4ecac0>
+2025-12-15 19:10:09,254 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:10:09,428 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:10:09,987 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:10:09,988 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:09,991 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=heuristic
+2025-12-15 19:10:10,429 - app.logger - ERROR - virustotal API error (attempt 1/2): RuntimeError: Session is closed
+2025-12-15 19:10:10,430 - app.logger - ERROR - virustotal check failed: Session is closed
+2025-12-15 19:10:10,431 - app.logger - INFO - 🔍 Combining external results for https://tarkov-market.com/maps/streets: {'virustotal': {'error': 'Session is closed'}}
+2025-12-15 19:10:10,431 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-15 19:10:10,431 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:10:10,431 - app.logger - INFO - 🔍 Final external API result for https://tarkov-market.com/maps/streets: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:10:10,432 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:10:10,432 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://tarkov-market.com/maps/streets: safe=None
+2025-12-15 19:10:10,433 - app.logger - WARNING - External APIs returned None for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:10,436 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=heuristic
+2025-12-15 19:10:10,813 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:10,813 - app.logger - ERROR - VirusTotal URL submission exception: Session is closed
+Traceback (most recent call last):
+  File "/opt/aegis/antivirus-core/app/external_apis/virustotal.py", line 56, in check_url
+    async with self.session.post(submit_url, data=form_data, headers=headers) as resp:
+  File "/opt/aegis/antivirus-core/venv/lib/python3.10/site-packages/aiohttp/client.py", line 1510, in __aenter__
+    self._resp: _RetType = await self._coro
+  File "/opt/aegis/antivirus-core/venv/lib/python3.10/site-packages/aiohttp/client.py", line 529, in _request
+    raise RuntimeError("Session is closed")
+RuntimeError: Session is closed
+2025-12-15 19:10:10,814 - app.logger - INFO - 🔍 Combining external results for https://tarkov-market.com/maps/streets: {'virustotal': None}
+2025-12-15 19:10:10,814 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:10:10,815 - app.logger - WARNING - No valid parsed results for https://tarkov-market.com/maps/streets, returning None for heuristic fallback
+2025-12-15 19:10:10,815 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:10:10,815 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://tarkov-market.com/maps/streets: safe=None
+2025-12-15 19:10:10,815 - app.logger - WARNING - External APIs returned None for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:10,819 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=heuristic
+2025-12-15 19:10:11,180 - app.logger - ERROR - virustotal API error (attempt 1/2): RuntimeError: Session is closed
+2025-12-15 19:10:11,181 - app.logger - ERROR - virustotal check failed: Session is closed
+2025-12-15 19:10:11,181 - app.logger - INFO - 🔍 Combining external results for https://tarkov-market.com/maps/streets: {'virustotal': {'error': 'Session is closed'}}
+2025-12-15 19:10:11,181 - app.logger - INFO - 🔍 VirusTotal parsed result: {'safe': None, 'external_scan': 'failed', 'details': 'VirusTotal: No data available'}
+2025-12-15 19:10:11,181 - app.logger - INFO - No results from APIs - returning None for heuristic fallback
+2025-12-15 19:10:11,181 - app.logger - INFO - 🔍 Final external API result for https://tarkov-market.com/maps/streets: safe=None, threat_type=None, details=Unable to determine safety
+2025-12-15 19:10:11,181 - app.logger - INFO - 🔍 External API result: safe=None, threat_type=None
+2025-12-15 19:10:11,182 - app.logger - WARNING - ⚠️ External APIs returned unclear result for https://tarkov-market.com/maps/streets: safe=None
+2025-12-15 19:10:11,182 - app.logger - WARNING - External APIs returned None for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:11,185 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=heuristic
+2025-12-15 19:10:11,859 - app.logger - ERROR - External API check timed out for https://www.minispelletjes.com/spel/red-ball-5
+2025-12-15 19:10:11,860 - app.logger - WARNING - External APIs did not return result for https://www.minispelletjes.com/spel/red-ball-5, using heuristic analysis
+2025-12-15 19:10:11,864 - app.logger - INFO - [WS] URL analysis completed for https://www.minispelletjes.com/spel/red-ball-5: safe=True, source=heuristic
+2025-12-15 19:10:11,864 - app.logger - INFO - [WS] Sent analysis_result for https://www.minispelletjes.com/spel/red-ball-5 to client b4a2ec66-00b7-4224-afd3-531a7e8eba89
+2025-12-15 19:10:12,028 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:10:12,028 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:12,032 - app.logger - INFO - [CHECK_URL] Result (POPUP): safe=True, source=heuristic
+2025-12-15 19:10:13,068 - app.logger - ERROR - External API check timed out for https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,068 - app.logger - WARNING - External APIs did not return result for https://tarkov-market.com/maps/streets, using heuristic analysis
+2025-12-15 19:10:13,072 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=heuristic
+2025-12-15 19:10:13,073 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:10:13,073 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:10:13,073 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:13,073 - app.logger - WARNING - Ignoring cached safe=True result with source=heuristic for url:https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,081 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,081 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=external_apis
+2025-12-15 19:10:13,082 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:10:13,082 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:10:13,082 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:13,087 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,088 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=external_apis
+2025-12-15 19:10:13,088 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:10:13,088 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:10:13,088 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:13,093 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,094 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=external_apis
+2025-12-15 19:10:13,094 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:10:13,095 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov-market.com/maps/streets# (context: link_check)
+2025-12-15 19:10:13,095 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov-market.com/maps/streets# (ignore_db=False)
+2025-12-15 19:10:13,100 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://tarkov-market.com/maps/streets
+2025-12-15 19:10:13,100 - app.logger - INFO - [WS] URL analysis completed for https://tarkov-market.com/maps/streets#: safe=True, source=external_apis
+2025-12-15 19:10:13,100 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov-market.com/maps/streets# to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:11:24,597 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov.dev/maps#streets-of-tarkov (context: link_check)
+2025-12-15 19:11:24,598 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov.dev/maps#streets-of-tarkov (ignore_db=False)
+2025-12-15 19:11:24,606 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov.dev/maps
+2025-12-15 19:11:25,116 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:11:26,367 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:11:28,705 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:11:32,608 - app.logger - ERROR - External API check timed out for https://tarkov.dev/maps
+2025-12-15 19:11:32,610 - app.logger - WARNING - External APIs did not return result for https://tarkov.dev/maps, using heuristic analysis
+2025-12-15 19:11:32,613 - app.logger - INFO - [WS] URL analysis completed for https://tarkov.dev/maps#streets-of-tarkov: safe=True, source=heuristic
+2025-12-15 19:11:32,614 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov.dev/maps#streets-of-tarkov to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:11:32,614 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov.dev/map/streets-of-tarkov (context: link_check)
+2025-12-15 19:11:32,615 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov.dev/map/streets-of-tarkov (ignore_db=False)
+2025-12-15 19:11:32,620 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov.dev/map/streets-of-tarkov
+2025-12-15 19:11:32,920 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:11:34,218 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:11:36,452 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:11:40,453 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://tarkov.dev/map/streets-of-tarkov
+2025-12-15 19:11:40,621 - app.logger - ERROR - External API check timed out for https://tarkov.dev/map/streets-of-tarkov
+2025-12-15 19:11:40,622 - app.logger - WARNING - External APIs did not return result for https://tarkov.dev/map/streets-of-tarkov, using heuristic analysis
+2025-12-15 19:11:40,626 - app.logger - INFO - [WS] URL analysis completed for https://tarkov.dev/map/streets-of-tarkov: safe=True, source=heuristic
+2025-12-15 19:11:40,626 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov.dev/map/streets-of-tarkov to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:12:10,190 - app.logger - INFO - [WS] Starting URL analysis for: https://eft.su/quests (context: link_check)
+2025-12-15 19:12:10,191 - app.logger - INFO - 🔍 Analyzing URL: https://eft.su/quests (ignore_db=False)
+2025-12-15 19:12:10,200 - app.logger - INFO - 🔍 Checking external APIs for: https://eft.su/quests
+2025-12-15 19:12:10,503 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:12:11,747 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:12:14,016 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:12:18,017 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://eft.su/quests
+2025-12-15 19:12:18,202 - app.logger - ERROR - External API check timed out for https://eft.su/quests
+2025-12-15 19:12:18,202 - app.logger - WARNING - External APIs did not return result for https://eft.su/quests, using heuristic analysis
+2025-12-15 19:12:18,206 - app.logger - INFO - [WS] URL analysis completed for https://eft.su/quests: safe=True, source=heuristic
+2025-12-15 19:12:18,207 - app.logger - INFO - [WS] Sent analysis_result for https://eft.su/quests to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:12:27,857 - app.logger - INFO - [WS] Starting URL analysis for: https://tarkov.help/ru/map/ulici/ (context: link_check)
+2025-12-15 19:12:27,858 - app.logger - INFO - 🔍 Analyzing URL: https://tarkov.help/ru/map/ulici/ (ignore_db=False)
+2025-12-15 19:12:27,866 - app.logger - INFO - 🔍 Checking external APIs for: https://tarkov.help/ru/map/ulici/
+2025-12-15 19:12:28,149 - app.logger - WARNING - Rate limit hit, waiting 1s
+2025-12-15 19:12:29,387 - app.logger - WARNING - Rate limit hit, waiting 2s
+2025-12-15 19:12:31,618 - app.logger - WARNING - Rate limit hit, waiting 4s
+2025-12-15 19:12:35,620 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://tarkov.help/ru/map/ulici/
+2025-12-15 19:12:35,867 - app.logger - ERROR - External API check timed out for https://tarkov.help/ru/map/ulici/
+2025-12-15 19:12:35,868 - app.logger - WARNING - External APIs did not return result for https://tarkov.help/ru/map/ulici/, using heuristic analysis
+2025-12-15 19:12:35,871 - app.logger - INFO - [WS] URL analysis completed for https://tarkov.help/ru/map/ulici/: safe=True, source=heuristic
+2025-12-15 19:12:35,871 - app.logger - INFO - [WS] Sent analysis_result for https://tarkov.help/ru/map/ulici/ to client 1acd45c1-103e-43d6-9560-3cd72b03c034
+2025-12-15 19:13:24,164 - app.logger - INFO - [WS] Starting URL analysis for: https://support.google.com/chrome_webstore/answer/16310383?hl=en&ref_topic=6243095 (context: hover)
+2025-12-15 19:13:24,165 - app.logger - INFO - 🔍 Analyzing URL: https://support.google.com/chrome_webstore/answer/16310383?hl=en&ref_topic=6243095 (ignore_db=False)
+2025-12-15 19:13:24,173 - app.logger - INFO - ✅ Trusted domain detected: support.google.com - marking as safe immediately
+2025-12-15 19:13:24,177 - app.logger - INFO - [WS] URL analysis completed for https://support.google.com/chrome_webstore/answer/16310383?hl=en&ref_topic=6243095: safe=True, source=trusted_domain
+2025-12-15 19:13:24,178 - app.logger - INFO - [WS] Sent analysis_result for https://support.google.com/chrome_webstore/answer/16310383?hl=en&ref_topic=6243095 to client 28668cd2-26ec-40ef-9198-f0957bbebcfa
+2025-12-15 19:14:32,749 - app.logger - INFO - [WS] WebSocket connection attempt from 83.139.133.197
+2025-12-15 19:14:32,752 - app.logger - INFO - [WS] WebSocket connection accepted from 83.139.133.197
+2025-12-15 19:14:32,752 - app.logger - INFO - [WS] Client connected: id=f0a8129b-e99a-42c3-82ca-a9c9c64c8623, ip=83.139.133.197
