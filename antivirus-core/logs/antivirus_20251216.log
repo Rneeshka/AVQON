@@ -2180,3 +2180,782 @@ You can install "python-multipart" with:
 
 pip install python-multipart
 
+2025-12-16 02:10:11,655 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:11,658 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:11,661 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:11,763 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:11,763 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:11,763 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:11,767 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:15,806 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:15,808 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:15,811 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:15,911 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:15,912 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:15,912 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:15,916 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:20,050 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:20,053 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:20,055 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:20,161 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:20,162 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:20,162 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:20,167 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:24,489 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:24,492 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:24,494 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:24,595 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:24,595 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:24,595 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:24,600 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:28,791 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:28,794 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:28,797 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:28,905 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:28,905 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:28,905 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:28,911 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:33,127 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:33,129 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:33,132 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:33,229 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:33,230 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:33,230 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:33,234 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:37,393 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:37,395 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:37,398 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:37,520 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:37,520 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:37,520 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:37,526 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:41,615 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:41,618 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:41,622 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:41,728 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:41,728 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:41,729 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:41,734 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:45,909 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:45,911 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:45,914 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:46,013 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:46,014 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:46,014 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:46,020 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:50,135 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:50,137 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:50,140 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:50,252 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:50,253 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:50,253 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:50,258 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:54,405 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:54,407 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:54,410 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:54,508 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:54,508 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:54,508 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:54,513 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:10:58,762 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:10:58,765 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:10:58,768 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:10:58,884 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:10:58,884 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:10:58,884 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:10:58,889 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:03,206 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:03,208 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:03,212 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:03,322 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:03,322 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:03,323 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:03,327 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:07,379 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:07,381 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:07,384 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:07,495 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:07,496 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:07,496 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:07,500 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:11,590 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:11,592 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:11,594 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:11,688 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:11,688 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:11,689 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:11,693 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:15,839 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:15,841 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:15,844 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:15,938 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:15,938 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:15,938 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:15,943 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:20,136 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:20,138 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:20,141 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:20,255 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:20,255 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:20,256 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:20,261 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:24,425 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:24,427 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:24,430 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:24,523 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:24,523 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:24,523 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:24,527 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:28,682 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:28,684 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:28,687 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:28,784 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:28,784 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:28,785 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:28,789 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:32,873 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:32,875 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:32,878 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:32,972 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:32,972 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:32,973 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:32,977 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:37,122 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:37,125 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:37,127 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:37,230 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:37,230 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:37,230 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:37,235 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:41,380 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:41,382 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:41,385 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:41,481 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:41,481 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:41,481 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:41,485 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:45,609 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:45,611 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:45,614 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:45,714 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:45,714 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:45,714 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:45,720 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:49,847 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:49,849 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:49,852 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:49,956 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:49,957 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:49,957 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:49,961 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:54,130 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:54,132 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:54,135 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:54,250 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:54,250 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:54,251 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:54,256 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:11:58,405 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:11:58,407 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:11:58,410 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:11:58,508 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:11:58,508 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:11:58,508 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:11:58,513 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:02,718 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:02,720 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:02,723 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:02,823 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:02,823 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:02,823 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:02,828 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:06,886 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:06,888 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:06,891 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:06,990 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:06,990 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:06,990 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:06,995 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:11,204 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:11,206 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:11,209 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:11,300 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:11,300 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:11,300 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:11,304 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:15,349 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:15,351 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:15,353 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:15,449 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:15,449 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:15,450 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:15,454 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:19,624 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:19,626 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:19,629 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:19,733 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:19,733 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:19,734 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:19,738 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:23,859 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:23,861 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:23,864 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:23,959 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:23,959 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:23,959 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:23,964 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:28,143 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:28,145 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:28,147 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:28,244 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:28,245 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:28,245 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:28,249 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:32,389 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:32,391 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:32,393 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:32,484 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:32,485 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:32,485 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:32,489 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:36,687 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:36,689 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:36,692 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:36,783 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:36,783 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:36,783 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:36,787 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:40,842 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:40,844 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:40,848 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:40,943 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:40,943 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:40,943 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:40,948 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:45,096 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:45,098 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:45,100 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:45,194 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:45,194 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:45,194 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:45,199 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 02:12:49,418 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:49,422 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:49,424 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:49,527 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:49,528 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:49,528 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:49,652 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:12:49,653 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:12:49,654 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:12:49,655 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:12:49,655 - app.logger - INFO - Rate limits reset
+2025-12-16 02:12:49,655 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:49,655 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:49,655 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:12:49,655 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:12:49,658 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:49,658 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:53,940 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:53,942 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:53,945 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:54,055 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:54,056 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:54,056 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:54,195 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:12:54,197 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:12:54,198 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:12:54,199 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:12:54,199 - app.logger - INFO - Rate limits reset
+2025-12-16 02:12:54,199 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:54,200 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:54,200 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:12:54,200 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:12:54,202 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:54,202 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:55,387 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:55,390 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:55,392 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:55,492 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:55,492 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:55,493 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:12:55,612 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:12:55,613 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:12:55,614 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:12:55,615 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:12:55,616 - app.logger - INFO - Rate limits reset
+2025-12-16 02:12:55,616 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:55,616 - app.logger - INFO - Background job manager started
+2025-12-16 02:12:55,616 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:12:55,616 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:12:55,618 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:55,619 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:12:59,854 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:12:59,857 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:12:59,860 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:12:59,963 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:12:59,963 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:12:59,964 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:00,095 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:00,096 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:00,097 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:00,098 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:00,098 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:00,098 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:00,099 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:00,099 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:00,099 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:00,101 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:00,101 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:04,165 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:04,167 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:04,170 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:04,281 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:04,281 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:04,281 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:04,415 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:04,417 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:04,418 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:04,418 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:04,419 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:04,419 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:04,419 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:04,419 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:04,419 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:04,421 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:04,422 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:08,693 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:08,696 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:08,699 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:08,806 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:08,806 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:08,807 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:08,922 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:08,923 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:08,924 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:08,925 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:08,925 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:08,925 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:08,926 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:08,926 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:08,926 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:08,928 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:08,928 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:13,108 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:13,110 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:13,113 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:13,211 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:13,212 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:13,212 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:13,326 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:13,327 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:13,328 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:13,329 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:13,329 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:13,329 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:13,330 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:13,330 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:13,330 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:13,332 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:13,332 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:17,351 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:17,353 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:17,356 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:17,452 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:17,453 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:17,453 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:17,570 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:17,572 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:17,572 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:17,573 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:17,574 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:17,574 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:17,574 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:17,574 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:17,574 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:17,576 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:17,577 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:21,636 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:21,639 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:21,642 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:21,742 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:21,742 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:21,742 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:21,867 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:21,868 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:21,869 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:21,870 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:21,870 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:21,870 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:21,871 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:21,871 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:21,871 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:21,873 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:21,873 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:26,102 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:26,105 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:26,107 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:26,211 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:26,211 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:26,211 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:26,343 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:26,344 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:26,345 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:26,346 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:26,346 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:26,347 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:26,347 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:26,347 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:26,347 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:26,350 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:26,350 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:30,460 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:30,462 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:30,465 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:30,586 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:30,586 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:30,587 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:30,749 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:30,751 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:30,752 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:30,753 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:30,753 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:30,754 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:30,754 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:30,754 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:30,754 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:30,757 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:30,757 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:34,894 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:34,896 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:34,898 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:34,998 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:34,998 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:34,999 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:35,128 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:35,129 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:35,130 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:35,131 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:35,132 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:35,132 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:35,132 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:35,132 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:35,132 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:35,134 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:35,135 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:39,329 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:39,331 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:39,334 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:39,425 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:39,425 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:39,425 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:39,539 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:39,540 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:39,541 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:39,542 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:39,542 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:39,542 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:39,542 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:39,542 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:39,543 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:39,545 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:39,545 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:43,593 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:43,595 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:43,599 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:43,701 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:43,702 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:43,702 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:43,814 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:43,815 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:43,816 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:43,817 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:43,817 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:43,817 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:43,817 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:43,817 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:43,817 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:43,820 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:43,820 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:47,912 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:47,914 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:47,917 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:48,018 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:48,018 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:48,019 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:48,147 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:48,148 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:48,150 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:48,151 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:48,151 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:48,151 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:48,151 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:48,151 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:48,151 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:48,154 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:48,154 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:52,379 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:52,381 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:52,384 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:52,479 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:52,479 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:52,480 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:52,593 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:52,594 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:52,595 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:52,596 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:52,596 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:52,596 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:52,596 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:52,596 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:52,596 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:52,599 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:52,599 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:56,873 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:13:56,876 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:13:56,880 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:13:57,007 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:13:57,007 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:13:57,007 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:13:57,121 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:13:57,123 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:13:57,124 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:13:57,124 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:13:57,125 - app.logger - INFO - Rate limits reset
+2025-12-16 02:13:57,125 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:57,125 - app.logger - INFO - Background job manager started
+2025-12-16 02:13:57,125 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:13:57,125 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:13:57,127 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:13:57,127 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:01,119 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:14:01,121 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:14:01,124 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:14:01,223 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:14:01,223 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:14:01,224 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:14:01,330 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:14:01,331 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:14:01,332 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:14:01,333 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:14:01,333 - app.logger - INFO - Rate limits reset
+2025-12-16 02:14:01,333 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:01,333 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:01,333 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:14:01,333 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:14:01,335 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:01,335 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:05,353 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:14:05,355 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:14:05,358 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:14:05,476 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:14:05,476 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:14:05,476 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:14:05,593 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:14:05,594 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:14:05,595 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:14:05,597 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:14:05,597 - app.logger - INFO - Rate limits reset
+2025-12-16 02:14:05,597 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:05,597 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:05,597 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:14:05,597 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:14:10,322 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:10,322 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:11,161 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:14:11,164 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:14:11,167 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:14:11,265 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:14:11,265 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:14:11,265 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:14:11,382 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:14:11,384 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:14:11,385 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:14:11,385 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:14:11,386 - app.logger - INFO - Rate limits reset
+2025-12-16 02:14:11,386 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:11,386 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:11,386 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:14:11,386 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:14:42,019 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:42,019 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:42,877 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:14:42,879 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:14:42,882 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:14:42,972 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:14:42,973 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:14:42,973 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:14:43,085 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:14:43,087 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:14:43,087 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:14:43,088 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:14:43,088 - app.logger - INFO - Rate limits reset
+2025-12-16 02:14:43,089 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:43,089 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:43,089 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:14:43,089 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 02:14:43,494 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:43,494 - app.logger - INFO - Background job manager stopped
+2025-12-16 02:14:44,398 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 02:14:44,400 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 02:14:44,403 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 02:14:44,520 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 02:14:44,521 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 02:14:44,521 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 02:14:44,693 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 02:14:44,695 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 02:14:44,696 - app.logger - INFO - Database connection established successfully
+2025-12-16 02:14:44,697 - app.database - INFO - Rate limits reset successfully
+2025-12-16 02:14:44,698 - app.logger - INFO - Rate limits reset
+2025-12-16 02:14:44,698 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:44,698 - app.logger - INFO - Background job manager started
+2025-12-16 02:14:44,698 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 02:14:44,699 - app.logger - INFO - ✅ AEGIS Server startup complete
