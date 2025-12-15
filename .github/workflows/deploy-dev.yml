@@ -23,8 +23,8 @@ jobs:
       - name: Deploy to DEV
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /opt/aegis
-            git reset --hard
-            git pull
-            sudo systemctl restart aegis-backend-dev
+          cd /opt/aegis
+          git reset --hard
+          git pull
+          sudo systemctl restart aegis-backend-dev
 EOF
