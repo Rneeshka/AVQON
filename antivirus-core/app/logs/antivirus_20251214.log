@@ -15934,3 +15934,29 @@
 2025-12-15 00:28:32,855 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://vk.com/gitarist1804
 2025-12-15 00:28:32,856 - app.logger - INFO - [WS] URL analysis completed for https://vk.com/gitarist1804: safe=True, source=external_apis
 2025-12-15 00:28:32,857 - app.logger - INFO - [WS] Sent analysis_result for https://vk.com/gitarist1804 to client 2cd81889-1364-4630-b2e9-6cbc3922565b
+2025-12-15 00:29:27,484 - app.logger - INFO - [WS] Client disconnected gracefully: ae6fbc1f-9baa-410e-9d38-29517ec0b1ed
+2025-12-15 00:29:27,485 - app.logger - INFO - [WS] Client disconnected: id=ae6fbc1f-9baa-410e-9d38-29517ec0b1ed, reason=cleanup
+2025-12-15 00:29:27,485 - app.logger - INFO - [WS] Client disconnected gracefully: 2135a3dd-03d5-45fa-8770-a0e1e9447da1
+2025-12-15 00:29:27,486 - app.logger - INFO - [WS] Client disconnected: id=2135a3dd-03d5-45fa-8770-a0e1e9447da1, reason=cleanup
+2025-12-15 00:29:27,487 - app.logger - INFO - [WS] Client disconnected gracefully: 41135bcf-60f6-4fee-92ab-b8a710513b99
+2025-12-15 00:29:27,487 - app.logger - INFO - [WS] Client disconnected: id=41135bcf-60f6-4fee-92ab-b8a710513b99, reason=cleanup
+2025-12-15 00:29:27,487 - app.logger - INFO - [WS] Client disconnected gracefully: 9508e78d-c0ce-44de-a79c-953a1b1ae600
+2025-12-15 00:29:27,488 - app.logger - INFO - [WS] Client disconnected: id=9508e78d-c0ce-44de-a79c-953a1b1ae600, reason=cleanup
+2025-12-15 00:29:27,488 - app.logger - INFO - [WS] Client disconnected gracefully: 9d306ecd-66ff-4b9e-8803-359c7a595220
+2025-12-15 00:29:27,488 - app.logger - INFO - [WS] Client disconnected: id=9d306ecd-66ff-4b9e-8803-359c7a595220, reason=cleanup
+2025-12-15 00:29:27,489 - app.logger - INFO - [WS] Client disconnected gracefully: b9bcca47-8c10-4c4f-90ae-1583b90bc632
+2025-12-15 00:29:27,489 - app.logger - INFO - [WS] Client disconnected: id=b9bcca47-8c10-4c4f-90ae-1583b90bc632, reason=cleanup
+2025-12-15 00:29:27,490 - app.logger - INFO - [WS] Client disconnected gracefully: f6264b28-3283-4088-a0b5-57873aac6299
+2025-12-15 00:29:27,490 - app.logger - INFO - [WS] Client disconnected: id=f6264b28-3283-4088-a0b5-57873aac6299, reason=cleanup
+2025-12-15 00:29:27,490 - app.logger - INFO - [WS] Client disconnected gracefully: aae67abe-27b5-4afb-b700-a9e1734894fc
+2025-12-15 00:29:27,491 - app.logger - INFO - [WS] Client disconnected: id=aae67abe-27b5-4afb-b700-a9e1734894fc, reason=cleanup
+2025-12-15 00:29:27,491 - app.logger - INFO - [WS] Client disconnected gracefully: 3b8b9199-6482-4586-a428-dffd6b7fbc4e
+2025-12-15 00:29:27,491 - app.logger - INFO - [WS] Client disconnected: id=3b8b9199-6482-4586-a428-dffd6b7fbc4e, reason=cleanup
+2025-12-15 00:29:27,492 - app.logger - INFO - [WS] Client disconnected gracefully: 92bb98b6-dc85-43e8-8888-0d919858efa5
+2025-12-15 00:29:27,492 - app.logger - INFO - [WS] Client disconnected: id=92bb98b6-dc85-43e8-8888-0d919858efa5, reason=cleanup
+2025-12-15 00:29:27,492 - app.logger - INFO - [WS] Client disconnected gracefully: 2cd81889-1364-4630-b2e9-6cbc3922565b
+2025-12-15 00:29:27,493 - app.logger - INFO - [WS] Client disconnected: id=2cd81889-1364-4630-b2e9-6cbc3922565b, reason=cleanup
+2025-12-15 00:29:27,493 - app.logger - INFO - [WS] Client disconnected gracefully: 59c432aa-2a09-4f67-8f0c-b0a81be9b073
+2025-12-15 00:29:27,493 - app.logger - INFO - [WS] Client disconnected: id=59c432aa-2a09-4f67-8f0c-b0a81be9b073, reason=cleanup
+2025-12-15 00:29:27,584 - app.logger - INFO - Background job manager stopped
+2025-12-15 00:29:27,585 - app.logger - INFO - Background job manager stopped
