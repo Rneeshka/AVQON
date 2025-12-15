@@ -1,0 +1,312 @@
+2025-12-16 01:56:04,815 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:04,816 - app.logger - INFO - Removed old log file: logs/antivirus_20251208.log
+2025-12-16 01:56:04,817 - app.logger - INFO - Removed old log file: logs/antivirus_20251207.log
+2025-12-16 01:56:04,818 - app.logger - INFO - Removed old log file: logs/antivirus_20251205.log
+2025-12-16 01:56:04,819 - app.logger - INFO - Removed old log file: logs/antivirus_20251206.log
+2025-12-16 01:56:04,820 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:04,825 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:04,971 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:04,972 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:04,972 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:04,977 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:09,132 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:09,134 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:09,137 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:09,239 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:09,239 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:09,239 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:09,244 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:13,373 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:13,375 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:13,378 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:13,483 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:13,483 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:13,483 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:13,489 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:17,599 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:17,601 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:17,604 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:17,702 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:17,703 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:17,703 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:17,707 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:21,810 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:21,812 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:21,814 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:21,907 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:21,907 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:21,908 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:21,912 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:26,145 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:26,148 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:26,150 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:26,260 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:26,260 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:26,260 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:26,266 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:30,418 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:30,420 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:30,423 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:30,522 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:30,522 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:30,523 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:30,527 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:34,638 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:34,640 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:34,642 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:34,738 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:34,738 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:34,738 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:34,743 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:38,879 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:38,882 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:38,884 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:38,981 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:38,981 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:38,981 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:38,986 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:43,111 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:43,113 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:43,116 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:43,220 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:43,220 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:43,221 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:43,226 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:47,330 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:47,332 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:47,335 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:47,433 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:47,433 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:47,433 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:47,438 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:51,573 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:51,575 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:51,578 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:51,678 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:51,678 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:51,678 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:51,683 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:56:55,816 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:55,818 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:55,821 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:55,914 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:55,914 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:55,915 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:55,919 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:00,179 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:00,182 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:00,185 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:00,299 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:00,299 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:00,300 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:00,304 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:04,390 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:04,392 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:04,395 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:04,491 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:04,491 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:04,491 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:04,496 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:08,785 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:08,787 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:08,790 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:08,883 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:08,884 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:08,884 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:08,889 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:13,122 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:13,124 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:13,127 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:13,222 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:13,222 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:13,223 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:13,227 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:17,359 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:17,361 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:17,363 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:17,460 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:17,460 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:17,461 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:17,465 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:21,634 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:21,636 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:21,639 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:21,735 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:21,735 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:21,735 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:21,739 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:25,847 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:25,849 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:25,852 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:25,948 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:25,948 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:25,949 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:25,953 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:30,121 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:30,124 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:30,128 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:30,248 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:30,248 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:30,248 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:30,253 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:34,404 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:34,406 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:34,409 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:34,505 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:34,505 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:34,505 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:34,510 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:38,644 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:38,646 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:38,650 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:38,743 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:38,743 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:38,744 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:38,748 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:42,863 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:42,865 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:42,868 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:42,963 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:42,963 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:42,963 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:42,968 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:47,118 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:47,120 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:47,123 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:47,220 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:47,221 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:47,221 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:47,225 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:51,312 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:51,314 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:51,317 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:51,404 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:51,405 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:51,405 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:51,409 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:55,551 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:55,553 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:55,556 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:55,651 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:55,651 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:55,651 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:55,656 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2025-12-16 01:57:59,863 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:57:59,865 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:57:59,868 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:57:59,990 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:57:59,991 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:57:59,991 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:57:59,997 - fastapi - ERROR - Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+

@@ -786,7 +786,7 @@ async def validate_key(key_info: Dict = Depends(api_key_auth)):
 
 @app.get("/")
 async def root():
-    return {"status": "success", "safe": True, "details": "API operational"}
+    return {"status": "success", "safe": True, "details": "DEV VERSION TEST"}
 
 @app.get("/admin/ui")
 async def admin_ui():
