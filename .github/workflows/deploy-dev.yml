@@ -1,0 +1,30 @@
+name: Deploy DEV
+
+on:
+  push:
+    branches:
+      - dev
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy to DEV
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+            cd ${{ secrets.DEV_PATH }} &&
+            git reset --hard &&
+            git pull &&
+            sudo systemctl restart aegis-backend-dev
+          "
