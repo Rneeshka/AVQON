@@ -3,7 +3,7 @@
     linkCheck: true,
     hoverScan: true,
     notify: true,
-    apiBase: 'https://api.aegis.builders',
+    apiBase: window.AEGIS_CONFIG?.API_BASE || 'https://api-dev.aegis.builders',
     hoverTheme: 'classic'
   };
 
