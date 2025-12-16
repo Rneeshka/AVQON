@@ -2959,3 +2959,18 @@ pip install python-multipart
 2025-12-16 02:14:44,698 - app.logger - INFO - Background job manager started
 2025-12-16 02:14:44,698 - app.logger - INFO - WebSocket cleanup task started
 2025-12-16 02:14:44,699 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 03:09:21,116 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 03:09:21,119 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 03:09:21,121 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 03:09:21,221 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 03:09:21,221 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 03:09:21,221 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 03:09:21,342 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 03:09:21,344 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 03:09:21,345 - app.logger - INFO - Database connection established successfully
+2025-12-16 03:09:21,345 - app.database - INFO - Rate limits reset successfully
+2025-12-16 03:09:21,346 - app.logger - INFO - Rate limits reset
+2025-12-16 03:09:21,346 - app.logger - INFO - Background job manager started
+2025-12-16 03:09:21,346 - app.logger - INFO - Background job manager started
+2025-12-16 03:09:21,346 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 03:09:21,346 - app.logger - INFO - ✅ AEGIS Server startup complete
