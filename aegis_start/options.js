@@ -1,6 +1,6 @@
 // options.js
 (function() {
-  const DEFAULT_API_BASE = 'https://api.aegis.builders';
+  const DEFAULT_API_BASE = window.AEGIS_CONFIG?.API_BASE || 'https://api-dev.aegis.builders';
   const defaults = {
     antivirusEnabled: true,
     linkCheck: true,
@@ -49,7 +49,7 @@
 
   function normalizeApiBase(v) {
     let base = (v || '').toString().trim();
-    if (!base) return DEFAULT_API_BASE;
+    if (!base) return window.AEGIS_CONFIG?.API_BASE || DEFAULT_API_BASE;
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }
