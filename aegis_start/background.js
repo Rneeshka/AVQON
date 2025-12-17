@@ -1,6 +1,21 @@
 // background.js
+// === КОНФИГУРАЦИЯ СРЕДЫ ===
+const IS_DEV = true; // <--- МЕНЯТЬ ЭТОТ ФЛАГ (true = DEV, false = PROD)
+
+const ENV_CONFIG = {
+  DEV: {
+    API: 'https://api-dev.aegis.builders',
+    WS:  'wss://api-dev.aegis.builders/ws'
+  },
+  PROD: {
+    API: 'https://api.aegis.builders',
+    WS:  'wss://api.aegis.builders/ws'
+  }
+};
+
+const CURRENT_ENV = IS_DEV ? ENV_CONFIG.DEV : ENV_CONFIG.PROD;
 const DEFAULTS = { antivirusEnabled: true, linkCheck: true, hoverScan: true, notify: true };
-const DEFAULT_API_BASE = 'https://api.aegis.builders';
+// ==========================
 
 // Кеш результатов для быстрого анализа по наведению
 const cache = new Map();
@@ -215,49 +230,37 @@ class AegisWebSocketClient {
     }
   }
 
-  _buildUrl(apiBase, apiKey) {
+_buildUrl(apiBase, apiKey) {
     try {
-      // Правильно преобразуем HTTP/HTTPS в WS/WSS
-      let wsUrl = apiBase;
-      if (wsUrl.startsWith('https://')) {
-        wsUrl = wsUrl.replace('https://', 'wss://');
-      } else if (wsUrl.startsWith('http://')) {
-        wsUrl = wsUrl.replace('http://', 'ws://');
-      } else if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
-        // Если нет протокола, добавляем wss по умолчанию
-        wsUrl = `wss://${wsUrl}`;
+      // Создаем URL объект из http адреса
+      const url = new URL(apiBase);
+
+      // 1. Меняем протокол на wss (или ws)
+      if (url.protocol === 'https:') {
+        url.protocol = 'wss:';
+      } else if (url.protocol === 'http:') {
+        url.protocol = 'ws:';
       }
-      
-      const url = new URL(wsUrl);
-      // КРИТИЧНО: Убираем ВСЕ пути из apiBase и добавляем только /ws
-      // Это нужно, потому что apiBase может содержать /proxy или другие пути
+
+      // 2. ЖЕСТКО задаем путь /ws
       url.pathname = '/ws';
+
+      // 3. Очищаем лишнее и добавляем API ключ
+      url.hash = '';
       if (apiKey) {
         url.searchParams.set('api_key', apiKey);
       }
+
       const finalUrl = url.toString();
       console.log('[Aegis WS] Built URL:', finalUrl.replace(/api_key=[^&]+/, 'api_key=***'));
       return finalUrl;
+
     } catch (err) {
-      // В случае ошибки формируем URL вручную
-      console.error('[Aegis WS] Failed to build URL:', err, apiBase);
-      let wsBase = apiBase;
-      if (wsBase.startsWith('https://')) {
-        wsBase = wsBase.replace('https://', 'wss://');
-      } else if (wsBase.startsWith('http://')) {
-        wsBase = wsBase.replace('http://', 'ws://');
-      }
-      // Извлекаем только origin (без пути)
-      try {
-        const urlObj = new URL(wsBase);
-        wsBase = `${urlObj.protocol}//${urlObj.host}`;
-      } catch (_) {
-        // Если не удалось распарсить, оставляем как есть
-      }
-      return `${wsBase}/ws${apiKey ? `?api_key=${encodeURIComponent(apiKey)}` : ''}`;
+      console.error('[Aegis WS] URL build error, using fallback:', err);
+      // Fallback, если что-то совсем пошло не так
+      return CURRENT_ENV.WS + (apiKey ? `?api_key=${apiKey}` : '');
     }
   }
-
   _handleOpen() {
     this.retryAttempt = 0;
     this.lastPong = Date.now();
@@ -942,10 +945,15 @@ async function getApiKey() {
 // }
 
 async function getApiBase() {
-  // Используем конфиг из глобальной переменной
-  // В Service Worker используем self вместо window
-  return self.AEGIS_CONFIG?.API_BASE || 
-         'https://api-dev.aegis.builders';
+  // 1. Пробуем получить из локальных настроек (если юзер менял вручную)
+  const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
+  
+  if (storage.apiBase) {
+      return storage.apiBase;
+  }
+
+  // 2. Если в настройках пусто — берем из нашего конфига
+  return CURRENT_ENV.API;
 }
 
 async function warmUpConnection() {
