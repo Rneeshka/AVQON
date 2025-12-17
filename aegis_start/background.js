@@ -928,17 +928,24 @@ async function getApiKey() {
   return storage.apiKey || '';
 }
 
+// async function getApiBase() {
+//   const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
+//   const normalized = normalizeApiBaseUrl(storage.apiBase);
+//   if (storage.apiBase !== normalized) {
+//     try {
+//       chrome.storage.sync.set({ apiBase: normalized }, () => chrome.runtime?.lastError && void 0);
+//     } catch (_) {
+//       // ignore
+//     }
+//   }
+//   return normalized;
+// }
+
 async function getApiBase() {
-  const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
-  const normalized = normalizeApiBaseUrl(storage.apiBase);
-  if (storage.apiBase !== normalized) {
-    try {
-      chrome.storage.sync.set({ apiBase: normalized }, () => chrome.runtime?.lastError && void 0);
-    } catch (_) {
-      // ignore
-    }
-  }
-  return normalized;
+  // Используем конфиг из глобальной переменной
+  return window.AEGIS_CONFIG?.API_BASE || 
+         self.AEGIS_CONFIG?.API_BASE || 
+         'https://api-dev.aegis.builders';
 }
 
 // КРИТИЧНО: Warm-up запрос для установки доверия браузера к серверу
