@@ -943,8 +943,8 @@ async function getApiKey() {
 
 async function getApiBase() {
   // Используем конфиг из глобальной переменной
-  return window.AEGIS_CONFIG?.API_BASE || 
-         self.AEGIS_CONFIG?.API_BASE || 
+  // В Service Worker используем self вместо window
+  return self.AEGIS_CONFIG?.API_BASE || 
          'https://api-dev.aegis.builders';
 }
 
