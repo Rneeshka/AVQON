@@ -38,7 +38,6 @@
     settings: { ...DEFAULTS },
     connectionTimer: null,
     hoverTheme: 'classic',
-    // КРИТИЧНО: Раздельные состояния для подключения и сканирования
     isServerConnected: null, // null = checking, true = connected, false = disconnected
     isScanning: false,
     scanResult: null, // null = no result, { safe: true/false/null, ... } = scan result

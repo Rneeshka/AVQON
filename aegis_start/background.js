@@ -948,9 +948,6 @@ async function getApiBase() {
          'https://api-dev.aegis.builders';
 }
 
-// КРИТИЧНО: Warm-up запрос для установки доверия браузера к серверу
-// Это решает проблему CORS/доверия, когда браузер блокирует запросы
-// до первого прямого обращения к серверу
 async function warmUpConnection() {
   try {
     const apiBase = await getApiBase();
