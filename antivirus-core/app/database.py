@@ -29,7 +29,7 @@ class DatabaseManager:
         # КРИТИЧНО: Поддержка переменной окружения для пути к БД
         # Используем единый путь для бота и backend
         if db_path is None:
-            db_path = os.getenv("DATABASE_PATH") or os.getenv("DB_PATH", "/opt/Aegis/data/aegis.db")
+            db_path = os.getenv("DATABASE_PATH", "/opt/aegis/data/aegis.db")
         
         self.db_path = db_path
         self.storage_dir = Path(self.db_path).parent
