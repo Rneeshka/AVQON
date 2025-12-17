@@ -232,24 +232,23 @@ class AegisWebSocketClient {
 
 _buildUrl(apiBase, apiKey) {
   try {
-    // Чистим базовый URL от лишних слэшей
-    const cleanBase = apiBase.replace(/\/+$/, '');
-    const url = new URL(cleanBase);
+    // 1. Создаем объект URL
+    const url = new URL(apiBase.replace(/\/+$/, ''));
 
-    // Устанавливаем протокол
+    // 2. Меняем протокол
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    // ВАЖНО: Согласно заданию, путь ВЕЗДЕ /ws
+
+    // 3. ЖЕСТКО ставим путь /ws (Требование задания №3)
     url.pathname = '/ws';
 
     if (apiKey) {
       url.searchParams.set('api_key', apiKey);
     }
-    
+
     return url.toString();
   } catch (err) {
-    // Если что-то пошло не так, используем прямой конфиг
-    return CURRENT_CONFIG.WS_URL + (apiKey ? `?api_key=${apiKey}` : '');
+    // Если упало — берем из конфига (задание №1)
+    return IS_DEV ? 'wss://api-dev.aegis.builders/ws' : 'wss://api.aegis.builders/ws';
   }
 }
   _handleOpen() {
@@ -950,20 +949,17 @@ async function getApiBase() {
 async function warmUpConnection() {
   try {
     const apiBase = await getApiBase();
-    // Убираем слэш в конце, если он есть, и добавляем /ws
-    const warmUpUrl = apiBase.replace(/\/+$/, '') + '/ws';
+    // Убеждаемся, что путь ВСЕГДА /ws согласно заданию
+    const target = apiBase.replace(/\/+$/, '') + '/ws';
     
-    // Используем HEAD запрос, чтобы просто проверить доступность, не нагружая сервер
-    await fetch(warmUpUrl, { 
+    await fetch(target, { 
       method: 'HEAD', 
       mode: 'no-cors' 
     });
-    console.log('[Aegis] Connection warmed up via /ws');
   } catch (e) {
-    // Игнорируем ошибки прогрева
+    // Игнорируем
   }
 }
-
 // Проверка подключения к серверу
 async function checkServerConnection() {
   try {
@@ -1821,21 +1817,19 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 // Восстанавливаем состояние и запускаем мониторинг при активации service worker
-// Это срабатывает каждый раз, когда service worker активируется
 restoreStateAfterRestart().then(() => {
   loadConnectionState().then(() => {
     startConnectionMonitoring();
-    // КРИТИЧНО: Делаем warm-up запрос при активации service worker
-    // Это гарантирует, что браузер доверяет серверу даже после перезапуска
-    warmUpConnection().finally(() => {
-      // Пробуем подключиться к WebSocket, но не блокируем работу при ошибке
-      wsClient.ensureConnected().catch((err) => {
-        console.warn('[Aegis] WebSocket initialization failed, will use REST fallback:', err?.message);
-        // Помечаем, что WebSocket недоступен, чтобы сразу использовать REST
+    
+    // Вместо прогрева корня (который дает 404), сразу пробуем соединиться с WS по контракту
+    wsClient.ensureConnected().then(() => {
+        console.log('[Aegis] Connected to WebSocket successfully');
+    }).catch((err) => {
+        console.warn('[Aegis] WebSocket fallback active:', err?.message);
         connectionState.isOnline = false;
         saveConnectionState();
-      });
-      broadcastReinitHover();
     });
+    
+    broadcastReinitHover();
   });
 });
