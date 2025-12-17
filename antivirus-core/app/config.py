@@ -52,6 +52,37 @@ class SecurityConfig:
     MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "100"))
     MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
+class ServerConfig:
+    """Конфигурация сервера и окружений"""
+    # Определяем окружение (DEV или PROD)
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").lower()
+    
+    # Базовые URL для API и WebSocket
+    # DEV окружение
+    API_BASE_DEV = "https://api-dev.aegis.builders"
+    WS_BASE_DEV = "wss://api-dev.aegis.builders"
+    
+    # PROD окружение
+    API_BASE_PROD = "https://api.aegis.builders"
+    WS_BASE_PROD = "wss://api.aegis.builders"
+    
+    # Текущие значения в зависимости от окружения
+    @property
+    def API_BASE(self):
+        return self.API_BASE_DEV if self.ENVIRONMENT == "dev" else self.API_BASE_PROD
+    
+    @property
+    def WS_BASE(self):
+        return self.WS_BASE_DEV if self.ENVIRONMENT == "dev" else self.WS_BASE_PROD
+    
+    # WebSocket endpoint path (одинаковый для всех окружений)
+    WS_ENDPOINT_PATH = "/ws"
+    
+    @property
+    def WS_URL(self):
+        """Полный URL для WebSocket соединения"""
+        return f"{self.WS_BASE}{self.WS_ENDPOINT_PATH}"
+
 class ExternalAPIConfig:
     """Конфигурация внешних антивирусных API"""
     
@@ -75,9 +106,11 @@ class ExternalAPIConfig:
     # Google Safe Browsing: обычно 10000 запросов в сутки
     GOOGLE_DAILY_LIMIT = int(os.getenv("GOOGLE_DAILY_LIMIT", "10000"))
 
-config = ExternalAPIConfig()
-
 # Создаем экземпляры конфигураций
 logging_config = LoggingConfig()
 security_config = SecurityConfig()
 external_config = ExternalAPIConfig()
+server_config = ServerConfig()
+
+# Для обратной совместимости
+config = ExternalAPIConfig()
