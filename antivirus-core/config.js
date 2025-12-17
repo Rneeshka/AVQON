@@ -16,7 +16,6 @@ const CONFIG = {
   }
 };
 
-// Экспортируем конфиг для текущего окружения
 const CURRENT_CONFIG = CONFIG[ENV];
 
 // Делаем доступным глобально (для фонового скрипта и content scripts)

@@ -93,7 +93,6 @@
         chrome.storage.sync.set({ apiBase: normalizedBase }, () => chrome.runtime?.lastError && void 0);
       }
       
-      // Автоматическая валидация ключа из аккаунта
       updateHoverScanState();
     });
   }
