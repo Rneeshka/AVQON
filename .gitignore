@@ -19,6 +19,7 @@ testfile*.md
 .DS_Store
 .vscode/
 
+<<<<<<< HEAD
 venv/
 .venv/
 __pycache__/
@@ -41,3 +42,11 @@ testci*.txt
 testfile*.md
 .DS_Store
 .vscode/
+=======
+# virtual environments
+venv/
+antivirus-core/venv/
+
+# runtime cache files
+data/cache_*.jsonl
+>>>>>>> 8243cf2 (chore: ignore venv and runtime cache files)
