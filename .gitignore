@@ -18,3 +18,10 @@ testci*.txt
 testfile*.md
 .DS_Store
 .vscode/
+
+# virtual environments
+venv/
+antivirus-core/venv/
+
+# runtime cache files
+data/cache_*.jsonl
