@@ -232,19 +232,24 @@ class AegisWebSocketClient {
 
 _buildUrl(apiBase, apiKey) {
   try {
-    const url = new URL(apiBase);
-    // Меняем протокол
+    // Чистим базовый URL от лишних слэшей
+    const cleanBase = apiBase.replace(/\/+$/, '');
+    const url = new URL(cleanBase);
+
+    // Устанавливаем протокол
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    // ЖЕСТКО ставим путь из задания
-    url.pathname = '/ws'; 
     
+    // ВАЖНО: Согласно заданию, путь ВЕЗДЕ /ws
+    url.pathname = '/ws';
+
     if (apiKey) {
       url.searchParams.set('api_key', apiKey);
     }
+    
     return url.toString();
   } catch (err) {
-    // Если apiBase сломан, берем из нашего конфига
-    return IS_DEV ? 'wss://api-dev.aegis.builders/ws' : 'wss://api.aegis.builders/ws';
+    // Если что-то пошло не так, используем прямой конфиг
+    return CURRENT_CONFIG.WS_URL + (apiKey ? `?api_key=${apiKey}` : '');
   }
 }
   _handleOpen() {
@@ -943,16 +948,19 @@ async function getApiBase() {
 }
 
 async function warmUpConnection() {
-  const apiBase = await getApiBase();
   try {
-    // Добавляем /health или /ws к пути, чтобы сервер не выдавал 404
-    await fetch(`${apiBase}/health`, { 
-      method: 'GET', 
-      mode: 'no-cors',
-      cache: 'no-store'
+    const apiBase = await getApiBase();
+    // Убираем слэш в конце, если он есть, и добавляем /ws
+    const warmUpUrl = apiBase.replace(/\/+$/, '') + '/ws';
+    
+    // Используем HEAD запрос, чтобы просто проверить доступность, не нагружая сервер
+    await fetch(warmUpUrl, { 
+      method: 'HEAD', 
+      mode: 'no-cors' 
     });
+    console.log('[Aegis] Connection warmed up via /ws');
   } catch (e) {
-    // Ошибки здесь не критичны, это просто прогрев
+    // Игнорируем ошибки прогрева
   }
 }
 
