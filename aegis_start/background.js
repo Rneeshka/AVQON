@@ -1,21 +1,15 @@
 // background.js
-// === КОНФИГУРАЦИЯ СРЕДЫ ===
-const IS_DEV = true; // <--- МЕНЯТЬ ЭТОТ ФЛАГ (true = DEV, false = PROD)
-
-const ENV_CONFIG = {
-  DEV: {
-    API: 'https://api-dev.aegis.builders',
-    WS:  'wss://api-dev.aegis.builders/ws'
-  },
-  PROD: {
-    API: 'https://api.aegis.builders',
-    WS:  'wss://api.aegis.builders/ws'
-  }
+// === CONFIG AREA ===
+const IS_DEV = true; // Переключи на false для PROD
+const CONFIG = {
+  DEV:  { API: 'https://api-dev.aegis.builders', WS: 'wss://api-dev.aegis.builders/ws' },
+  PROD: { API: 'https://api.aegis.builders',     WS: 'wss://api.aegis.builders/ws' }
 };
+const CURRENT = IS_DEV ? CONFIG.DEV : CONFIG.PROD;
+// ===================
 
-const CURRENT_ENV = IS_DEV ? ENV_CONFIG.DEV : ENV_CONFIG.PROD;
 const DEFAULTS = { antivirusEnabled: true, linkCheck: true, hoverScan: true, notify: true };
-// ==========================
+const DEFAULT_API_BASE = CURRENT.API;
 
 // Кеш результатов для быстрого анализа по наведению
 const cache = new Map();
@@ -231,26 +225,19 @@ class AegisWebSocketClient {
   }
 
 _buildUrl(apiBase, apiKey) {
-  try {
-    // 1. Создаем объект URL
-    const url = new URL(apiBase.replace(/\/+$/, ''));
+    try {
+      const url = new URL(apiBase.replace(/\/+$/, ''));
+      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+      
+      // ЖЕСТКО ЗАДАЕМ ПУТЬ ПО КОНТРАКТУ
+      url.pathname = '/ws'; 
 
-    // 2. Меняем протокол
-    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-
-    // 3. ЖЕСТКО ставим путь /ws (Требование задания №3)
-    url.pathname = '/ws';
-
-    if (apiKey) {
-      url.searchParams.set('api_key', apiKey);
+      if (apiKey) url.searchParams.set('api_key', apiKey);
+      return url.toString();
+    } catch (err) {
+      return CURRENT.WS + (apiKey ? `?api_key=${apiKey}` : '');
     }
-
-    return url.toString();
-  } catch (err) {
-    // Если упало — берем из конфига (задание №1)
-    return IS_DEV ? 'wss://api-dev.aegis.builders/ws' : 'wss://api.aegis.builders/ws';
   }
-}
   _handleOpen() {
     this.retryAttempt = 0;
     this.lastPong = Date.now();
@@ -1816,18 +1803,18 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-// Восстанавливаем состояние и запускаем мониторинг при активации service worker
+// Восстанавливаем состояние и запускаем мониторинг
 restoreStateAfterRestart().then(() => {
   loadConnectionState().then(() => {
     startConnectionMonitoring();
     
-    // Вместо прогрева корня (который дает 404), сразу пробуем соединиться с WS по контракту
+    // Вместо старого warmUpConnection, который давал 404:
+    // Мы просто инициируем коннект к сокету, который уже знает про путь /ws
     wsClient.ensureConnected().then(() => {
-        console.log('[Aegis] Connected to WebSocket successfully');
-    }).catch((err) => {
-        console.warn('[Aegis] WebSocket fallback active:', err?.message);
-        connectionState.isOnline = false;
-        saveConnectionState();
+      console.log('[Aegis] Ready and connected to /ws');
+    }).catch(() => {
+      connectionState.isOnline = false;
+      saveConnectionState();
     });
     
     broadcastReinitHover();
