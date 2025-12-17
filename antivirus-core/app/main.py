@@ -1762,3 +1762,6 @@ async def shutdown_event():
         await ws_manager.close_all()
     except Exception as exc:
         logger.error(f"Error closing WebSocket clients: {exc}", exc_info=True)
+
+
+#Test nothing personal
