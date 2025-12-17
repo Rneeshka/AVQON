@@ -12,12 +12,14 @@
     "sidePanel"
   ],
   "host_permissions": [
-    "https://api.aegis.builders/*",
-    "wss://api.aegis.builders/*"
-  ],
+  "https://api.aegis.builders/*",
+  "wss://api.aegis.builders/*",
+  "https://api-dev.aegis.builders/*",
+  "wss://api-dev.aegis.builders/*"
+],
   
   "content_security_policy": {
-  "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.aegis.builders wss://api.aegis.builders;",
+  "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.aegis.builders wss://api.aegis.builders https://api-dev.aegis.builders wss://api-dev.aegis.builders;",
   "sandbox": "sandbox allow-scripts; script-src 'self'; connect-src https://api.aegis.builders wss://api.aegis.builders;",
   "content_scripts": "script-src 'self'; connect-src 'self' https://api.aegis.builders wss://api.aegis.builders;"
   },
