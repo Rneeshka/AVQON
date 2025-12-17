@@ -957,34 +957,13 @@ async function getApiBase() {
 }
 
 async function warmUpConnection() {
-  try {
     const apiBase = await getApiBase();
-    // Делаем простой GET запрос к /health для установки доверия
-    // Это позволяет браузеру "познакомиться" с сервером
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    await fetch(`${apiBase}/health`, {
-      method: 'GET',
-      signal: controller.signal,
-      // Важно: не добавляем credentials, чтобы не вызывать CORS preflight
-      mode: 'cors',
-      cache: 'no-cache'
-    }).finally(() => clearTimeout(timeoutId));
-    
-    // Обновляем состояние подключения
-    connectionState.isOnline = true;
-    connectionState.lastCheck = Date.now();
-    await saveConnectionState();
-    
-    // Уведомляем о успешном warm-up (без показа пользователю)
-  } catch (e) {
-    // Игнорируем ошибки warm-up - это нормально, если сервер недоступен
-    // Главное - браузер теперь "знает" о сервере
-    connectionState.isOnline = false;
-    connectionState.lastCheck = Date.now();
-    await saveConnectionState();
-  }
+    try {
+        // Добавляем /health или оставляем как есть, но не считаем 404 критичной ошибкой
+        await fetch(`${apiBase}/health`, { method: 'GET', mode: 'no-cors' });
+    } catch (e) {
+        console.debug('[Aegis] Warm-up ignoring error:', e);
+    }
 }
 
 // Проверка подключения к серверу
