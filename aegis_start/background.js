@@ -1,24 +1,40 @@
 // background.js
+// КРИТИЧНО: Конфигурация синхронизирована с config.js
+// Для Service Worker (Manifest V3) конфиг должен быть встроен напрямую
+// Синхронизируйте изменения с aegis_start/config.js
+
+// ===== ПЕРЕКЛЮЧАТЕЛЬ СРЕДЫ =====
+// Должен совпадать с ENV в config.js
+// PROD для продакшена, DEV для разработки
+const IS_DEV = false; // false = PROD, true = DEV
+// ===============================
+
+const CONFIG = {
+  DEV: {
+    API_BASE: 'https://api-dev.aegis.builders',
+    WS_URL: 'wss://api-dev.aegis.builders/ws'
+  },
+  PROD: {
+    API_BASE: 'https://api.aegis.builders',
+    WS_URL: 'wss://api.aegis.builders/ws'
+  }
+};
+
+const CURRENT_CONFIG = IS_DEV ? CONFIG.DEV : CONFIG.PROD;
+
+// Делаем доступным глобально для Service Worker
+if (typeof self !== 'undefined') {
+  self.AEGIS_CONFIG = CURRENT_CONFIG;
+}
+
 const DEFAULTS = { antivirusEnabled: true, linkCheck: true, hoverScan: true, notify: true };
-const DEFAULT_API_BASE = 'https://api.aegis.builders';
+const DEFAULT_API_BASE = CURRENT_CONFIG.API_BASE;
 
-// Кеш результатов для быстрого анализа по наведению
 const cache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 минут
-
-// Поддержка анализа файлов
-const FILE_EXTENSIONS = [
-  '.exe', '.msi', '.apk', '.bat', '.cmd', '.scr', '.ps1',
-  '.js', '.jar', '.vbs', '.py', '.zip', '.rar', '.7z', '.gz', '.tar',
-  '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-  '.pdf', '.rtf', '.iso', '.img' 
-];
-const FILE_ANALYSIS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 часа
-const MAX_FILE_ANALYSIS_SIZE = 15 * 1024 * 1024; // 15 МБ лимит быстрой проверки
-const FILE_ANALYSIS_STORAGE_KEY = 'fileAnalysisCache';
+const CACHE_TTL = 5 * 60 * 1000;
+const FILE_EXTENSIONS = ['.exe', '.msi', '.apk', '.bat', '.cmd', '.scr', '.ps1', '.js', '.jar', '.vbs', '.py', '.zip', '.rar', '.7z', '.gz', '.tar', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.rtf', '.iso', '.img'];
 const fileAnalysisCache = new Map();
-const ongoingFileAnalyses = new Map(); // downloadId -> Promise
-let fileAnalysisCacheLoaded = false;
+const ongoingFileAnalyses = new Map();
 
 // Состояние подключения к серверу
 let connectionState = {
@@ -102,29 +118,17 @@ function generateRequestId(prefix = 'req') {
 class AegisWebSocketClient {
   constructor() {
     this.ws = null;
-    this.pending = new Map();
-    this.retryTimer = null;
-    this.connectingPromise = null;
-    this.heartbeatTimer = null;
-    this.lastPong = 0;
-    this.retryAttempt = 0;
-    this.manuallyClosed = false;
+    this.reconnectTimer = null;
   }
 
-  async ensureConnected() {
+async ensureConnected() {
+    // Если уже подключен, возвращаем
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       return this.ws;
     }
-    if (this.connectingPromise) {
-      return this.connectingPromise;
-    }
-    this.connectingPromise = this._connect();
-    try {
-      await this.connectingPromise;
-    } finally {
-      this.connectingPromise = null;
-    }
-    return this.ws;
+    
+    // Используем основной метод подключения _connect()
+    return await this._connect();
   }
 
   async _connect() {
@@ -215,49 +219,17 @@ class AegisWebSocketClient {
     }
   }
 
-  _buildUrl(apiBase, apiKey) {
+_buildUrl(apiBase, apiKey) {
     try {
-      // Правильно преобразуем HTTP/HTTPS в WS/WSS
-      let wsUrl = apiBase;
-      if (wsUrl.startsWith('https://')) {
-        wsUrl = wsUrl.replace('https://', 'wss://');
-      } else if (wsUrl.startsWith('http://')) {
-        wsUrl = wsUrl.replace('http://', 'ws://');
-      } else if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
-        // Если нет протокола, добавляем wss по умолчанию
-        wsUrl = `wss://${wsUrl}`;
-      }
-      
-      const url = new URL(wsUrl);
-      // КРИТИЧНО: Убираем ВСЕ пути из apiBase и добавляем только /ws
-      // Это нужно, потому что apiBase может содержать /proxy или другие пути
-      url.pathname = '/ws';
-      if (apiKey) {
-        url.searchParams.set('api_key', apiKey);
-      }
-      const finalUrl = url.toString();
-      console.log('[Aegis WS] Built URL:', finalUrl.replace(/api_key=[^&]+/, 'api_key=***'));
-      return finalUrl;
-    } catch (err) {
-      // В случае ошибки формируем URL вручную
-      console.error('[Aegis WS] Failed to build URL:', err, apiBase);
-      let wsBase = apiBase;
-      if (wsBase.startsWith('https://')) {
-        wsBase = wsBase.replace('https://', 'wss://');
-      } else if (wsBase.startsWith('http://')) {
-        wsBase = wsBase.replace('http://', 'ws://');
-      }
-      // Извлекаем только origin (без пути)
-      try {
-        const urlObj = new URL(wsBase);
-        wsBase = `${urlObj.protocol}//${urlObj.host}`;
-      } catch (_) {
-        // Если не удалось распарсить, оставляем как есть
-      }
-      return `${wsBase}/ws${apiKey ? `?api_key=${encodeURIComponent(apiKey)}` : ''}`;
+      const url = new URL(apiBase.replace(/\/+$/, ''));
+      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+      url.pathname = '/ws'; // ЖЕСТКО ПО КОНТРАКТУ
+      if (apiKey) url.searchParams.set('api_key', apiKey);
+      return url.toString();
+    } catch (e) {
+      return CURRENT_CONFIG.WS_URL + (apiKey ? `?api_key=${apiKey}` : '');
     }
   }
-
   _handleOpen() {
     this.retryAttempt = 0;
     this.lastPong = Date.now();
@@ -476,18 +448,11 @@ class AegisWebSocketClient {
     this._rejectAllPending('Connection closed');
   }
 
-  forceReconnect() {
-    this.manuallyClosed = false;
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      try {
-        this.ws.close(1012, 'Reconnecting');
-      } catch (_) {}
-    } else {
-      this.ensureConnected().catch(() => {});
-    }
+forceReconnect() {
+    if (this.ws) this.ws.close();
+    this.ensureConnected();
   }
 }
-
 const wsClient = new AegisWebSocketClient();
 
 async function loadConnectionState(force = false) {
@@ -923,65 +888,50 @@ function getConfig() {
   });
 }
 
-async function getApiKey() {
-  const storage = await new Promise(r => chrome.storage.sync.get(['apiKey'], r));
-  return storage.apiKey || '';
-}
-
-// async function getApiBase() {
-//   const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
-//   const normalized = normalizeApiBaseUrl(storage.apiBase);
-//   if (storage.apiBase !== normalized) {
-//     try {
-//       chrome.storage.sync.set({ apiBase: normalized }, () => chrome.runtime?.lastError && void 0);
-//     } catch (_) {
-//       // ignore
-//     }
-//   }
-//   return normalized;
-// }
-
 async function getApiBase() {
-  // Используем конфиг из глобальной переменной
-  return window.AEGIS_CONFIG?.API_BASE || 
-         self.AEGIS_CONFIG?.API_BASE || 
-         'https://api-dev.aegis.builders';
+  // 1. Пробуем получить из локальных настроек (если юзер менял вручную)
+  try {
+    const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
+    if (storage?.apiBase) {
+      return storage.apiBase;
+    }
+  } catch (e) {
+    // Игнорируем ошибки storage
+  }
+  
+  // 2. Используем конфигурацию по умолчанию (PROD или DEV)
+  // КРИТИЧНО: Используем CURRENT_CONFIG, а не CURRENT_ENV (старая переменная)
+  if (typeof CURRENT_CONFIG === 'undefined') {
+    console.error('[Aegis] CURRENT_CONFIG is not defined! Using fallback PROD API');
+    return 'https://api.aegis.builders';
+  }
+  return CURRENT_CONFIG.API_BASE;
 }
 
-// КРИТИЧНО: Warm-up запрос для установки доверия браузера к серверу
-// Это решает проблему CORS/доверия, когда браузер блокирует запросы
-// до первого прямого обращения к серверу
-async function warmUpConnection() {
+async function getApiKey() {
   try {
-    const apiBase = await getApiBase();
-    // Делаем простой GET запрос к /health для установки доверия
-    // Это позволяет браузеру "познакомиться" с сервером
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    await fetch(`${apiBase}/health`, {
-      method: 'GET',
-      signal: controller.signal,
-      // Важно: не добавляем credentials, чтобы не вызывать CORS preflight
-      mode: 'cors',
-      cache: 'no-cache'
-    }).finally(() => clearTimeout(timeoutId));
-    
-    // Обновляем состояние подключения
-    connectionState.isOnline = true;
-    connectionState.lastCheck = Date.now();
-    await saveConnectionState();
-    
-    // Уведомляем о успешном warm-up (без показа пользователю)
+    const storage = await new Promise(r => chrome.storage.sync.get(['apiKey'], r));
+    return storage?.apiKey || null;
   } catch (e) {
-    // Игнорируем ошибки warm-up - это нормально, если сервер недоступен
-    // Главное - браузер теперь "знает" о сервере
-    connectionState.isOnline = false;
-    connectionState.lastCheck = Date.now();
-    await saveConnectionState();
+    console.warn('[Aegis] Failed to get API key from storage:', e);
+    return null;
   }
 }
 
+async function warmUpConnection() {
+  try {
+    const apiBase = await getApiBase();
+    // Убеждаемся, что путь ВСЕГДА /ws согласно заданию
+    const target = apiBase.replace(/\/+$/, '') + '/ws';
+    
+    await fetch(target, { 
+      method: 'HEAD', 
+      mode: 'no-cors' 
+    });
+  } catch (e) {
+    // Игнорируем
+  }
+}
 // Проверка подключения к серверу
 async function checkServerConnection() {
   try {
@@ -1831,29 +1781,26 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           apiBaseChanged: !!changes.apiBase 
         });
         // При изменении apiKey/apiBase делаем warm-up для обновления соединения
-        warmUpConnection().catch(() => {});
         wsClient.forceReconnect();
       } catch(_) {}
     }
   }
 });
 
-// Восстанавливаем состояние и запускаем мониторинг при активации service worker
-// Это срабатывает каждый раз, когда service worker активируется
 restoreStateAfterRestart().then(() => {
   loadConnectionState().then(() => {
     startConnectionMonitoring();
-    // КРИТИЧНО: Делаем warm-up запрос при активации service worker
-    // Это гарантирует, что браузер доверяет серверу даже после перезапуска
-    warmUpConnection().finally(() => {
-      // Пробуем подключиться к WebSocket, но не блокируем работу при ошибке
-      wsClient.ensureConnected().catch((err) => {
-        console.warn('[Aegis] WebSocket initialization failed, will use REST fallback:', err?.message);
-        // Помечаем, что WebSocket недоступен, чтобы сразу использовать REST
-        connectionState.isOnline = false;
-        saveConnectionState();
-      });
-      broadcastReinitHover();
+    // Сразу идем в сокет, минуя кривой fetch к корню
+    wsClient.ensureConnected().catch(() => {
+      connectionState.isOnline = false;
     });
+    broadcastReinitHover();
   });
+});
+
+// Слушатель настроек
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.apiKey || changes.apiBase) {
+    wsClient.forceReconnect();
+  }
 });

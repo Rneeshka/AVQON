@@ -251,48 +251,16 @@ ws_manager = WebSocketManager()
 app.state.ws_manager = ws_manager
 app.state.ws_cleanup_task = None
 
-# Note: do not mount static at /admin/ui to avoid masking /admin/ui/* router routes
-
-# CORS middleware ДОЛЖЕН быть первым, чтобы обрабатывать OPTIONS запросы
-# КРИТИЧНО: WebSocket требует специальной обработки CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-    allow_headers=["X-API-Key", "Authorization", "Content-Type", "Origin", "Accept", "Upgrade", "Connection", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"],
-    expose_headers=["*"],
-    max_age=3600,
-)
-
-# Include admin ui router to serve /admin/ui -> index.html
-app.include_router(admin_ui_router)
-
-app.include_router(payments_router, prefix="/payments")
-
-# Сжатие ответов для ускорения отдачи (после CORS, чтобы не мешать заголовкам)
-app.add_middleware(GZipMiddleware, minimum_size=500)
-
-
-@app.get("/ws/health")
-async def websocket_health_check():
-    """Проверка доступности WebSocket endpoint."""
-    return JSONResponse(
-        status_code=200,
-        content={
-            "status": "ok",
-            "websocket_available": True,
-            "endpoint": "/ws",
-            "timestamp": datetime.utcnow().isoformat()
-        },
-        headers={"Access-Control-Allow-Origin": "*"}
-    )
-
+# КРИТИЧНО: WebSocket endpoint должен быть зарегистрирован ПЕРВЫМ,
+# до всех HTTP‑middleware и роутеров, чтобы не перехватываться ими
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint для двусторонней связи с расширением."""
     client_ip = websocket.client.host if websocket.client else "unknown"
-    logger.info(f"[WS] WebSocket connection attempt from {client_ip}")
+    # КРИТИЧНО: Логируем все заголовки для диагностики
+    upgrade_header = websocket.headers.get("Upgrade", "")
+    connection_header = websocket.headers.get("Connection", "")
+    logger.info(f"[WS] WebSocket connection attempt from {client_ip}, Upgrade: {upgrade_header}, Connection: {connection_header}")
     
     try:
         await websocket.accept()
@@ -378,10 +346,60 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         await ws_manager.disconnect(client.id, reason="cleanup")
 
+# Note: do not mount static at /admin/ui to avoid masking /admin/ui/* router routes
+
+# CORS middleware ДОЛЖЕН быть первым среди HTTP-middleware, чтобы обрабатывать OPTIONS запросы
+# WebSocket обработчик выше не проходит через это middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+    allow_headers=["X-API-Key", "Authorization", "Content-Type", "Origin", "Accept", "Upgrade", "Connection", "Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"],
+    expose_headers=["*"],
+    max_age=3600,
+)
+
+# Include admin ui router to serve /admin/ui -> index.html
+app.include_router(admin_ui_router)
+
+app.include_router(payments_router, prefix="/payments")
+
+# Сжатие ответов для ускорения отдачи (после CORS, чтобы не мешать заголовкам)
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
+@app.get("/ws/health")
+async def websocket_health_check():
+    """Проверка доступности WebSocket endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "ok",
+            "websocket_available": True,
+            "endpoint": "/ws",
+            "timestamp": datetime.utcnow().isoformat()
+        },
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
+
 # Middleware логирования запросов в БД
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
     """КРИТИЧНО: Все вызовы БД обернуты в try-except для предотвращения падения"""
+    # КРИТИЧНО: WebSocket upgrade запросы должны пропускаться без обработки
+    if request.url.path == "/ws":
+        upgrade_header = request.headers.get("Upgrade", "").lower()
+        connection_header = request.headers.get("Connection", "").lower()
+        logger.info(f"[WS DEBUG] HTTP request to /ws - Method: {request.method}, Upgrade: {upgrade_header}, Connection: {connection_header}")
+        if upgrade_header == "websocket":
+            logger.info(f"[WS DEBUG] WebSocket upgrade detected, passing to FastAPI router")
+            return await call_next(request)
+        else:
+            logger.warning(f"[WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue")
+            # Пропускаем дальше, пусть FastAPI сам обработает (вернет 404 если не WebSocket)
+            return await call_next(request)
+    
     start = time.time()
     response = None
     status_code = 500
@@ -429,6 +447,11 @@ async def request_logging_middleware(request: Request, call_next):
 @app.middleware("http")
 async def filter_invalid_requests(request: Request, call_next):
     """Фильтрует некорректные HTTP запросы"""
+    
+    # КРИТИЧНО: WebSocket upgrade запросы должны пропускаться без обработки
+    # FastAPI автоматически обрабатывает их через @app.websocket, но для надежности проверяем
+    if request.url.path == "/ws" and request.headers.get("Upgrade", "").lower() == "websocket":
+        return await call_next(request)
     
     # OPTIONS запросы (CORS preflight) пропускаем сразу
     if request.method == "OPTIONS":
@@ -525,10 +548,16 @@ async def optional_auth_middleware(request: Request, call_next):
                 headers={"Access-Control-Allow-Origin": "*"}
             )
     
+    # КРИТИЧНО: WebSocket upgrade запросы должны пропускаться без обработки
+    # FastAPI автоматически обрабатывает их через @app.websocket, но для надежности проверяем
+    if request.url.path == "/ws" and request.headers.get("Upgrade", "").lower() == "websocket":
+        return await call_next(request)
+    
     # Пути, которые не требуют аутентификации (даже если ключ отправлен)
     skip_paths = [
         "/health", "/health/minimal", "/health/hover", 
         "/docs", "/redoc", "/", "/favicon.ico", "/openapi.json",
+        "/ws", "/ws/health",  # WebSocket endpoints
         "/auth/register", "/auth/login", "/auth/reset-password",  # Эндпоинты аутентификации
         "/auth/forgot-password", "/payments/debug", "/payments/create", "/payments/webhook", "/payments/webhook/yookassa"  # Эндпоинты платежей для бота
     ]
@@ -1737,6 +1766,14 @@ async def startup_event():
     except Exception as ws_error:
         logger.error(f"Failed to start WebSocket cleanup task: {ws_error}", exc_info=True)
     
+    # КРИТИЧНО: Проверяем что WebSocket endpoint зарегистрирован
+    ws_routes = [r for r in app.routes if hasattr(r, 'path') and r.path == '/ws']
+    if ws_routes:
+        logger.info(f"✅ WebSocket endpoint /ws registered: {ws_routes[0]}")
+    else:
+        logger.error("❌ CRITICAL: WebSocket endpoint /ws NOT FOUND in registered routes!")
+        logger.error(f"Available routes: {[r.path for r in app.routes if hasattr(r, 'path')][:20]}")
+    
     logger.info("✅ AEGIS Server startup complete")
 
 @app.on_event("shutdown")
@@ -1762,4 +1799,3 @@ async def shutdown_event():
         await ws_manager.close_all()
     except Exception as exc:
         logger.error(f"Error closing WebSocket clients: {exc}", exc_info=True)
-

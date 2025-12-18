@@ -1,6 +1,6 @@
 // options.js
 (function() {
-  const DEFAULT_API_BASE = window.AEGIS_CONFIG?.API_BASE || 'https://api-dev.aegis.builders';
+  const DEFAULT_API_BASE = window.AEGIS_CONFIG?.API_BASE || 'https://api.aegis.builders';
   const defaults = {
     antivirusEnabled: true,
     linkCheck: true,
@@ -93,7 +93,6 @@
         chrome.storage.sync.set({ apiBase: normalizedBase }, () => chrome.runtime?.lastError && void 0);
       }
       
-      // Автоматическая валидация ключа из аккаунта
       updateHoverScanState();
     });
   }

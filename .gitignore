@@ -1,43 +1,30 @@
+# python
 __pycache__/
 *.pyc
 
+# logs
 *.log
 logs/
 **/logs/
 
-*.db
-
+# env
 .env
-*.env
+.env.*
 env.env
 
-data/cache_blacklist.jsonl
+# databases & dumps
+*.db
+*.sqlite
+*.sqlite.sql
+
+# runtime cache
+data/cache_*.jsonl
 antivirus-core/app/data/cache.db
 
-testci*.txt
-testfile*.md
-.DS_Store
-.vscode/
-
+# virtualenvs
 venv/
 .venv/
-__pycache__/
-*.pyc
+antivirus-core/venv/
 
-*.log
-logs/
-**/logs/
-
-*.db
-
-.env
-*.env
-env.env
-
-data/cache_blacklist.jsonl
-antivirus-core/app/data/cache.db
-
-testci*.txt
-testfile*.md
 .DS_Store
 .vscode/

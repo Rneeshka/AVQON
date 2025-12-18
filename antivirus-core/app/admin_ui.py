@@ -268,9 +268,9 @@ async def keys_page(request: Request):
           <option value="365">365</option>
         </select>
         <label>Дневной лимит</label>
-        <input name="daily_limit" type="number" min="1" value="1000" />
+        <input name="daily_limit" type="number" min="1" value="10000" />
         <label>Почасовой лимит</label>
-        <input name="hourly_limit" type="number" min="1" value="100" />
+        <input name="hourly_limit" type="number" min="1" value="10000" />
         <button type="submit">Создать ключ</button>
       </form>
     </div>
@@ -308,8 +308,8 @@ async def create_key_action(
     name: str = Form(...),
     description: Optional[str] = Form(None),
     access_level: str = Form("premium"),
-    daily_limit: int = Form(1000),
-    hourly_limit: int = Form(100),
+    daily_limit: int = Form(10000),
+    hourly_limit: int = Form(10000),
     expires_days: int = Form(30),
 ):
     access_level = "premium"
