@@ -29,7 +29,7 @@ class DatabaseManager:
         """
 
         if db_url is None:
-            db_url = os.getenv("DATABASE_URL") or "sqlite:////opt/Aegis/data/aegis.db"
+            db_url = "sqlite:////opt/Aegis/data/aegis.db"
 
         self.db_url = db_url
         parsed = urlparse(db_url)
@@ -61,16 +61,7 @@ class DatabaseManager:
     
     
     def _get_connection(self):
-        """
-        Универсальный метод получения соединения.
-        SQLite или PostgreSQL — в зависимости от DATABASE_URL.
-        """
-        if self.db_scheme.startswith("sqlite"):
-            return self._get_sqlite_connection()
-        elif self.db_scheme.startswith("postgres"):
-            return self._get_postgres_connection()
-        else:
-            raise ValueError(f"Unsupported database scheme: {self.db_scheme}")
+        return self._get_sqlite_connection()
     
     def _get_sqlite_connection(self) -> sqlite3.Connection:
         max_retries = 3

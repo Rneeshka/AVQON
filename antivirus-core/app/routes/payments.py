@@ -48,6 +48,14 @@ async def create_payment(request_data: BotPaymentRequest):
     Создание платежа для Telegram-бота.
     Это ТО, ЧТО ОЖИДАЕТ ТВОЙ БОТ.
     """
+    # === Проверка конфигурации ЮКассы ===
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        logger.error(f"[PAYMENTS] YooKassa credentials not configured. SHOP_ID={bool(YOOKASSA_SHOP_ID)}, SECRET_KEY={bool(YOOKASSA_SECRET_KEY)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Payment system configuration error: YooKassa credentials not set"
+        )
+    
     amount = request_data.amount
     license_type = request_data.license_type
     telegram_id = request_data.telegram_id
@@ -712,6 +720,27 @@ async def check_payment_status(payment_id: str):
                                 amount_value = float(amount_obj["value"])
                             except (ValueError, TypeError):
                                 pass
+                    
+                    # КРИТИЧНО: Если платеж успешен и еще не обработан - обрабатываем автоматически
+                    if yookassa_status == "succeeded" and payment_db.get("status") != "succeeded":
+                        logger.info(f"[PAYMENTS] Payment {payment_id} succeeded, processing automatically...")
+                        try:
+                            # Получаем полные данные платежа от ЮКасса для обработки
+                            payment_object = {
+                                "id": payment_id,
+                                "status": "succeeded",
+                                "paid": True,
+                                "metadata": yookassa_metadata or {},
+                                "amount": data.get("amount", {})
+                            }
+                            # Обрабатываем платеж (выдача ключа и т.д.)
+                            success = await process_payment_succeeded(payment_object)
+                            if success:
+                                logger.info(f"[PAYMENTS] ✅ Payment {payment_id} processed successfully via status check")
+                            else:
+                                logger.error(f"[PAYMENTS] ❌ Failed to process payment {payment_id}")
+                        except Exception as process_error:
+                            logger.error(f"[PAYMENTS] Error processing payment {payment_id}: {process_error}", exc_info=True)
                     
                     return {
                         "status": yookassa_status,

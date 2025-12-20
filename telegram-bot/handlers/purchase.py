@@ -77,17 +77,28 @@ async def backend_create_payment(amount: int, license_type: str, user_id: int, u
         "username": username
     }
 
-    logger.info(f"Отправляю запрос на backend: {url} | {payload}")
+    logger.info(f"[PAYMENT] Отправляю запрос на backend: {url}")
+    logger.info(f"[PAYMENT] BACKEND_URL из config: {BACKEND_URL}")
+    logger.info(f"[PAYMENT] Payload: {payload}")
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload, timeout=20) as resp:
                 if resp.status != 200:
-                    logger.error(f"Backend error: HTTP {resp.status}")
+                    error_text = await resp.text()
+                    logger.error(f"Backend error: HTTP {resp.status}, response: {error_text[:500]}")
                     return None
-                data = await resp.json()
-                logger.info(f"Ответ от backend: {data}")
-                return data
+                try:
+                    data = await resp.json()
+                    logger.info(f"Ответ от backend: {data}")
+                    return data
+                except Exception as json_err:
+                    error_text = await resp.text()
+                    logger.error(f"Ошибка парсинга JSON ответа от backend: {json_err}, response: {error_text[:500]}")
+                    return None
+    except aiohttp.ClientError as client_err:
+        logger.error(f"Сетевая ошибка при запросе к backend: {client_err}", exc_info=True)
+        return None
     except Exception as e:
         logger.error(f"Ошибка запроса на backend: {e}", exc_info=True)
         return None

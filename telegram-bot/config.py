@@ -16,7 +16,7 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 
 # Настройки ЮKassa
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID", "1208526")
-YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY", "live_Xcb-Qt-JXPHv292nUC-Xw5YxDRjFojsYq0Q30HDQQMg")
+YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY", "live_6mWfP4mXP6BZGMfhX2iMn1BzlXJlUq7RYoQnU9sm-Os")
 YOOKASSA_TEST_MODE = os.getenv("YOOKASSA_TEST_MODE", "False").lower() == "true"
 YOOKASSA_PROVIDER_TOKEN = os.getenv("YOOKASSA_PROVIDER_TOKEN", "")  # Для Telegram Payments (не используется с ЮKassa)
 
