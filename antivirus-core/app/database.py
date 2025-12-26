@@ -482,6 +482,7 @@ class DatabaseManager:
             cursor.execute(self._adapt_query(query), (url, domain, threat_type, severity, description))
     
     # ===== API KEYS MANAGEMENT =====
+    # Метод validate_api_key удалён - используйте JWT аутентификацию через security.py
     
     def create_api_key(self, name: str, description: str = "", 
                       access_level: str = "basic", daily_limit: Optional[int] = 10000, 
@@ -2053,21 +2054,21 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 from datetime import datetime
                 if license_key:
-                    cursor.execute(
-                        """UPDATE yookassa_payments 
-                           SET status = ?, license_key = ?, updated_at = ? 
-                           WHERE payment_id = ?""",
-                        (status, license_key, datetime.now(), payment_id)
-                    )
+                    query = """
+                        UPDATE yookassa_payments 
+                        SET status = %s, license_key = %s, updated_at = %s 
+                        WHERE payment_id = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (status, license_key, datetime.now(), payment_id))
                 else:
-                    cursor.execute(
-                        """UPDATE yookassa_payments 
-                           SET status = ?, updated_at = ? 
-                           WHERE payment_id = ?""",
-                        (status, datetime.now(), payment_id)
-                    )
+                    query = """
+                        UPDATE yookassa_payments 
+                        SET status = %s, updated_at = %s 
+                        WHERE payment_id = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (status, datetime.now(), payment_id))
                 self._commit_if_needed(conn)
-                logger.info(f"Updated YooKassa payment {payment_id} status to {status}")
+                logger.info(f"Updated YooKassa payment {payment_id} status to {status}, license_key={'set' if license_key else 'not set'}")
                 return True
         except Exception as e:
             logger.error(f"Update YooKassa payment status error: {e}", exc_info=True)
@@ -2208,11 +2209,12 @@ class DatabaseManager:
         """Получает платеж ЮKassa по license_key"""
         try:
             with self._get_connection() as conn:
-                cursor = conn.execute(
-                    """SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at
-                       FROM yookassa_payments WHERE license_key = ? ORDER BY created_at DESC LIMIT 1""",
-                    (license_key,)
-                )
+                cursor = conn.cursor()
+                query = """
+                    SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at
+                    FROM yookassa_payments WHERE license_key = %s ORDER BY created_at DESC LIMIT 1
+                """
+                cursor.execute(self._adapt_query(query), (license_key,))
                 row = cursor.fetchone()
                 if row:
                     return {

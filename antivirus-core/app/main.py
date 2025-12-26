@@ -6,6 +6,8 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 from pathlib import Path
+import aiohttp
+from aiohttp import BasicAuth
 
 # КРИТИЧНО: Загружаем env.env ПЕРЕД всеми импортами, чтобы переменные были доступны
 def _load_env_file():
@@ -625,7 +627,7 @@ async def jwt_auth_middleware(request: Request, call_next):
         "features": payload.get("features", []),
         "token_payload": payload
     }
-    
+                
     # Логирование для диагностики
     is_hover_req = request.headers.get("X-Request-Source") == "hover"
     if is_hover_req:
@@ -738,17 +740,17 @@ async def health_check_hover(request: Request):
         # 1. Проверка соединения с БД
         if db_manager:
             test_url = "https://example.com"
-            try:
-                db_test = db_manager.check_url(test_url)
-                health_status["components"]["database"] = "connected"
-            except (psycopg2.OperationalError, psycopg2.InterfaceError, AttributeError) as db_error:
-                error_msg = str(db_error).lower()
-                health_status["components"]["database"] = f"error: {str(db_error)[:50]}"
-                health_status["status"] = "degraded"
-            except Exception as db_error:
-                logger.warning(f"Hover health check: DB error: {db_error}")
-                health_status["components"]["database"] = f"error: {str(db_error)[:50]}"
-                health_status["status"] = "degraded"
+        try:
+            db_test = db_manager.check_url(test_url)
+            health_status["components"]["database"] = "connected"
+        except (psycopg2.OperationalError, psycopg2.InterfaceError, AttributeError) as db_error:
+            error_msg = str(db_error).lower()
+            health_status["components"]["database"] = f"error: {str(db_error)[:50]}"
+            health_status["status"] = "degraded"
+        except Exception as db_error:
+            logger.warning(f"Hover health check: DB error: {db_error}")
+            health_status["components"]["database"] = f"error: {str(db_error)[:50]}"
+            health_status["status"] = "degraded"
         else:
             health_status["components"]["database"] = "unavailable"
             health_status["status"] = "degraded"
@@ -1691,16 +1693,16 @@ async def validate_session(request: Request):
                     "user_id": user_id
                 }
         
+            return {
+                "status": "invalid",
+                "valid": False
+            }
+        
         return {
-            "status": "invalid",
-            "valid": False
-        }
-    
-    return {
-        "status": "valid",
-        "valid": True,
+            "status": "valid",
+            "valid": True,
         "user_id": user_info.get("user_id")
-    }
+        }
 
 @app.get("/auth/me")
 async def get_current_user(request: Request):
@@ -1746,6 +1748,61 @@ async def get_current_user(request: Request):
         "email": user_info.get("email"),
         "access_level": user_info.get("access_level", "basic"),
         "features": user_info.get("features", [])
+    }
+
+class BindApiKeyRequest(BaseModel):
+    api_key: str
+
+@app.post("/auth/bind-api-key")
+async def bind_api_key(request: Request, bind_request: BindApiKeyRequest):
+    """
+    Привязывает API ключ к текущему аккаунту пользователя.
+    Требует JWT токен в заголовке Authorization.
+    """
+    # Получаем информацию о пользователе из JWT middleware
+    user_info = getattr(request.state, 'user_info', None)
+    
+    if not user_info:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required. Please provide a valid JWT token."
+        )
+    
+    user_id = user_info.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid user ID in token"
+        )
+    
+    api_key = bind_request.api_key.strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="API key is required"
+        )
+    
+    if not db_manager:
+        raise HTTPException(
+            status_code=500,
+            detail="Database unavailable"
+        )
+    
+    # Привязываем ключ к аккаунту
+    success = db_manager.bind_api_key_to_account(api_key, user_id)
+    
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Failed to bind API key. Key may not exist, already bound to another account, or invalid."
+        )
+    
+    logger.info(f"API key {api_key[:10]}... bound to account {user_id}")
+    
+    return {
+        "status": "success",
+        "message": "API key successfully bound to account",
+        "user_id": user_id
     }
 
 @app.on_event("startup")
@@ -1834,6 +1891,22 @@ async def startup_event():
         logger.error(f"❌ Failed to check YooKassa config: {yk_check_error}")
     
     logger.info("✅ AEGIS Server startup complete")
+        # === YooKassa aiohttp session init (CRITICAL) ===
+    try:
+        from app.routes.payments import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
+
+        if YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY:
+            app.state.yookassa_session = aiohttp.ClientSession(
+                auth=BasicAuth(YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY),
+                timeout=aiohttp.ClientTimeout(total=30)
+            )
+            logger.info("✅ YooKassa aiohttp session initialized")
+        else:
+            app.state.yookassa_session = None
+            logger.warning("⚠️ YooKassa aiohttp session NOT initialized (missing credentials)")
+    except Exception as e:
+        app.state.yookassa_session = None
+        logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -1858,3 +1931,9 @@ async def shutdown_event():
         await ws_manager.close_all()
     except Exception as exc:
         logger.error(f"Error closing WebSocket clients: {exc}", exc_info=True)
+
+    # 🔥 ЗАКРЫВАЕМ YooKassa session В КОНЦЕ
+    session = getattr(app.state, "yookassa_session", None)
+    if session and not session.closed:
+        await session.close()
+        logger.info("🛑 YooKassa aiohttp session closed")

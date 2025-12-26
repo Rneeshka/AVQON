@@ -72,6 +72,9 @@ async def create_payment(request_data: BotPaymentRequest):
 
     # === YooKassa request ===
     payment_idempotence_key = str(uuid.uuid4())
+    
+    # Используем временный ID для return_url, потом заменим на реальный payment_id
+    website_url = os.getenv("WEBSITE_URL", "http://localhost:8080")
 
     headers = {
         "Idempotence-Key": payment_idempotence_key
@@ -89,7 +92,7 @@ async def create_payment(request_data: BotPaymentRequest):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://t.me/AegisShieldWeb_bot"
+            "return_url": f"{website_url}/payment-success.html"
         },
         "capture": True,
         "description": f"AEGIS {license_type.upper()} payment",
@@ -120,32 +123,38 @@ async def create_payment(request_data: BotPaymentRequest):
         }
     }
 
-    try:
-        timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            logger.info(f"[PAYMENTS] Sending POST request to YooKassa API: {YOOKASSA_API_URL}")
-            logger.debug(f"[PAYMENTS] Request payload: amount={amount}, license_type={license_type}, user={telegram_id}")
-            
+            timeout = aiohttp.ClientTimeout(total=30)
+
+    async with aiohttp.ClientSession(
+        timeout=timeout,
+        auth=auth
+    ) as session:
+
+        logger.info(f"[PAYMENTS] Sending POST request to YooKassa API: {YOOKASSA_API_URL}")
+        logger.debug(
+            f"[PAYMENTS] Request payload: amount={amount}, "
+            f"license_type={license_type}, user={telegram_id}"
+        )
+
         async with session.post(
             YOOKASSA_API_URL,
             json=payload,
-            auth=auth,
             headers=headers
         ) as response:
+
             logger.info(f"[PAYMENTS] YooKassa responded with status: {response.status}")
 
             try:
                 data = await response.json()
-                logger.info(f"[PAYMENTS] YooKassa response received")
+                logger.info("[PAYMENTS] YooKassa response received")
             except Exception as json_error:
                 response_text = await response.text()
                 logger.error(f"[PAYMENTS] Failed to parse YooKassa response as JSON: {json_error}")
                 logger.error(f"[PAYMENTS] Response text (first 500 chars): {response_text[:500]}")
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Invalid response from payment system"
+                    detail="Invalid response from payment system"
                 )
-
             # Ошибки ЮKassa
             if response.status >= 300:
                 error_description = data.get('description', 'Unknown error')
@@ -560,7 +569,7 @@ async def yookassa_webhook(request: Request):
                 status_code=200,
                 content={"status": "ignored", "reason": "unknown_type"}
             )
-        
+
         if event != "payment.succeeded":
             logger.info(f"[PAYMENTS] Ignoring event: {event}")
             return JSONResponse(
@@ -580,7 +589,7 @@ async def yookassa_webhook(request: Request):
         # Проверяем статус и paid
         payment_status = payment_object.get("status")
         paid = payment_object.get("paid", False)
-        
+
         if payment_status != "succeeded" or not paid:
             logger.info(f"[PAYMENTS] Payment not paid: status={payment_status}, paid={paid}")
             return JSONResponse(
@@ -612,6 +621,36 @@ async def yookassa_webhook(request: Request):
             status_code=200,
             content={"status": "error", "message": "Internal server error"}
         )
+
+# ==== GET LICENSE KEY BY PAYMENT ID ====
+@router.get("/license/{payment_id}")
+async def get_license_by_payment(payment_id: str):
+    """
+    Получение лицензионного ключа по ID платежа.
+    Используется для отображения ключа на сайте после успешной оплаты.
+    """
+    logger.info(f"[PAYMENTS] Getting license for payment: {payment_id}")
+    
+    db = DatabaseManager()
+    payment_db = await db.get_yookassa_payment(payment_id)
+    
+    if not payment_db:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    
+    if payment_db.get("status") != "succeeded":
+        raise HTTPException(status_code=400, detail=f"Payment not completed. Status: {payment_db.get('status')}")
+    
+    license_key = payment_db.get("license_key")
+    if not license_key:
+        raise HTTPException(status_code=404, detail="License key not issued yet")
+    
+    return {
+        "payment_id": payment_id,
+        "license_key": license_key,
+        "license_type": payment_db.get("license_type", "forever"),
+        "status": "succeeded"
+    }
+
 
 # ==== CHECK PAYMENT STATUS FOR BOT ====
 @router.get("/status/{payment_id}")
