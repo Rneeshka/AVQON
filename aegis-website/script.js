@@ -66,24 +66,44 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ===== Payment Functions =====
+let currentLicenseType = null;
+let currentAmount = null;
+
 async function initiatePayment(licenseType, amount) {
+    // Сохраняем параметры для использования после ввода email
+    currentLicenseType = licenseType;
+    currentAmount = amount;
+    
     // Show modal
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.classList.add('show');
-        showPaymentStatus();
+        showPaymentForm();
     }
+}
 
-    // Get user info (for demo, using placeholder values)
-    // In production, you would get this from user authentication
-    const userInfo = {
-        telegram_id: generateDemoUserId(), // Demo: random user ID
-        username: 'web_user_' + Date.now(),
-        amount: amount,
-        license_type: licenseType
-    };
-
+async function processPayment() {
+    const emailInput = document.getElementById('userEmail');
+    const email = emailInput.value.trim();
+    
+    // Валидация email
+    if (!email || !validateEmail(email)) {
+        showPaymentError('Пожалуйста, введите корректный email адрес');
+        return;
+    }
+    
+    // Скрываем форму и показываем статус загрузки
+    showPaymentStatus();
+    
     try {
+        // Проверяем доступность API перед запросом
+        console.log(`[PAYMENT] Creating payment request to: ${PAYMENT_ENDPOINT}`);
+        console.log(`[PAYMENT] Request data:`, {
+            amount: currentAmount,
+            license_type: currentLicenseType,
+            email: email
+        });
+        
         // Create payment request
         const response = await fetch(PAYMENT_ENDPOINT, {
             method: 'POST',
@@ -91,44 +111,103 @@ async function initiatePayment(licenseType, amount) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                amount: userInfo.amount,
-                license_type: userInfo.license_type,
-                telegram_id: userInfo.telegram_id,
-                username: userInfo.username
-            })
+                amount: currentAmount,
+                license_type: currentLicenseType,
+                email: email,
+                username: email.split('@')[0] // Используем часть email как username
+            }),
+            // Добавляем timeout через AbortController
+            signal: AbortSignal.timeout(30000) // 30 секунд
         });
 
+        console.log(`[PAYMENT] Response status: ${response.status} ${response.statusText}`);
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (jsonError) {
+                const text = await response.text();
+                console.error('[PAYMENT] Failed to parse error response:', text);
+                errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
+            }
+            
+            const errorMessage = errorData.detail || errorData.message || `Ошибка ${response.status}`;
+            console.error('[PAYMENT] API error:', errorMessage);
+            throw new Error(errorMessage);
         }
 
         const paymentData = await response.json();
+        console.log('[PAYMENT] Payment created:', paymentData);
         
-        if (paymentData.confirmation_url) {
-            // Сохраняем payment_id для проверки после возврата
-            if (paymentData.payment_id) {
-                sessionStorage.setItem('last_payment_id', paymentData.payment_id);
-            }
-            
-            // Show success message
-            showPaymentSuccess();
-            
-            // Redirect to payment page immediately
-            window.location.href = paymentData.confirmation_url;
-        } else {
-            throw new Error('Payment confirmation URL not received');
+        if (!paymentData.confirmation_url) {
+            console.error('[PAYMENT] Missing confirmation_url in response:', paymentData);
+            throw new Error('Не получен URL для оплаты. Обратитесь в поддержку.');
         }
+        
+        if (!paymentData.payment_id) {
+            console.error('[PAYMENT] Missing payment_id in response:', paymentData);
+            throw new Error('Не получен ID платежа. Обратитесь в поддержку.');
+        }
+        
+        // Сохраняем payment_id для проверки после возврата
+        sessionStorage.setItem('last_payment_id', paymentData.payment_id);
+        
+        // Сохраняем email для использования на странице успешной оплаты
+        sessionStorage.setItem('payment_email', email);
+        
+        // Show success message
+        showPaymentSuccess();
+        
+        // Redirect to payment page immediately
+        window.location.href = paymentData.confirmation_url;
+        
     } catch (error) {
-        console.error('Payment error:', error);
-        showPaymentError(error.message || 'Не удалось создать платеж. Попробуйте позже.');
+        console.error('[PAYMENT] Payment error:', error);
+        
+        let errorMessage = 'Не удалось создать платеж. Попробуйте позже.';
+        
+        // Детальная обработка ошибок
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+            errorMessage = 'Превышено время ожидания. Проверьте интернет-соединение и попробуйте снова.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение. Если проблема сохраняется, обратитесь в поддержку: aegisshieldos@gmail.com';
+        } else if (error.message.includes('CORS') || error.message.includes('CORS policy')) {
+            errorMessage = 'Ошибка доступа к серверу. Обратитесь в поддержку: aegisshieldos@gmail.com';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showPaymentError(errorMessage);
     }
 }
 
+function showPaymentForm() {
+    const form = document.getElementById('paymentForm');
+    const status = document.getElementById('paymentStatus');
+    const success = document.getElementById('paymentSuccess');
+    const error = document.getElementById('paymentError');
+    
+    if (form) form.style.display = 'block';
+    if (status) status.style.display = 'none';
+    if (success) success.style.display = 'none';
+    if (error) error.style.display = 'none';
+    
+    // Очищаем поле email при открытии модального окна
+    const emailInput = document.getElementById('userEmail');
+    if (emailInput) emailInput.value = '';
+}
+
 function showPaymentStatus() {
-    document.getElementById('paymentStatus').style.display = 'block';
-    document.getElementById('paymentSuccess').style.display = 'none';
-    document.getElementById('paymentError').style.display = 'none';
+    const form = document.getElementById('paymentForm');
+    const status = document.getElementById('paymentStatus');
+    const success = document.getElementById('paymentSuccess');
+    const error = document.getElementById('paymentError');
+    
+    if (form) form.style.display = 'none';
+    if (status) status.style.display = 'block';
+    if (success) success.style.display = 'none';
+    if (error) error.style.display = 'none';
 }
 
 function showPaymentSuccess() {
@@ -138,9 +217,16 @@ function showPaymentSuccess() {
 }
 
 function showPaymentError(message) {
-    document.getElementById('paymentStatus').style.display = 'none';
-    document.getElementById('paymentSuccess').style.display = 'none';
-    document.getElementById('paymentError').style.display = 'block';
+    const form = document.getElementById('paymentForm');
+    const status = document.getElementById('paymentStatus');
+    const success = document.getElementById('paymentSuccess');
+    const error = document.getElementById('paymentError');
+    
+    if (form) form.style.display = 'none';
+    if (status) status.style.display = 'none';
+    if (success) success.style.display = 'none';
+    if (error) error.style.display = 'block';
+    
     const errorMessage = document.getElementById('errorMessage');
     if (errorMessage) {
         errorMessage.textContent = message;
@@ -151,15 +237,23 @@ function closePaymentModal() {
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.classList.remove('show');
+        // Возвращаем форму при закрытии
+        showPaymentForm();
     }
 }
 
 // ===== Helper Functions =====
-function generateDemoUserId() {
-    // Generate a demo user ID (in production, use actual user authentication)
-    // For web users, you might want to use a different identifier
-    return Math.floor(Math.random() * 1000000) + 100000;
-}
+// Обработка Enter в поле email
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('userEmail');
+    if (emailInput) {
+        emailInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processPayment();
+            }
+        });
+    }
+});
 
 // ===== Intersection Observer for Animations =====
 const observerOptions = {
