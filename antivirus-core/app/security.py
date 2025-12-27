@@ -1,38 +1,33 @@
 # app/security.py
-from fastapi import HTTPException, Request
+"""
+JWT аутентификация для FastAPI - заменяет старый APIKeyAuth
+"""
+from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Dict, Any
-from app.database import db_manager
+from typing import Dict, Any, Optional
+from app.jwt_auth import JWTAuth
 from app.logger import logger
 
 class RateLimiter:
+    """Rate limiter для JWT токенов (опционально)"""
     def __init__(self): 
         self._cache = {}
     
-    def is_rate_limited(self, api_key: str, endpoint: str) -> bool:
+    def is_rate_limited(self, user_id: int, endpoint: str) -> bool:
+        """
+        Проверяет rate limit для пользователя.
+        В будущем можно интегрировать с БД для персистентных лимитов.
+        """
         try:
-            # Простой лимит: не более N запросов в минуту на ключ
-            # N вычисляем из почасового лимита ключа, если доступен
             from time import time
-            from app.database import db_manager
             minute_window_seconds = 60
-            key = f"{api_key}:{endpoint}"
+            key = f"{user_id}:{endpoint}"
             now = int(time())
             window_start = now - minute_window_seconds
-            # Получаем лимит из БД
-            key_info = db_manager.get_api_key_info(api_key)
-            hourly_limit = None
-            if key_info:
-                try:
-                    hourly_limit = key_info.get('rate_limit_hourly')
-                except Exception:
-                    hourly_limit = None
-
-            # Без лимитов
-            if hourly_limit is None or hourly_limit <= 0:
-                return False
-
-            per_minute_limit = max(10, int(hourly_limit / 60))
+            
+            # Простой лимит: 100 запросов в минуту на пользователя
+            per_minute_limit = 100
+            
             # Очистка старых отметок
             timestamps = [t for t in self._cache.get(key, []) if t >= window_start]
             if len(timestamps) >= per_minute_limit:
@@ -44,49 +39,86 @@ class RateLimiter:
         except Exception:
             return False
 
-class APIKeyAuth(HTTPBearer):
-    def __init__(self, rate_limiter: RateLimiter):
+class JWTAuthDependency(HTTPBearer):
+    """
+    FastAPI dependency для JWT аутентификации.
+    Заменяет старый APIKeyAuth.
+    """
+    def __init__(self, rate_limiter: Optional[RateLimiter] = None):
         super().__init__(auto_error=False)
         self.rate_limiter = rate_limiter
     
     async def __call__(self, request: Request) -> Dict[str, Any]:
-        # --- PUBLIC ENDPOINTS (NO API KEY REQUIRED) ---
+        """
+        Извлекает и верифицирует JWT токен из запроса.
+        Stateless - без запросов к БД.
+        """
+        # Публичные пути - пропускаем без проверки JWT
         PUBLIC_PATHS = {
             "/auth/forgot-password",
             "/auth/reset-password",
             "/auth/login",
             "/auth/register",
+            "/auth/refresh",
+            "/health",
+            "/health/minimal",
+            "/health/hover",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/",
         }
 
         if request.url.path in PUBLIC_PATHS:
-            return {}  # пропускаем без API ключа
-        # 1) Пытаемся извлечь Bearer токен
+            return {}  # пропускаем без JWT токена
+        
+        # Извлекаем Bearer токен
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
-        api_key = None
-        if credentials and credentials.scheme == "Bearer" and credentials.credentials:
-            api_key = credentials.credentials
-        else:
-            # 2) Фолбэк на X-API-Key
-            api_key = request.headers.get("X-API-Key")
-            if not api_key:
-                raise HTTPException(status_code=401, detail="API key required. Use X-API-Key or Authorization: Bearer.")
         
-        # Проверяем rate limiting
-        if self.rate_limiter.is_rate_limited(api_key, request.url.path):
-            raise HTTPException(status_code=429, detail="Rate limit exceeded")
+        if not credentials or credentials.scheme != "Bearer" or not credentials.credentials:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="JWT token required. Use Authorization: Bearer <token>",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
         
-        # Проверяем валидность ключа
-        is_valid, message = db_manager.validate_api_key(api_key)
-        if not is_valid:
-            raise HTTPException(status_code=401, detail=message)
+        token = credentials.credentials
         
-        # Получаем информацию о ключе
-        key_info = db_manager.get_api_key_info(api_key)
-        if not key_info:
-            raise HTTPException(status_code=401, detail="API key not found")
+        # Верифицируем JWT токен (stateless - без БД)
+        payload = JWTAuth.verify_token(token, token_type="access")
         
-        return key_info
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        user_id = payload.get("user_id") or payload.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token missing user_id",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        # Проверяем rate limiting (опционально)
+        if self.rate_limiter and self.rate_limiter.is_rate_limited(user_id, request.url.path):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded"
+            )
+        
+        # Возвращаем информацию о пользователе из токена
+        return {
+            "user_id": user_id,
+            "username": payload.get("username"),
+            "email": payload.get("email"),
+            "access_level": payload.get("access_level", "basic"),
+            "features": payload.get("features", []),
+            "token_payload": payload
+        }
 
 # Инициализация
 rate_limiter = RateLimiter()
-api_key_auth = APIKeyAuth(rate_limiter)
+jwt_auth = JWTAuthDependency(rate_limiter)

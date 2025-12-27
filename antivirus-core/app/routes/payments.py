@@ -1,6 +1,7 @@
 # /app/routes/payments.py
 import os
 import uuid
+import hashlib
 import aiohttp
 from datetime import datetime, timedelta
 from typing import Optional, Dict
@@ -8,7 +9,7 @@ import json
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.logger import logger
 from app.database import DatabaseManager
@@ -23,30 +24,39 @@ YOOKASSA_API_URL = "https://api.yookassa.ru/v3/payments"
 
 
 # ==== MODELS ====
-class BotPaymentRequest(BaseModel):
+class WebPaymentRequest(BaseModel):
     amount: int                # 150 / 500
     license_type: str          # "monthly" / "forever"
-    telegram_id: int
-    username: str
+    email: EmailStr            # Email пользователя
+    username: str              # Имя пользователя (из email)
 
 
-class BotPaymentResponse(BaseModel):
+class WebPaymentResponse(BaseModel):
     payment_id: str
     confirmation_url: str
+
+
+def email_to_user_id(email: str) -> int:
+    """Преобразует email в числовой user_id для совместимости с БД"""
+    # Используем хэш email и берем первые 15 цифр для BIGINT
+    hash_obj = hashlib.md5(email.encode())
+    hash_hex = hash_obj.hexdigest()
+    # Преобразуем в число (первые 15 символов)
+    user_id = int(hash_hex[:15], 16) % (10**15)
+    return user_id
 
 
 # ==== DEBUG ENDPOINT ====
 @router.get("/debug")
 async def debug_payment():
-    return {"status": "ok", "message": "Telegram payment module active"}
+    return {"status": "ok", "message": "Web payment module active"}
 
 
 # ==== CREATE PAYMENT ====
-@router.post("/create", response_model=BotPaymentResponse)
-async def create_payment(request_data: BotPaymentRequest):
+@router.post("/create", response_model=WebPaymentResponse)
+async def create_payment(request_data: WebPaymentRequest):
     """
-    Создание платежа для Telegram-бота.
-    Это ТО, ЧТО ОЖИДАЕТ ТВОЙ БОТ.
+    Создание платежа для веб-сайта через ЮКассу.
     """
     # === Проверка конфигурации ЮКассы ===
     if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
@@ -58,20 +68,33 @@ async def create_payment(request_data: BotPaymentRequest):
     
     amount = request_data.amount
     license_type = request_data.license_type
-    telegram_id = request_data.telegram_id
+    email = request_data.email
     username = request_data.username
 
-    logger.info(f"[PAYMENTS] Creating payment: user={telegram_id}, type={license_type}, amount={amount}")
+    logger.info(f"[PAYMENTS] Creating payment: email={email}, type={license_type}, amount={amount}")
 
     # === Validate request ===
     if amount not in (150, 500):
-        raise HTTPException(status_code=400, detail="Invalid amount")
+        logger.error(f"[PAYMENTS] Invalid amount: {amount} (expected 150 or 500)")
+        raise HTTPException(status_code=400, detail=f"Invalid amount: {amount}. Expected 150 or 500")
 
     if license_type not in ("monthly", "forever"):
-        raise HTTPException(status_code=400, detail="Invalid license type")
+        logger.error(f"[PAYMENTS] Invalid license_type: {license_type} (expected 'monthly' or 'forever')")
+        raise HTTPException(status_code=400, detail=f"Invalid license type: {license_type}")
+    
+    # Проверяем соответствие суммы и типа лицензии
+    expected_amount = 150 if license_type == "monthly" else 500
+    if amount != expected_amount:
+        logger.error(f"[PAYMENTS] Amount mismatch: amount={amount}, license_type={license_type}, expected={expected_amount}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Amount {amount} does not match license type {license_type} (expected {expected_amount})"
+        )
 
     # === YooKassa request ===
     payment_idempotence_key = str(uuid.uuid4())
+    
+    website_url = os.getenv("WEBSITE_URL", "http://localhost:8080")
 
     headers = {
         "Idempotence-Key": payment_idempotence_key
@@ -89,7 +112,7 @@ async def create_payment(request_data: BotPaymentRequest):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://t.me/AegisShieldWeb_bot"
+            "return_url": f"{website_url}/payment-success.html"
         },
         "capture": True,
         "description": f"AEGIS {license_type.upper()} payment",
@@ -97,8 +120,8 @@ async def create_payment(request_data: BotPaymentRequest):
         # ===== ОБЯЗАТЕЛЬНЫЙ ЧЕК (receipt) =====
         "receipt": {
             "customer": {
-                "full_name": username if username else "AEGIS Telegram User",
-                "email": f"{telegram_id}@aegis.bot"
+                "full_name": username if username else email.split('@')[0],
+                "email": email
             },
             "items": [
                 {
@@ -108,44 +131,51 @@ async def create_payment(request_data: BotPaymentRequest):
                         "value": f"{amount}.00",
                         "currency": "RUB"
                     },
-                    "vat_code": 1   # 1 = без НДС — подходит
+                    "vat_code": 1   # 1 = без НДС
                 }
             ]
         },
 
         "metadata": {
-            "telegram_id": str(telegram_id),
+            "email": email,
             "username": username,
             "license_type": license_type
         }
     }
 
+    timeout = aiohttp.ClientTimeout(total=30)
+
     try:
-        timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession(
+            timeout=timeout,
+            auth=auth
+        ) as session:
+
             logger.info(f"[PAYMENTS] Sending POST request to YooKassa API: {YOOKASSA_API_URL}")
-            logger.debug(f"[PAYMENTS] Request payload: amount={amount}, license_type={license_type}, user={telegram_id}")
-            
+            logger.debug(
+                f"[PAYMENTS] Request payload: amount={amount}, "
+                f"license_type={license_type}, email={email}"
+            )
+
             async with session.post(
                 YOOKASSA_API_URL,
                 json=payload,
-                auth=auth,
                 headers=headers
             ) as response:
+
                 logger.info(f"[PAYMENTS] YooKassa responded with status: {response.status}")
 
                 try:
                     data = await response.json()
-                    logger.info(f"[PAYMENTS] YooKassa response received")
+                    logger.info("[PAYMENTS] YooKassa response received")
                 except Exception as json_error:
                     response_text = await response.text()
                     logger.error(f"[PAYMENTS] Failed to parse YooKassa response as JSON: {json_error}")
                     logger.error(f"[PAYMENTS] Response text (first 500 chars): {response_text[:500]}")
                     raise HTTPException(
                         status_code=500,
-                        detail=f"Invalid response from payment system"
+                        detail="Invalid response from payment system"
                     )
-
                 # Ошибки ЮKassa
                 if response.status >= 300:
                     error_description = data.get('description', 'Unknown error')
@@ -182,9 +212,11 @@ async def create_payment(request_data: BotPaymentRequest):
                 # === Save to DB ===
                 try:
                     db = DatabaseManager()
+                    # Преобразуем email в user_id для совместимости с БД
+                    user_id = email_to_user_id(email)
                     await db.create_yookassa_payment(
                         payment_id=payment_id,
-                        user_id=telegram_id,
+                        user_id=user_id,
                         amount=amount * 100,   # копейки
                         license_type=license_type
                     )
@@ -193,36 +225,54 @@ async def create_payment(request_data: BotPaymentRequest):
                     logger.error(f"[PAYMENTS] DB save error: {db_err}", exc_info=True)
                     # Не прерываем выполнение, платеж уже создан в ЮKassa
 
-                return BotPaymentResponse(
+                return WebPaymentResponse(
                     payment_id=payment_id,
                     confirmation_url=confirmation_url
                 )
 
     except aiohttp.ClientError as client_error:
-        logger.error(f"[PAYMENTS] Network error when calling YooKassa API: {client_error}", exc_info=True)
+        error_msg = str(client_error)
+        logger.error(f"[PAYMENTS] Network error when calling YooKassa API: {error_msg}", exc_info=True)
+        
+        # Детальная диагностика
+        if "Connection refused" in error_msg or "Cannot connect" in error_msg:
+            detail_msg = "Не удалось подключиться к платежной системе. Проверьте интернет-соединение."
+        elif "Name resolution failed" in error_msg or "DNS" in error_msg:
+            detail_msg = "Ошибка DNS. Сервер платежной системы недоступен."
+        else:
+            detail_msg = f"Сетевая ошибка: {error_msg}"
+        
         raise HTTPException(
             status_code=500,
-            detail=f"Network error: {str(client_error)}"
+            detail=detail_msg
         )
     except aiohttp.ServerTimeoutError:
         logger.error(f"[PAYMENTS] Timeout when calling YooKassa API (30 seconds)")
         raise HTTPException(
             status_code=500,
-            detail="Payment system timeout"
+            detail="Превышено время ожидания ответа от платежной системы. Попробуйте позже."
         )
     except HTTPException:
         # Перевыбрасываем HTTPException как есть
         raise
-    except Exception as e:
-        logger.error(f"[PAYMENTS] Unexpected error when creating payment: {e}", exc_info=True)
+    except json.JSONDecodeError as json_error:
+        logger.error(f"[PAYMENTS] JSON decode error: {json_error}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Unexpected error: {str(e)}"
+            detail="Ошибка обработки ответа от платежной системы"
+        )
+    except Exception as e:
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.error(f"[PAYMENTS] Unexpected error ({error_type}) when creating payment: {error_msg}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Неожиданная ошибка при создании платежа: {error_msg}"
         )
 
 
 # ==== HELPER FUNCTIONS ====
-async def generate_license_key_internal(user_id: int, username: str, is_lifetime: bool = True) -> Optional[str]:
+async def generate_license_key_internal(email: str, username: str, is_lifetime: bool = True) -> Optional[str]:
     """Генерирует ключ через внутренний API"""
     try:
         admin_token = os.getenv("ADMIN_API_TOKEN", "")
@@ -233,13 +283,15 @@ async def generate_license_key_internal(user_id: int, username: str, is_lifetime
         expires_days = 36500 if is_lifetime else 30
         license_type = "Lifetime" if is_lifetime else "Monthly"
         
+        # Преобразуем email в user_id для совместимости
+        user_id = email_to_user_id(email)
+        
         data = {
             "user_id": str(user_id),
-            "username": username or "",
-            "name": f"Telegram User {user_id}",
-            "description": f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else ""),
+            "username": username or email.split('@')[0],
+            "name": f"Web User {email.split('@')[0]}",
+            "description": f"{license_type} license for {email}",
             "access_level": "premium",
-            # Без ограничений запросов
             "daily_limit": None,
             "hourly_limit": None,
             "expires_days": expires_days
@@ -257,7 +309,7 @@ async def generate_license_key_internal(user_id: int, username: str, is_lifetime
                     result = await response.json()
                     license_key = result.get("license_key") or result.get("api_key")
                     if license_key:
-                        logger.info(f"[PAYMENTS] Generated license key for user {user_id}: {license_key[:10]}...")
+                        logger.info(f"[PAYMENTS] Generated license key for {email}: {license_key[:10]}...")
                         return license_key
                     else:
                         logger.error(f"[PAYMENTS] API returned success but no key: {result}")
@@ -303,10 +355,80 @@ async def renew_license_internal(license_key: str, extend_days: int = 30) -> boo
         return False
 
 
+async def send_license_key_email(email: str, license_key: str, license_type: str) -> bool:
+    """
+    Отправляет email пользователю с лицензионным ключом и поздравлениями.
+    """
+    try:
+        from app.auth import AuthManager
+        
+        smtp_user = os.getenv("SMTP_USER", "")
+        if not smtp_user:
+            logger.warning("[PAYMENTS] SMTP_USER not configured; cannot send email")
+            return False
+        
+        install_link = os.getenv(
+            "INSTALLATION_LINK",
+            "https://chromewebstore.google.com/detail/bedaaeaeddnodmmkfmfealepbbbdoegl"
+        )
+        
+        if license_type == "forever":
+            license_text = "Ваш ключ действует бессрочно."
+            license_period = "бессрочную лицензию"
+        else:
+            license_text = "Ваша подписка активирована на 30 дней."
+            license_period = "месячную подписку"
+        
+        subject = "🎉 Оплата успешно получена! Ваш лицензионный ключ AEGIS"
+        
+        body = f"""Здравствуйте!
+
+Благодарим вас за покупку {license_period} AEGIS!
+
+🎉 Оплата успешно получена!
+
+Ваш лицензионный ключ:
+{license_key}
+
+{license_text}
+
+📦 Ссылка для установки расширения:
+{install_link}
+
+Как использовать ключ:
+1. Установите расширение AEGIS по ссылке выше
+2. Откройте настройки расширения
+3. Введите ваш лицензионный ключ для активации
+
+Если у вас возникли вопросы, обращайтесь в поддержку:
+aegisshieldos@gmail.com
+
+С уважением,
+Команда AEGIS
+"""
+        
+        success = AuthManager._send_email(
+            to_email=email,
+            subject=subject,
+            body=body
+        )
+        
+        if success:
+            logger.info(f"[PAYMENTS] License key email sent to {email}")
+        else:
+            logger.error(f"[PAYMENTS] Failed to send license key email to {email}")
+        
+        return success
+        
+    except Exception as e:
+        logger.error(f"[PAYMENTS] Error sending license key email: {e}", exc_info=True)
+        return False
+
+
 async def process_payment_succeeded(payment_data: Dict) -> bool:
     """
     Обработка успешного платежа:
-    1. Извлекает user_id из metadata
+    1. Извлекает email из metadata
     2. Проверяет тип лицензии
     3. Выдаёт ключ или продлевает существующий
     4. Обновляет статус в БД
@@ -321,26 +443,24 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
         
         # Извлекаем метаданные
         metadata = payment_data.get("metadata", {})
-        user_id_str = metadata.get("telegram_id") or metadata.get("user_id")
+        email = metadata.get("email")
         
-        if not user_id_str:
-            logger.error(f"[PAYMENTS] User ID missing in metadata for payment {payment_id}")
-            return False
-        
-        try:
-            user_id = int(user_id_str)
-        except (ValueError, TypeError):
-            logger.error(f"[PAYMENTS] Invalid user_id in metadata: {user_id_str}")
+        if not email:
+            logger.error(f"[PAYMENTS] Email missing in metadata for payment {payment_id}")
             return False
         
         # Получаем тип лицензии
         license_type = metadata.get("license_type", "forever")
         is_lifetime = license_type == "forever"
         
-        logger.info(f"[PAYMENTS] Payment {payment_id}: user_id={user_id}, license_type={license_type}")
+        # Преобразуем email в user_id для совместимости с БД
+        user_id = email_to_user_id(email)
+        username = metadata.get("username", email.split('@')[0])
         
+        logger.info(f"[PAYMENTS] Payment {payment_id}: email={email}, user_id={user_id}, license_type={license_type}")
+
         db = DatabaseManager()
-        
+
         # Получаем информацию о платеже из БД
         payment_db = await db.get_yookassa_payment(payment_id)
         
@@ -382,23 +502,23 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
         
         if is_renewal:
             # ПРОДЛЕНИЕ ПОДПИСКИ
-            logger.info(f"[PAYMENTS] Renewal for user={user_id}")
+            logger.info(f"[PAYMENTS] Renewal for email={email}")
             
             user = db.get_user(user_id)
             if not user or not user.get("has_license"):
-                logger.error(f"[PAYMENTS] User {user_id} has no active license for renewal")
+                logger.error(f"[PAYMENTS] User {email} has no active license for renewal")
                 return False
             
             existing_license_key = user.get("license_key")
             if not existing_license_key:
-                logger.error(f"[PAYMENTS] User {user_id} has no license_key")
+                logger.error(f"[PAYMENTS] User {email} has no license_key")
                 return False
             
             # Продлеваем лицензию через API
             renewal_success = await renew_license_internal(existing_license_key, extend_days=30)
             
             if not renewal_success:
-                logger.error(f"[PAYMENTS] Failed to renew license for user={user_id}")
+                logger.error(f"[PAYMENTS] Failed to renew license for email={email}")
                 return False
             
             # Обновляем подписку в БД
@@ -421,27 +541,35 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
                         new_expires_at = current_expires + timedelta(days=30)
                     
                     db.update_subscription_expiry(user_id, new_expires_at)
-                    logger.info(f"[PAYMENTS] Subscription extended to {new_expires_at} for user={user_id}")
+                    logger.info(f"[PAYMENTS] Subscription extended to {new_expires_at} for email={email}")
             else:
                 # Если подписки нет, создаем новую
                 new_expires_at = datetime.now() + timedelta(days=30)
                 db.create_subscription(user_id, existing_license_key, "monthly", new_expires_at)
-                logger.info(f"[PAYMENTS] Created new subscription for user={user_id}")
+                logger.info(f"[PAYMENTS] Created new subscription for email={email}")
             
             # Обновляем статус платежа
             await db.update_yookassa_payment_status(payment_id, "succeeded", existing_license_key)
             
-            logger.info(f"[PAYMENTS] ✅ Subscription renewed for user={user_id}, payment={payment_id}")
+            logger.info(f"[PAYMENTS] ✅ Subscription renewed for email={email}, payment={payment_id}")
+            
+            # Отправляем уведомление о продлении на email
+            await send_license_key_email(email, existing_license_key, "monthly")
+            
             return True
         
         # НОВАЯ ПОКУПКА
         user = db.get_user(user_id)
-        username = user.get("username", "") if user else ""
+        
+        # Создаем пользователя если его нет
+        if not user:
+            db.create_user(user_id, username)
+            user = db.get_user(user_id)
         
         # Проверяем, есть ли уже ключ у пользователя
         if user and user.get("has_license"):
             existing_key = user.get("license_key")
-            logger.info(f"[PAYMENTS] User {user_id} already has key: {existing_key[:10]}...")
+            logger.info(f"[PAYMENTS] User {email} already has key: {existing_key[:10]}...")
             
             # Обновляем статус платежа
             await db.update_yookassa_payment_status(payment_id, "succeeded", existing_key)
@@ -452,20 +580,24 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
                 if not subscription:
                     expires_at = datetime.now() + timedelta(days=30)
                     db.create_subscription(user_id, existing_key, "monthly", expires_at, auto_renew=False)
-                    logger.info(f"[PAYMENTS] Created subscription for user={user_id}")
+                    logger.info(f"[PAYMENTS] Created subscription for email={email}")
             
             logger.info(f"[PAYMENTS] ✅ Payment {payment_id} processed (key already issued)")
+            
+            # Отправляем ключ на email (если пользователь уже имел ключ, отправляем его снова)
+            await send_license_key_email(email, existing_key, license_type)
+            
             return True
         
         # Генерируем новый ключ
-        logger.info(f"[PAYMENTS] Generating new key for user={user_id}, is_lifetime={is_lifetime}")
-        license_key = await generate_license_key_internal(user_id, username, is_lifetime=is_lifetime)
+        logger.info(f"[PAYMENTS] Generating new key for email={email}, is_lifetime={is_lifetime}")
+        license_key = await generate_license_key_internal(email, username, is_lifetime=is_lifetime)
         
         if not license_key:
-            logger.error(f"[PAYMENTS] Failed to generate key for user={user_id}")
+            logger.error(f"[PAYMENTS] Failed to generate key for email={email}")
             return False
         
-        logger.info(f"[PAYMENTS] Key generated for user={user_id}: {license_key[:10]}...")
+        logger.info(f"[PAYMENTS] Key generated for email={email}: {license_key[:10]}...")
         
         # Сохраняем ключ в БД
         db.update_user_license(user_id, license_key)
@@ -477,12 +609,13 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
         if license_type == "monthly":
             expires_at = datetime.now() + timedelta(days=30)
             db.create_subscription(user_id, license_key, "monthly", expires_at, auto_renew=False)
-            logger.info(f"[PAYMENTS] Created subscription for user={user_id}, expires_at={expires_at}")
+            logger.info(f"[PAYMENTS] Created subscription for email={email}, expires_at={expires_at}")
         
-        logger.info(f"[PAYMENTS] ✅ Key issued for user={user_id}, payment={payment_id}")
-
-        # Отправляем сообщение пользователю с ключом
-        await notify_user_with_key(user_id, license_key, license_type)
+        logger.info(f"[PAYMENTS] ✅ Key issued for email={email}, payment={payment_id}")
+        
+        # Отправляем ключ на email с поздравлениями
+        await send_license_key_email(email, license_key, license_type)
+        
         return True
         
     except Exception as e:
@@ -490,49 +623,55 @@ async def process_payment_succeeded(payment_data: Dict) -> bool:
         return False
 
 
-async def notify_user_with_key(user_id: int, license_key: str, license_type: str):
+# ==== WEBHOOK VALIDATION ====
+def validate_yookassa_ip(client_ip: str) -> bool:
     """
-    Отправляет сообщение в Telegram пользователю с выданным ключом.
+    Проверяет, что запрос пришел с IP адресов ЮKassa.
+    Официальные IP диапазоны ЮKassa:
+    - 185.71.76.0/27
+    - 185.71.77.0/27
+    - 77.75.153.0/25
+    - 77.75.156.11
+    - 77.75.156.35
+    - 77.75.154.128/25
     """
-    bot_token = os.getenv("BOT_TOKEN", "")
-    if not bot_token:
-        logger.warning("[PAYMENTS] BOT_TOKEN not configured; cannot notify user")
-        return
-
-    install_link = os.getenv(
-        "INSTALLATION_LINK",
-        "https://chromewebstore.google.com/detail/bedaaeaeddnodmmkfmfealepbbbdoegl"
-    )
-
-    if license_type == "forever":
-        license_text = "Ваш ключ действует бессрочно."
-    else:
-        license_text = "Ваша подписка активирована на 30 дней."
-
-    text = (
-        "🎉 Оплата успешно получена!\n\n"
-        f"Ваш лицензионный ключ:\n`{license_key}`\n\n"
-        f"{license_text}\n\n"
-        f"Ссылка для установки расширения:\n{install_link}"
-    )
-
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {
-        "chat_id": user_id,
-        "text": text,
-        "parse_mode": "Markdown"
-    }
+    import ipaddress
+    
+    # В режиме разработки разрешаем localhost
+    if client_ip in ("127.0.0.1", "localhost", "::1", "unknown"):
+        logger.warning(f"[PAYMENTS] Webhook from localhost/IP: {client_ip} (allowed in dev mode)")
+        return True
+    
     try:
-        timeout = aiohttp.ClientTimeout(total=10)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(url, data=payload) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    logger.error(f"[PAYMENTS] Failed to send Telegram message: {resp.status}, body={body}")
-                else:
-                    logger.info(f"[PAYMENTS] Notification sent to user {user_id}")
-    except Exception as e:
-        logger.error(f"[PAYMENTS] Error sending Telegram notification: {e}", exc_info=True)
+        ip = ipaddress.ip_address(client_ip)
+        
+        # Проверяем диапазоны ЮKassa
+        allowed_ranges = [
+            ipaddress.ip_network("185.71.76.0/27"),
+            ipaddress.ip_network("185.71.77.0/27"),
+            ipaddress.ip_network("77.75.153.0/25"),
+            ipaddress.ip_network("77.75.154.128/25"),
+        ]
+        
+        allowed_ips = [
+            ipaddress.ip_address("77.75.156.11"),
+            ipaddress.ip_address("77.75.156.35"),
+        ]
+        
+        # Проверяем диапазоны
+        for network in allowed_ranges:
+            if ip in network:
+                return True
+        
+        # Проверяем отдельные IP
+        for allowed_ip in allowed_ips:
+            if ip == allowed_ip:
+                return True
+        
+        return False
+    except ValueError:
+        logger.error(f"[PAYMENTS] Invalid IP address format: {client_ip}")
+        return False
 
 
 # ==== WEBHOOK ====
@@ -545,10 +684,27 @@ async def yookassa_webhook(request: Request):
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"[PAYMENTS] Webhook request from IP: {client_ip}")
     
+    # ВАЛИДАЦИЯ IP (опционально, можно отключить для разработки)
+    validate_ip = os.getenv("YOOKASSA_VALIDATE_IP", "true").lower() == "true"
+    if validate_ip and not validate_yookassa_ip(client_ip):
+        logger.error(f"[PAYMENTS] ❌ Webhook rejected: IP {client_ip} not in YooKassa range")
+        return JSONResponse(
+            status_code=403,
+            content={"status": "forbidden", "reason": "invalid_ip"}
+        )
+    
     try:
         # Получаем JSON данные
-        data = await request.json()
-        logger.info(f"[PAYMENTS] Webhook data received: {data}")
+        body_bytes = await request.body()
+        try:
+            data = json.loads(body_bytes.decode('utf-8'))
+        except json.JSONDecodeError as json_err:
+            logger.error(f"[PAYMENTS] Invalid JSON in webhook: {json_err}")
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "reason": "invalid_json"}
+            )
+        logger.info(f"[PAYMENTS] Webhook data received: {json.dumps(data, ensure_ascii=False)[:500]}")
         
         # Проверяем тип события
         event_type = data.get("type")
@@ -560,7 +716,7 @@ async def yookassa_webhook(request: Request):
                 status_code=200,
                 content={"status": "ignored", "reason": "unknown_type"}
             )
-        
+
         if event != "payment.succeeded":
             logger.info(f"[PAYMENTS] Ignoring event: {event}")
             return JSONResponse(
@@ -580,13 +736,35 @@ async def yookassa_webhook(request: Request):
         # Проверяем статус и paid
         payment_status = payment_object.get("status")
         paid = payment_object.get("paid", False)
-        
+
         if payment_status != "succeeded" or not paid:
             logger.info(f"[PAYMENTS] Payment not paid: status={payment_status}, paid={paid}")
             return JSONResponse(
                 status_code=200,
                 content={"status": "ignored", "reason": "not_paid"}
             )
+        
+        # ВАЛИДАЦИЯ: Проверяем сумму платежа
+        payment_amount_obj = payment_object.get("amount", {})
+        payment_amount = 0
+        if isinstance(payment_amount_obj, dict) and "value" in payment_amount_obj:
+            try:
+                payment_amount = float(payment_amount_obj["value"])
+            except (ValueError, TypeError):
+                logger.warning(f"[PAYMENTS] Could not parse payment amount: {payment_amount_obj}")
+        
+        # Получаем ожидаемую сумму из метаданных или БД
+        metadata = payment_object.get("metadata", {})
+        license_type = metadata.get("license_type", "forever")
+        expected_amount = 150.0 if license_type == "monthly" else 500.0
+        
+        # Допускаем небольшую погрешность (0.01 рубля)
+        if payment_amount > 0 and abs(payment_amount - expected_amount) > 0.01:
+            logger.warning(
+                f"[PAYMENTS] Amount mismatch: received={payment_amount}, expected={expected_amount}, "
+                f"license_type={license_type}"
+            )
+            # Не блокируем, но логируем
         
         # Обрабатываем платеж
         success = await process_payment_succeeded(payment_object)
@@ -613,11 +791,41 @@ async def yookassa_webhook(request: Request):
             content={"status": "error", "message": "Internal server error"}
         )
 
-# ==== CHECK PAYMENT STATUS FOR BOT ====
+# ==== GET LICENSE KEY BY PAYMENT ID ====
+@router.get("/license/{payment_id}")
+async def get_license_by_payment(payment_id: str):
+    """
+    Получение лицензионного ключа по ID платежа.
+    Используется для отображения ключа на сайте после успешной оплаты.
+    """
+    logger.info(f"[PAYMENTS] Getting license for payment: {payment_id}")
+    
+    db = DatabaseManager()
+    payment_db = await db.get_yookassa_payment(payment_id)
+    
+    if not payment_db:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    
+    if payment_db.get("status") != "succeeded":
+        raise HTTPException(status_code=400, detail=f"Payment not completed. Status: {payment_db.get('status')}")
+    
+    license_key = payment_db.get("license_key")
+    if not license_key:
+        raise HTTPException(status_code=404, detail="License key not issued yet")
+    
+    return {
+        "payment_id": payment_id,
+        "license_key": license_key,
+        "license_type": payment_db.get("license_type", "forever"),
+        "status": "succeeded"
+    }
+
+
+# ==== CHECK PAYMENT STATUS ====
 @router.get("/status/{payment_id}")
 async def check_payment_status(payment_id: str):
     """
-    Проверка статуса платежа для бота.
+    Проверка статуса платежа.
     Опрашивает ЮKassa API для получения актуального статуса.
     """
     logger.info(f"[PAYMENTS] ===== Checking payment status: {payment_id} =====")
@@ -637,7 +845,6 @@ async def check_payment_status(payment_id: str):
         return {
             "status": payment_db.get("status", "pending"),
             "metadata": {
-                "user_id": str(payment_db.get("user_id", "")),
                 "license_type": payment_db.get("license_type", "")
             },
             "amount": f"{payment_db.get('amount', 0) / 100:.2f}"
@@ -699,17 +906,14 @@ async def check_payment_status(payment_id: str):
                     yookassa_metadata = data.get("metadata", {})
                     
                     # ВСЕГДА используем данные из БД как основной источник
-                    # Метаданные из ЮKassa могут быть неполными или отсутствовать
-                    user_id_from_db = payment_db.get("user_id")
                     license_type_from_db = payment_db.get("license_type", "")
                     
                     # Пытаемся получить из метаданных ЮKassa, но приоритет у БД
-                    user_id_final = str(yookassa_metadata.get("telegram_id") or user_id_from_db or "")
                     license_type_final = yookassa_metadata.get("license_type") or license_type_from_db or ""
                     
-                    logger.info(f"[PAYMENTS] Metadata: DB(user_id={user_id_from_db}, type={license_type_from_db}), "
-                              f"YooKassa(user_id={yookassa_metadata.get('telegram_id')}, type={yookassa_metadata.get('license_type')}), "
-                              f"Final(user_id={user_id_final}, type={license_type_final})")
+                    logger.info(f"[PAYMENTS] Metadata: DB(type={license_type_from_db}), "
+                              f"YooKassa(type={yookassa_metadata.get('license_type')}), "
+                              f"Final(type={license_type_final})")
                     
                     # Получаем сумму из ответа ЮKassa
                     amount_value = payment_db.get("amount", 0) / 100  # из БД в рублях
@@ -745,7 +949,6 @@ async def check_payment_status(payment_id: str):
                     return {
                         "status": yookassa_status,
                         "metadata": {
-                            "user_id": user_id_final,
                             "license_type": license_type_final
                         },
                         "amount": f"{amount_value:.2f}"
@@ -756,7 +959,6 @@ async def check_payment_status(payment_id: str):
                     return {
                         "status": payment_db.get("status", "pending"),
                         "metadata": {
-                            "user_id": str(payment_db.get("user_id", "")),
                             "license_type": payment_db.get("license_type", "")
                         },
                         "amount": f"{payment_db.get('amount', 0) / 100:.2f}"
@@ -770,7 +972,6 @@ async def check_payment_status(payment_id: str):
                     return {
                         "status": payment_db.get("status", "pending"),
                         "metadata": {
-                            "user_id": str(payment_db.get("user_id", "")),
                             "license_type": payment_db.get("license_type", "")
                         },
                         "amount": f"{payment_db.get('amount', 0) / 100:.2f}"
@@ -782,7 +983,6 @@ async def check_payment_status(payment_id: str):
         return {
             "status": payment_db.get("status", "pending"),
             "metadata": {
-                "user_id": str(payment_db.get("user_id", "")),
                 "license_type": payment_db.get("license_type", "")
             },
             "amount": f"{payment_db.get('amount', 0) / 100:.2f}"
@@ -793,7 +993,6 @@ async def check_payment_status(payment_id: str):
         return {
             "status": payment_db.get("status", "pending"),
             "metadata": {
-                "user_id": str(payment_db.get("user_id", "")),
                 "license_type": payment_db.get("license_type", "")
             },
             "amount": f"{payment_db.get('amount', 0) / 100:.2f}"

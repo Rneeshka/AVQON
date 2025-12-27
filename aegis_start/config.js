@@ -11,11 +11,13 @@ const ENV = 'PROD'; // PROD для продакшена, DEV для разраб
 const CONFIG = {
   DEV: {
     API_BASE: 'https://api-dev.aegis.builders',
-    WS_URL: 'wss://api-dev.aegis.builders/ws'
+    WS_URL: 'wss://api-dev.aegis.builders/ws',
+    WEBSITE_URL: 'https://www.devsite.aegis.builders'
   },
   PROD: {
     API_BASE: 'https://api.aegis.builders',
-    WS_URL: 'wss://api.aegis.builders/ws'
+    WS_URL: 'wss://api.aegis.builders/ws',
+    WEBSITE_URL: 'https://www.aegis.builders'
   }
 };
 

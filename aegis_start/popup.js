@@ -532,14 +532,15 @@
     if (forgotBtn) forgotBtn.addEventListener('click', showForgot);
     if (backToLoginBtn) backToLoginBtn.addEventListener('click', showLogin);
 
-    chrome.storage?.sync?.get(['account', 'apiKey'], (data) => {
+    chrome.storage?.sync?.get(['account', 'apiKey'], async (data) => {
       if (chrome.runtime?.lastError) {
         applyAccountMode('login');
         return;
       }
       if (data?.account) {
         applyAccountMode('account');
-        showAccountInfo(data.account);
+        await showAccountInfo(data.account);
+        await updateHoverScanState();
       } else {
         applyAccountMode('login');
       }
@@ -567,9 +568,19 @@
     if (logoutSubmitBtn) {
       logoutSubmitBtn.addEventListener('click', handleLogout);
     }
+    
+    // Обработчики сохранения API ключа
+    const saveApiKeyBtnPopup = document.getElementById('account-save-api-key-popup-btn');
+    const saveApiKeyBtnSidepanel = document.getElementById('account-save-api-key-sidepanel-btn');
+    if (saveApiKeyBtnPopup) {
+      saveApiKeyBtnPopup.addEventListener('click', handleSaveApiKey);
+    }
+    if (saveApiKeyBtnSidepanel) {
+      saveApiKeyBtnSidepanel.addEventListener('click', handleSaveApiKey);
+    }
   }
 
-  function showAccountInfo(account) {
+  async function showAccountInfo(account) {
     const accountInfo = document.getElementById('account-info');
     const accountUsername = document.getElementById('account-username');
     const accountEmail = document.getElementById('account-email');
@@ -581,6 +592,126 @@
     if (accountAvatar) {
       const letter = (account?.username || account?.email || '?').charAt(0).toUpperCase();
       accountAvatar.textContent = letter;
+    }
+    
+    // Загружаем текущий API ключ
+    const storage = await new Promise((resolve) => {
+      chrome.storage.sync.get(['apiKey'], resolve);
+    });
+    const apiKeyInputPopup = document.getElementById('account-api-key-popup');
+    const apiKeyInputSidepanel = document.getElementById('account-api-key-sidepanel');
+    const apiKeyFieldPopup = apiKeyInputPopup?.closest('.form-field');
+    const apiKeyFieldSidepanel = apiKeyInputSidepanel?.closest('.form-field');
+    
+    // Если ключ уже есть, скрываем поле ввода
+    if (storage.apiKey && storage.apiKey.trim().length > 0) {
+      if (apiKeyFieldPopup) apiKeyFieldPopup.style.display = 'none';
+      if (apiKeyFieldSidepanel) apiKeyFieldSidepanel.style.display = 'none';
+    } else {
+      // Если ключа нет, показываем поле и очищаем его
+      if (apiKeyFieldPopup) apiKeyFieldPopup.style.display = 'block';
+      if (apiKeyFieldSidepanel) apiKeyFieldSidepanel.style.display = 'block';
+      if (apiKeyInputPopup) apiKeyInputPopup.value = '';
+      if (apiKeyInputSidepanel) apiKeyInputSidepanel.value = '';
+    }
+    
+    // Обновляем состояние hover scan после показа аккаунта
+    await updateHoverScanState();
+  }
+  
+  /**
+   * Обновляет состояние ползунка "анализ по наведению" в зависимости от наличия аккаунта и API ключа
+   */
+  async function updateHoverScanState() {
+    const storage = await new Promise((resolve) => {
+      chrome.storage.sync.get(['account', 'apiKey'], resolve);
+    });
+    const hasAccount = !!storage.account;
+    const hasApiKey = !!storage.apiKey && storage.apiKey.trim().length > 0;
+    
+    const hoverToggle = elements.hoverToggle;
+    if (!hoverToggle) return;
+    
+    // Включаем hover только если есть аккаунт И ключ
+    if (hasAccount && hasApiKey) {
+      hoverToggle.disabled = false;
+      const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
+      if (parent) parent.style.opacity = '1';
+    } else {
+      // Блокируем и выключаем, если нет аккаунта или ключа
+      hoverToggle.checked = false;
+      hoverToggle.disabled = true;
+      const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
+      if (parent) parent.style.opacity = '0.5';
+      
+      // Сохраняем выключенное состояние
+      state.settings.hoverScan = false;
+      await saveSettings(state.settings);
+    }
+  }
+  
+  /**
+   * Обработчик сохранения API ключа из формы аккаунта
+   */
+  async function handleSaveApiKey() {
+    const apiKeyInputPopup = document.getElementById('account-api-key-popup');
+    const apiKeyInputSidepanel = document.getElementById('account-api-key-sidepanel');
+    const apiKey = (apiKeyInputPopup?.value || apiKeyInputSidepanel?.value || '').trim();
+    
+    if (!apiKey) {
+      showInternalNotification('⚠️ Введите API ключ', 'error');
+      return;
+    }
+    
+    try {
+      // Получаем токен сессии для авторизации
+      const storage = await new Promise((resolve) => {
+        chrome.storage.sync.get(['session_token', 'account'], resolve);
+      });
+      
+      if (!storage.session_token || !storage.account) {
+        showInternalNotification('❌ Необходимо войти в аккаунт', 'error');
+        return;
+      }
+      
+      // Привязываем ключ к аккаунту через API
+      const apiBase = normalizeApiBase(state.settings.apiBase);
+      const response = await fetch(`${apiBase}/auth/bind-api-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${storage.session_token}`
+        },
+        body: JSON.stringify({ api_key: apiKey })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Ошибка привязки ключа' }));
+        throw new Error(errorData.detail || 'Ошибка привязки ключа к аккаунту');
+      }
+      
+      // Сохраняем ключ локально
+      await chrome.storage.sync.set({ apiKey });
+      
+      // Скрываем поле ввода ключа
+      const apiKeyFieldPopup = apiKeyInputPopup?.closest('.form-field');
+      const apiKeyFieldSidepanel = apiKeyInputSidepanel?.closest('.form-field');
+      if (apiKeyFieldPopup) apiKeyFieldPopup.style.display = 'none';
+      if (apiKeyFieldSidepanel) apiKeyFieldSidepanel.style.display = 'none';
+      
+      showInternalNotification('✅ API ключ привязан к аккаунту! Анализ по наведению теперь доступен.', 'success');
+      
+      // Обновляем состояние hover scan
+      await updateHoverScanState();
+      
+      // Уведомляем background script об изменении настроек
+      chrome.runtime.sendMessage({ 
+        type: 'settings_updated', 
+        settings: { ...state.settings, apiKey } 
+      }, () => {});
+    } catch (error) {
+      console.error('[Aegis] Error saving API key:', error);
+      showInternalNotification('❌ ' + (error.message || 'Ошибка сохранения ключа'), 'error');
     }
   }
 
@@ -651,11 +782,11 @@
       const data = await res.json();
       const account = data.account;
       
-      // Сохраняем account и session_token
+      // Сохраняем account и access_token (используем как session_token для совместимости)
       await new Promise((resolve) => {
         chrome.storage.sync.set({ 
           account: account,
-          session_token: data.session_token 
+          session_token: data.access_token || data.session_token 
         }, () => {
           if (chrome.runtime?.lastError) {
             console.error('[Aegis] Failed to save account:', chrome.runtime.lastError);
@@ -679,7 +810,7 @@
         }
       }
       
-      showAccountInfo(account);
+      await showAccountInfo(account);
       const loginForm = document.getElementById('login-form');
       const registerForm = document.getElementById('register-form');
       const forgotForm = document.getElementById('forgot-form');
@@ -693,6 +824,9 @@
       
       // Показываем уведомление внутри расширения, а не через alert
       showInternalNotification('✅ Успешный вход!', 'success');
+      
+      // Обновляем состояние hover scan после входа
+      await updateHoverScanState();
       
       // Запускаем проверку валидности сессии
       startSessionValidation();
@@ -742,7 +876,7 @@
           const data = await res.json().catch(() => ({}));
           // Проверяем, действительно ли сессия невалидна
           if (data.valid === false || data.status === 'invalid') {
-            console.warn('[Aegis] Session invalid, logging out');
+        console.warn('[Aegis] Session invalid, logging out');
             await handleLogout();
             showInternalNotification('⚠️ Вы вышли из аккаунта (вход выполнен на другом устройстве)', 'warning');
             return false;
@@ -1000,12 +1134,15 @@
     stopSessionValidation();
     
     // Удаляем данные из хранилища
-    chrome.storage.sync.remove(['account', 'apiKey', 'session_token'], () => {
+    chrome.storage.sync.remove(['account', 'apiKey', 'session_token'], async () => {
       const loginForm = document.getElementById('login-form');
       const accountInfo = document.getElementById('account-info');
       if (loginForm) loginForm.style.display = 'block';
       if (accountInfo) accountInfo.style.display = 'none';
       if (document.body) document.body.setAttribute('data-account-mode', 'login');
+      
+      // Обновляем состояние hover scan после выхода
+      await updateHoverScanState();
     });
   }
 
@@ -1114,6 +1251,9 @@
     if (elements.hoverToggle) {
       elements.hoverToggle.checked = !!state.settings.hoverScan;
     }
+    
+    // Обновляем состояние hover scan при загрузке
+    await updateHoverScanState();
 
     const radios = Array.from(document.querySelectorAll('input[name="hover-theme"]'));
     radios.forEach((radio) => {
@@ -1152,16 +1292,19 @@
       scanActiveTab();
       
     });
-    // Обработчик для кнопки Telegram бота
+    // Обработчик для кнопки перехода на сайт AEGIS
     const botLink = document.getElementById('open-telegram-bot');
     if (botLink) {
       botLink.addEventListener('click', (e) => {
         e.preventDefault();
-        // Укажите здесь ссылку на вашего бота
-        chrome.tabs.create({ url: 'https://t.me/AegisShieldWeb_bot' }); 
+        const websiteUrl =
+          (window.AEGIS_CONFIG && window.AEGIS_CONFIG.WEBSITE_URL) ||
+          'https://www.aegis.builders';
+        chrome.tabs.create({ url: websiteUrl });
       });
     }
   }
 
   document.addEventListener('DOMContentLoaded', init);
+  
   

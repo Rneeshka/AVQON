@@ -11,10 +11,10 @@ from app.logger import logger
 class ClientConnection:
     """Представление активного WebSocket клиента."""
 
-    def __init__(self, websocket: WebSocket, api_key_info: Optional[Dict[str, Any]], meta: Optional[Dict[str, Any]] = None):
+    def __init__(self, websocket: WebSocket, user_info: Optional[Dict[str, Any]], meta: Optional[Dict[str, Any]] = None):
         self.id: str = str(uuid.uuid4())
         self.websocket: WebSocket = websocket
-        self.api_key_info: Optional[Dict[str, Any]] = api_key_info
+        self.user_info: Optional[Dict[str, Any]] = user_info
         self.meta: Dict[str, Any] = meta or {}
         self.connected_at: datetime = datetime.utcnow()
         self.last_heartbeat: datetime = self.connected_at
@@ -22,12 +22,11 @@ class ClientConnection:
 
     @property
     def features(self) -> Set[str]:
-        """Возвращает набор функций, доступных клиенту согласно API ключу."""
-        features_raw = (self.api_key_info or {}).get("features", "[]")
+        """Возвращает набор функций, доступных клиенту согласно JWT токену."""
+        features_raw = (self.user_info or {}).get("features", [])
         if isinstance(features_raw, str):
             try:
                 import json
-
                 parsed = json.loads(features_raw or "[]")
             except Exception:
                 parsed = []
@@ -49,11 +48,12 @@ class WebSocketManager:
         self._clients: Dict[str, ClientConnection] = {}
         self._lock = asyncio.Lock()
 
-    async def connect(self, websocket: WebSocket, api_key_info: Optional[Dict[str, Any]], meta: Optional[Dict[str, Any]]) -> ClientConnection:
-        client = ClientConnection(websocket, api_key_info, meta)
+    async def connect(self, websocket: WebSocket, user_info: Optional[Dict[str, Any]], meta: Optional[Dict[str, Any]]) -> ClientConnection:
+        client = ClientConnection(websocket, user_info, meta)
         async with self._lock:
             self._clients[client.id] = client
-        logger.info(f"[WS] Client connected: id={client.id}, ip={meta.get('ip') if meta else 'unknown'}")
+        user_id = user_info.get("user_id") if user_info else None
+        logger.info(f"[WS] Client connected: id={client.id}, user_id={user_id}, ip={meta.get('ip') if meta else 'unknown'}")
         return client
 
     async def disconnect(self, client_id: str, close_code: int = 1000, reason: Optional[str] = None) -> None:
