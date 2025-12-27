@@ -1,14 +1,13 @@
 # app/database.py
-import sqlite3
 import logging
 import secrets
 import os
 import hashlib
 import json
-from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
+from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
@@ -17,97 +16,77 @@ logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     """
-    Полностью переписанный менеджер базы данных с улучшенной архитектурой.
-    Включает управление API ключами, блокировками и оптимизацией.
+    Менеджер базы данных для PostgreSQL.
+    Только PostgreSQL - SQLite удалён.
     """
     
-
     def __init__(self, db_url: str = None):
         """
         Инициализация менеджера базы данных.
-        Поддерживает SQLite и PostgreSQL через DATABASE_URL.
+        Только PostgreSQL через DATABASE_URL.
         """
 
         if db_url is None:
-            db_url = "sqlite:////opt/Aegis/data/aegis.db"
-
+            db_url = os.getenv("DATABASE_URL")
+            if not db_url:
+                raise ValueError("DATABASE_URL must be set in environment variables")
+        
         self.db_url = db_url
         parsed = urlparse(db_url)
         self.db_scheme = parsed.scheme
 
-        logger.info(f"Initializing database: {self.db_scheme}")
+        if not (self.db_scheme.startswith("postgresql") or self.db_scheme.startswith("postgres")):
+            raise ValueError(f"Only PostgreSQL is supported, got: {self.db_scheme}")
 
-        # Кеш-файлы и директории нужны ТОЛЬКО для SQLite
-        if self.db_scheme.startswith("sqlite"):
-            db_path = db_url.replace("sqlite:///", "")
-            self.db_path = db_path
-
-            self.storage_dir = Path(db_path).parent
-            self.storage_dir.mkdir(parents=True, exist_ok=True)
-
-            self.whitelist_file = self.storage_dir / "cache_whitelist.jsonl"
-            self.blacklist_file = self.storage_dir / "cache_blacklist.jsonl"
-
-            # Только для SQLite создаём таблицы
-            self._init_database()
-        else:
-            # Postgres: схема уже существует
-            self.db_path = None
-            self.storage_dir = None
-            self.whitelist_file = None
-            self.blacklist_file = None
-
-            logger.info("PostgreSQL detected — skipping init_database()")
-    
+        logger.info(f"Initializing PostgreSQL database: {self.db_url[:30]}...")
     
     def _get_connection(self):
-        return self._get_sqlite_connection()
+        """Возвращает соединение с PostgreSQL"""
+        return self._get_postgres_connection()
     
-    def _get_sqlite_connection(self) -> sqlite3.Connection:
+    def _adapt_query(self, query: str) -> str:
+        """Адаптирует SQL запрос для PostgreSQL (заменяет ? на %s)"""
+        # PostgreSQL использует %s вместо ?
+        return query.replace("?", "%s")
+    
+    def _commit_if_needed(self, conn):
+        """
+        Для PostgreSQL с autocommit=True этот метод не нужен,
+        но оставлен для совместимости кода.
+        """
+        # PostgreSQL использует autocommit=True, поэтому commit не требуется
+        # Метод оставлен для совместимости, но ничего не делает
+        pass
+    
+    def _get_postgres_connection(self):
+        """Получает соединение с PostgreSQL с retry логикой"""
         max_retries = 3
-        retry_delay = 0.1
-
+        retry_delay = 0.5
+        
         for attempt in range(max_retries):
             try:
-                conn = sqlite3.connect(
-                    self.db_path,
-                    timeout=30,
-                    check_same_thread=False
+                conn = psycopg2.connect(
+                    self.db_url,
+                    cursor_factory=psycopg2.extras.RealDictCursor,
+                    connect_timeout=5
                 )
-                conn.row_factory = sqlite3.Row
-
-                conn.execute("PRAGMA foreign_keys = ON")
-                conn.execute("PRAGMA journal_mode = WAL")
-                conn.execute("PRAGMA synchronous = NORMAL")
-                conn.execute("PRAGMA cache_size = -10000")
-
-                conn.execute("SELECT 1").fetchone()
+                conn.autocommit = True
+                # Проверяем соединение
+                with conn.cursor() as test_cursor:
+                    test_cursor.execute("SELECT 1")
+                    test_cursor.fetchone()
                 return conn
-
-            except sqlite3.OperationalError as e:
-                if "database is locked" in str(e).lower() and attempt < max_retries - 1:
-                    logger.warning(
-                        f"SQLite locked, retrying ({attempt + 1}/{max_retries})"
-                    )
+            except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+                if attempt < max_retries - 1:
+                    logger.warning(f"PostgreSQL connection error, retrying ({attempt + 1}/{max_retries}): {e}")
                     import time
                     time.sleep(retry_delay * (attempt + 1))
                     continue
-
-                logger.error(f"SQLite connection error: {e}")
+                logger.error(f"PostgreSQL connection error after {max_retries} attempts: {e}")
                 raise
-    
-    def _get_postgres_connection(self):
-        try:
-            conn = psycopg2.connect(
-                self.db_url,
-                cursor_factory=psycopg2.extras.RealDictCursor,
-                connect_timeout=5
-            )
-            conn.autocommit = True
-            return conn
-        except Exception as e:
-            logger.error(f"PostgreSQL connection error: {e}")
-            raise
+            except Exception as e:
+                logger.error(f"PostgreSQL connection error: {e}")
+                raise
     
     def _init_database(self):
         """
@@ -396,14 +375,15 @@ class DatabaseManager:
                 # Добавляем тестовые данные
                 self._add_test_data(cursor)
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info("Database initialized successfully with all tables")
                 
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Database initialization error: {e}")
             raise
 
-    def _migrate_schema(self, conn: sqlite3.Connection):
+    def _migrate_schema(self, conn):
+        """DEPRECATED: Миграции схемы БД больше не используются для PostgreSQL."""
         """Миграции схемы БД для существующих инсталляций."""
         try:
             cur = conn.cursor()
@@ -440,21 +420,24 @@ class DatabaseManager:
                 payment_cols = {row[1] for row in cur.fetchall()}
                 if "is_renewal" not in payment_cols:
                     cur.execute("ALTER TABLE yookassa_payments ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
-            except sqlite3.OperationalError:
+            except psycopg2.Error:
                 pass  # Таблица может не существовать
             
-            conn.commit()
+            self._commit_if_needed(conn)
         except Exception as e:
             logger.error(f"Schema migration error: {e}")
     
-    def _add_test_data(self, cursor: sqlite3.Cursor):
+    def _add_test_data(self, cursor):
+        """DEPRECATED: Тестовые данные больше не добавляются автоматически."""
         """Добавляет тестовые данные в базу."""
         # Только тестовый API ключ премиум уровня (базовый функционал работает без ключей)
-        cursor.execute("""
-            INSERT OR IGNORE INTO api_keys 
+        query = """
+            INSERT INTO api_keys 
             (api_key, name, description, access_level, features, rate_limit_daily, rate_limit_hourly)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT(api_key) DO NOTHING
+        """
+        cursor.execute(self._adapt_query(query), (
             "PREMI-12345-67890-ABCDE-FGHIJ-KLMNO", 
             "Test Premium Client", 
             "API key for premium testing with advanced features",
@@ -473,11 +456,13 @@ class DatabaseManager:
         ]
         
         for file_hash, threat_type, severity, description in test_hashes:
-            cursor.execute("""
-                INSERT OR IGNORE INTO malicious_hashes 
+            query = """
+                INSERT INTO malicious_hashes 
                 (hash, threat_type, severity, description)
-                VALUES (?, ?, ?, ?)
-            """, (file_hash, threat_type, severity, description))
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT(hash) DO NOTHING
+            """
+            cursor.execute(self._adapt_query(query), (file_hash, threat_type, severity, description))
         
         # Тестовые вредоносные URL
         test_urls = [
@@ -488,84 +473,16 @@ class DatabaseManager:
         ]
         
         for url, domain, threat_type, severity, description in test_urls:
-            cursor.execute("""
-                INSERT OR IGNORE INTO malicious_urls 
+            query = """
+                INSERT INTO malicious_urls 
                 (url, domain, threat_type, severity, description)
-                VALUES (?, ?, ?, ?, ?)
-            """, (url, domain, threat_type, severity, description))
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT(url) DO NOTHING
+            """
+            cursor.execute(self._adapt_query(query), (url, domain, threat_type, severity, description))
     
     # ===== API KEYS MANAGEMENT =====
-    
-    def validate_api_key(self, api_key: str) -> Tuple[bool, str]:
-        """
-        Проверяет валидность API ключа и обновляет счетчики.
-        
-        Args:
-            api_key (str): API ключ для проверки
-            
-        Returns:
-            Tuple[bool, str]: (is_valid, error_message)
-        """
-        try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                
-                # Получаем информацию о ключе
-                cursor.execute("""
-                    SELECT api_key, is_active, access_level, features, rate_limit_daily, rate_limit_hourly,
-                           requests_today, requests_hour, expires_at
-                    FROM api_keys 
-                    WHERE api_key = ?
-                """, (api_key,))
-                
-                result = cursor.fetchone()
-                if not result:
-                    logger.warning(f"API key not found: {api_key[:10]}...")
-                    return False, "API key not found"
-                
-                if not result["is_active"]:
-                    logger.warning(f"API key is deactivated: {api_key[:10]}...")
-                    return False, "API key is deactivated"
-                
-                # Проверяем expiration
-                if result["expires_at"]:
-                    try:
-                        expires_at = datetime.fromisoformat(result["expires_at"])
-                        if expires_at < datetime.now():
-                            logger.warning(f"API key expired: {api_key[:10]}...")
-                            return False, "API key has expired"
-                    except (ValueError, TypeError) as e:
-                        logger.warning(f"Error parsing expiration date: {e}")
-                
-                # Локальные лимиты (None или <=0 = без ограничений)
-                daily_limit = result["rate_limit_daily"]
-                hourly_limit = result["rate_limit_hourly"]
-
-                if daily_limit is not None and daily_limit > 0 and result["requests_today"] >= daily_limit:
-                    logger.warning(f"Daily rate limit exceeded for key: {api_key[:10]}...")
-                    return False, "Daily rate limit exceeded"
-                
-                if hourly_limit is not None and hourly_limit > 0 and result["requests_hour"] >= hourly_limit:
-                    logger.warning(f"Hourly rate limit exceeded for key: {api_key[:10]}...")
-                    return False, "Hourly rate limit exceeded"
-                
-                # Обновляем счетчики
-                cursor.execute("""
-                    UPDATE api_keys 
-                    SET requests_total = requests_total + 1,
-                        requests_today = requests_today + 1,
-                        requests_hour = requests_hour + 1,
-                        last_used = CURRENT_TIMESTAMP
-                    WHERE api_key = ?
-                """, (api_key,))
-                
-                conn.commit()
-                logger.debug(f"API key validated successfully: {api_key[:10]}...")
-                return True, "Valid API key"
-                
-        except sqlite3.Error as e:
-            logger.error(f"API key validation error: {e}", exc_info=True)
-            return False, f"Database error: {str(e)}"
+    # Метод validate_api_key удалён - используйте JWT аутентификацию через security.py
     
     def create_api_key(self, name: str, description: str = "", 
                       access_level: str = "basic", daily_limit: Optional[int] = 10000, 
@@ -619,34 +536,32 @@ class DatabaseManager:
                         (api_key, safe_name, safe_desc, access_level, features, 
                          daily_limit, hourly_limit, expires_at)
                     )
-                    conn.commit()
+                    self._commit_if_needed(conn)
                     logger.info(f"✅ API key created successfully for {safe_name} with level {access_level}: {api_key[:10]}...")
                     return api_key
-                except sqlite3.IntegrityError as e:
+                except psycopg2.IntegrityError as e:
                     logger.error(f"❌ API key creation failed - duplicate key: {e}")
                     # Пробуем еще раз с новым ключом
                     api_key = self._generate_formatted_key(access_level)
-                    cursor.execute(
-                        """
+                    query = """
                         INSERT INTO api_keys (
                             api_key, name, description, is_active, access_level, features,
                             rate_limit_daily, rate_limit_hourly,
                             requests_total, requests_today, requests_hour,
                             created_at, last_used, expires_at
                         ) VALUES (
-                            ?, ?, ?, 1, ?, ?,
-                            ?, ?,
+                            %s, %s, %s, TRUE, %s, %s,
+                            %s, %s,
                             0, 0, 0,
-                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s
                         )
-                        """,
-                        (api_key, safe_name, safe_desc, access_level, features, 
-                         daily_limit, hourly_limit, expires_at)
-                    )
-                    conn.commit()
+                    """
+                    cursor.execute(self._adapt_query(query), (api_key, safe_name, safe_desc, access_level, features, 
+                         daily_limit, hourly_limit, expires_at))
+                    self._commit_if_needed(conn)
                     logger.info(f"✅ API key created on retry for {safe_name}: {api_key[:10]}...")
                     return api_key
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"❌ API key creation error: {e}", exc_info=True)
             return None
         except Exception as e:
@@ -684,25 +599,24 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 
                 # Проверяем, существует ли ключ
-                cursor.execute("SELECT expires_at FROM api_keys WHERE api_key = ?", (api_key,))
+                query = "SELECT expires_at FROM api_keys WHERE api_key = %s"
+                cursor.execute(self._adapt_query(query), (api_key,))
                 result = cursor.fetchone()
                 
                 if not result:
                     return False
                 
                 # Получаем текущую дату истечения
-                current_expires = datetime.fromisoformat(result[0])
+                current_expires = datetime.fromisoformat(result["expires_at"])
                 
                 # Добавляем дни
                 new_expires = current_expires + timedelta(days=extend_days)
                 
                 # Обновляем дату истечения
-                cursor.execute(
-                    "UPDATE api_keys SET expires_at = ? WHERE api_key = ?",
-                    (new_expires.isoformat(), api_key)
-                )
+                query = "UPDATE api_keys SET expires_at = %s WHERE api_key = %s"
+                cursor.execute(self._adapt_query(query), (new_expires.isoformat(), api_key))
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 return True
                 
         except Exception as e:
@@ -746,10 +660,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM api_keys WHERE api_key = ?", (api_key,))
+                query = "SELECT * FROM api_keys WHERE api_key = %s"
+                cursor.execute(self._adapt_query(query), (api_key,))
                 result = cursor.fetchone()
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"API key info error: {e}")
             return None
     
@@ -759,9 +674,9 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("UPDATE api_keys SET requests_today = 0, requests_hour = 0")
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info("Rate limits reset successfully")
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Rate limit reset error: {e}")
     
     # ===== THREAT DATABASE METHODS =====
@@ -771,25 +686,27 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     SELECT hash, threat_type, severity, description, detection_count
                     FROM malicious_hashes 
-                    WHERE hash = ?
-                """, (file_hash.lower(),))
+                    WHERE hash = %s
+                """
+                cursor.execute(self._adapt_query(query), (file_hash.lower(),))
                 
                 result = cursor.fetchone()
                 if result:
                     # Увеличиваем счетчик обнаружений
-                    cursor.execute("""
+                    query_update = """
                         UPDATE malicious_hashes 
                         SET detection_count = detection_count + 1,
                             last_updated = CURRENT_TIMESTAMP
-                        WHERE hash = ?
-                    """, (file_hash.lower(),))
-                    conn.commit()
+                        WHERE hash = %s
+                    """
+                    cursor.execute(self._adapt_query(query_update), (file_hash.lower(),))
+                    self._commit_if_needed(conn)
                 
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Hash check error: {e}")
             return None
     
@@ -800,38 +717,40 @@ class DatabaseManager:
             try:
                 with self._get_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute("""
+                    query = """
                         SELECT url, domain, threat_type, severity, description, detection_count
                         FROM malicious_urls 
-                        WHERE url = ?
-                    """, (url.lower(),))
+                        WHERE url = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (url.lower(),))
                     
                     result = cursor.fetchone()
                     if result:
                         # Увеличиваем счетчик обнаружений
                         try:
-                            cursor.execute("""
+                            query_update = """
                                 UPDATE malicious_urls 
                                 SET detection_count = detection_count + 1,
                                     last_updated = CURRENT_TIMESTAMP
-                                WHERE url = ?
-                            """, (url.lower(),))
-                            conn.commit()
-                        except sqlite3.Error as update_error:
+                                WHERE url = %s
+                            """
+                            cursor.execute(self._adapt_query(query_update), (url.lower(),))
+                            self._commit_if_needed(conn)
+                        except psycopg2.Error as update_error:
                             logger.warning(f"Failed to update detection_count for {url}: {update_error}")
                             # Не критично, продолжаем
                     
                     return dict(result) if result else None
-            except sqlite3.OperationalError as e:
+            except psycopg2.OperationalError as e:
                 error_msg = str(e).lower()
-                if "database is locked" in error_msg and attempt < max_retries - 1:
-                    logger.warning(f"Database locked during URL check (attempt {attempt + 1}/{max_retries}), retrying...")
+                if attempt < max_retries - 1:
+                    logger.warning(f"PostgreSQL operational error during URL check (attempt {attempt + 1}/{max_retries}), retrying...")
                     import time
                     time.sleep(0.1 * (attempt + 1))
                     continue
                 logger.error(f"URL check operational error: {e}", exc_info=True)
                 raise
-            except sqlite3.Error as e:
+            except (psycopg2.Error, Exception) as e:
                 logger.error(f"URL check database error: {e}", exc_info=True)
                 if attempt == max_retries - 1:
                     raise
@@ -848,23 +767,24 @@ class DatabaseManager:
             try:
                 with self._get_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute("""
+                    query = """
                         SELECT url, threat_type, severity, description, detection_count
                         FROM malicious_urls 
-                        WHERE domain = ?
-                    """, (domain.lower(),))
+                        WHERE domain = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (domain.lower(),))
                     
                     return [dict(row) for row in cursor.fetchall()]
-            except sqlite3.OperationalError as e:
+            except psycopg2.OperationalError as e:
                 error_msg = str(e).lower()
-                if "database is locked" in error_msg and attempt < max_retries - 1:
-                    logger.warning(f"Database locked during domain check (attempt {attempt + 1}/{max_retries}), retrying...")
+                if attempt < max_retries - 1:
+                    logger.warning(f"PostgreSQL operational error during domain check (attempt {attempt + 1}/{max_retries}), retrying...")
                     import time
                     time.sleep(0.1 * (attempt + 1))
                     continue
                 logger.error(f"Domain check operational error: {e}", exc_info=True)
                 raise
-            except sqlite3.Error as e:
+            except (psycopg2.Error, Exception) as e:
                 logger.error(f"Domain check database error: {e}", exc_info=True)
                 if attempt == max_retries - 1:
                     raise
@@ -880,16 +800,23 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT OR REPLACE INTO malicious_hashes 
+                query = """
+                    INSERT INTO malicious_hashes 
                     (hash, threat_type, severity, description, last_updated)
-                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """, (file_hash.lower(), threat_type, severity, description))
+                    VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT(hash) DO UPDATE SET
+                        threat_type = EXCLUDED.threat_type,
+                        severity = EXCLUDED.severity,
+                        description = EXCLUDED.description,
+                        last_updated = CURRENT_TIMESTAMP,
+                        detection_count = malicious_hashes.detection_count + 1
+                """
+                cursor.execute(self._adapt_query(query), (file_hash.lower(), threat_type, severity, description))
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Malicious hash added: {file_hash}")
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Add hash error: {e}")
             return False
     
@@ -901,16 +828,24 @@ class DatabaseManager:
             
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT OR REPLACE INTO malicious_urls 
+                query = """
+                    INSERT INTO malicious_urls 
                     (url, domain, threat_type, severity, description, last_updated)
-                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """, (url.lower(), domain, threat_type, severity, description))
+                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT(url) DO UPDATE SET
+                        domain = EXCLUDED.domain,
+                        threat_type = EXCLUDED.threat_type,
+                        severity = EXCLUDED.severity,
+                        description = EXCLUDED.description,
+                        last_updated = CURRENT_TIMESTAMP,
+                        detection_count = malicious_urls.detection_count + 1
+                """
+                cursor.execute(self._adapt_query(query), (url.lower(), domain, threat_type, severity, description))
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Malicious URL added: {url}")
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Add URL error: {e}")
             return False
     
@@ -930,12 +865,7 @@ class DatabaseManager:
         normalized = url.strip().lower()
         return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
 
-    def _append_cache_file(self, path: Path, entry: Dict[str, Any]):
-        try:
-            with path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-        except Exception as e:
-            logger.warning(f"Failed to append cache entry to {path}: {e}")
+    # Метод _append_cache_file удалён - только PostgreSQL
 
     def get_cached_security(self, url: str) -> Optional[Dict[str, Any]]:
         """Возвращает сохраненный результат (whitelist/blacklist) для URL."""
@@ -945,16 +875,18 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 if domain:
-                    cursor.execute("SELECT * FROM cached_whitelist WHERE domain = ?", (domain,))
+                    query = "SELECT * FROM cached_whitelist WHERE domain = %s"
+                    cursor.execute(self._adapt_query(query), (domain,))
                     row = cursor.fetchone()
                     if row:
-                        cursor.execute("""
+                        query_update = """
                             UPDATE cached_whitelist
                             SET hit_count = hit_count + 1,
                                 last_seen = CURRENT_TIMESTAMP
-                            WHERE domain = ?
-                        """, (domain,))
-                        conn.commit()
+                            WHERE domain = %s
+                        """
+                        cursor.execute(self._adapt_query(query_update), (domain,))
+                        self._commit_if_needed(conn)
                         payload = json.loads(row["payload"]) if row["payload"] else None
                         return {
                             "safe": True,
@@ -968,16 +900,18 @@ class DatabaseManager:
                             "cached_at": row["last_seen"],
                             "payload": payload
                         }
-                cursor.execute("SELECT * FROM cached_blacklist WHERE url_hash = ?", (url_hash,))
+                query = "SELECT * FROM cached_blacklist WHERE url_hash = %s"
+                cursor.execute(self._adapt_query(query), (url_hash,))
                 row = cursor.fetchone()
                 if row:
-                    cursor.execute("""
+                    query_update = """
                         UPDATE cached_blacklist
                         SET hit_count = hit_count + 1,
                             last_seen = CURRENT_TIMESTAMP
-                        WHERE url_hash = ?
-                    """, (url_hash,))
-                    conn.commit()
+                        WHERE url_hash = %s
+                    """
+                    cursor.execute(self._adapt_query(query_update), (url_hash,))
+                    self._commit_if_needed(conn)
                     payload = json.loads(row["payload"]) if row["payload"] else None
                     return {
                         "safe": False,
@@ -990,7 +924,7 @@ class DatabaseManager:
                         "cached_at": row["last_seen"],
                         "payload": payload
                     }
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Cache lookup error: {e}", exc_info=True)
         except json.JSONDecodeError as json_error:
             logger.warning(f"Cache payload decode issue: {json_error}")
@@ -1008,18 +942,19 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     INSERT INTO cached_whitelist (domain, details, detection_ratio, confidence, source, payload)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT(domain) DO UPDATE SET
-                        details = excluded.details,
-                        detection_ratio = excluded.detection_ratio,
-                        confidence = excluded.confidence,
-                        source = excluded.source,
-                        payload = excluded.payload,
+                        details = EXCLUDED.details,
+                        detection_ratio = EXCLUDED.detection_ratio,
+                        confidence = EXCLUDED.confidence,
+                        source = EXCLUDED.source,
+                        payload = EXCLUDED.payload,
                         last_seen = CURRENT_TIMESTAMP
-                """, (domain, details, detection_ratio, confidence, source, serialized))
-                conn.commit()
+                """
+                cursor.execute(self._adapt_query(query), (domain, details, detection_ratio, confidence, source, serialized))
+                self._commit_if_needed(conn)
                 file_entry = {
                     "domain": domain,
                     "details": details,
@@ -1029,9 +964,9 @@ class DatabaseManager:
                     "payload": payload,
                     "saved_at": datetime.utcnow().isoformat()
                 }
-                self._append_cache_file(self.whitelist_file, file_entry)
+                # Кеш-файлы удалены - только PostgreSQL
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Save whitelist entry error: {e}")
             return False
 
@@ -1047,19 +982,20 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     INSERT INTO cached_blacklist (url_hash, url, domain, threat_type, details, source, payload)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT(url_hash) DO UPDATE SET
-                        url = excluded.url,
-                        domain = excluded.domain,
-                        threat_type = excluded.threat_type,
-                        details = excluded.details,
-                        source = excluded.source,
-                        payload = excluded.payload,
+                        url = EXCLUDED.url,
+                        domain = EXCLUDED.domain,
+                        threat_type = EXCLUDED.threat_type,
+                        details = EXCLUDED.details,
+                        source = EXCLUDED.source,
+                        payload = EXCLUDED.payload,
                         last_seen = CURRENT_TIMESTAMP
-                """, (url_hash, url, domain, threat_type, details, source, serialized))
-                conn.commit()
+                """
+                cursor.execute(self._adapt_query(query), (url_hash, url, domain, threat_type, details, source, serialized))
+                self._commit_if_needed(conn)
                 file_entry = {
                     "url": url,
                     "domain": domain,
@@ -1069,9 +1005,9 @@ class DatabaseManager:
                     "payload": payload,
                     "saved_at": datetime.utcnow().isoformat()
                 }
-                self._append_cache_file(self.blacklist_file, file_entry)
+                # Кеш-файлы удалены - только PostgreSQL
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Save blacklist entry error: {e}")
             return False
 
@@ -1085,15 +1021,17 @@ class DatabaseManager:
                 cursor.execute("SELECT COUNT(*) as count, SUM(hit_count) as hits FROM cached_blacklist")
                 blacklist_row = cursor.fetchone()
                 cursor.execute("""
-                    SELECT SUM(LENGTH(payload) + LENGTH(details) + LENGTH(url))
+                    SELECT COALESCE(SUM(LENGTH(COALESCE(payload, '')) + LENGTH(COALESCE(details, '')) + LENGTH(COALESCE(url, ''))), 0) as sum_bytes
                     FROM cached_blacklist
                 """)
-                blacklist_bytes = cursor.fetchone()[0] or 0
+                blacklist_result = cursor.fetchone()
+                blacklist_bytes = blacklist_result["sum_bytes"] if blacklist_result else 0
                 cursor.execute("""
-                    SELECT SUM(LENGTH(payload) + LENGTH(details) + LENGTH(domain))
+                    SELECT COALESCE(SUM(LENGTH(COALESCE(payload, '')) + LENGTH(COALESCE(details, '')) + LENGTH(COALESCE(domain, ''))), 0) as sum_bytes
                     FROM cached_whitelist
                 """)
-                whitelist_bytes = cursor.fetchone()[0] or 0
+                whitelist_result = cursor.fetchone()
+                whitelist_bytes = whitelist_result["sum_bytes"] if whitelist_result else 0
                 total_entries = (whitelist_row["count"] or 0) + (blacklist_row["count"] or 0)
                 return {
                     "whitelist_entries": whitelist_row["count"] or 0,
@@ -1103,7 +1041,7 @@ class DatabaseManager:
                     "bytes_estimated": int(whitelist_bytes + blacklist_bytes),
                     "total_entries": total_entries
                 }
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Cache stats error: {e}")
             return {
                 "whitelist_entries": 0,
@@ -1120,10 +1058,8 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    f"SELECT * FROM {table} ORDER BY last_seen ASC LIMIT ?",
-                    (limit,)
-                )
+                query = f"SELECT * FROM {table} ORDER BY last_seen ASC LIMIT %s"
+                cursor.execute(self._adapt_query(query), (limit,))
                 rows = []
                 for row in cursor.fetchall():
                     payload = None
@@ -1136,7 +1072,7 @@ class DatabaseManager:
                     entry["payload"] = payload
                     rows.append(entry)
                 return rows
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Fetch cached entries error: {e}")
             return []
 
@@ -1172,20 +1108,18 @@ class DatabaseManager:
                     "blacklist_entries": cache_stats.get("blacklist_entries", 0),
                     "cache_hits": (cache_stats.get("whitelist_hits", 0) or 0) + (cache_stats.get("blacklist_hits", 0) or 0)
                 }
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Database stats error: {e}")
             return {}
     
-    def log_request(self, api_key: Optional[str], endpoint: str, method: str,
+    def log_request(self, user_id: Optional[int], endpoint: str, method: str,
                    status_code: int, response_time_ms: int, 
                    user_agent: Optional[str], client_ip: Optional[str]):
         """Логирует запрос в базу данных."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                # Обезличивание api_key и усечение IP до /24
-                import hashlib
-                api_key_hash = hashlib.sha256((api_key or "").encode("utf-8")).hexdigest() if api_key else None
+                # Усечение IP до /24 для приватности
                 truncated_ip = None
                 try:
                     if client_ip and ":" not in client_ip:
@@ -1195,14 +1129,14 @@ class DatabaseManager:
                 except Exception:
                     truncated_ip = None
 
-                cursor.execute("""
+                query = """
                     INSERT INTO request_logs 
-                    (api_key_hash, endpoint, method, status_code, response_time_ms, user_agent, client_ip_truncated)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (api_key_hash, endpoint, method, status_code, response_time_ms, user_agent, truncated_ip))
-                
-                conn.commit()
-        except sqlite3.Error as e:
+                    (user_id, endpoint, method, status_code, response_time_ms, user_agent, client_ip_truncated)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(self._adapt_query(query), (user_id, endpoint, method, status_code, response_time_ms, user_agent, truncated_ip))
+                self._commit_if_needed(conn)
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Request log error: {e}")
 
     # ===== IP REPUTATION =====
@@ -1211,23 +1145,21 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
+                query = """
                     INSERT INTO ip_reputation (ip, threat_type, reputation_score, details, source)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s)
                     ON CONFLICT(ip) DO UPDATE SET
-                        threat_type=excluded.threat_type,
-                        reputation_score=excluded.reputation_score,
-                        details=excluded.details,
-                        source=excluded.source,
+                        threat_type=EXCLUDED.threat_type,
+                        reputation_score=EXCLUDED.reputation_score,
+                        details=EXCLUDED.details,
+                        source=EXCLUDED.source,
                         last_updated=CURRENT_TIMESTAMP,
-                        detection_count=detection_count+1
-                    """,
-                    (ip, threat_type, reputation_score, details, source)
-                )
-                conn.commit()
+                        detection_count=ip_reputation.detection_count+1
+                """
+                cursor.execute(self._adapt_query(query), (ip, threat_type, reputation_score, details, source))
+                self._commit_if_needed(conn)
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Upsert IP reputation error: {e}")
             return False
 
@@ -1235,10 +1167,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM ip_reputation WHERE ip = ?", (ip,))
+                query = "SELECT * FROM ip_reputation WHERE ip = %s"
+                cursor.execute(self._adapt_query(query), (ip,))
                 row = cursor.fetchone()
                 return dict(row) if row else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get IP reputation error: {e}")
             return None
 
@@ -1246,12 +1179,10 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT ip, threat_type, reputation_score, details, source, last_updated, detection_count FROM ip_reputation ORDER BY last_updated DESC LIMIT ?",
-                    (limit,)
-                )
+                query = "SELECT ip, threat_type, reputation_score, details, source, last_updated, detection_count FROM ip_reputation ORDER BY last_updated DESC LIMIT %s"
+                cursor.execute(self._adapt_query(query), (limit,))
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"List IP reputation error: {e}")
             return []
     def get_api_key_stats(self, api_key: str) -> Optional[Dict[str, Any]]:
@@ -1269,7 +1200,7 @@ class DatabaseManager:
             
                 result = cursor.fetchone()
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"API key stats error: {e}")
             return None
     # В класс DatabaseManager добавим методы:
@@ -1281,7 +1212,7 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute("SELECT hash, threat_type, severity FROM malicious_hashes")
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all hashes error: {e}")
         return []
 
@@ -1292,7 +1223,7 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute("SELECT url, threat_type, severity FROM malicious_urls")
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all URLs error: {e}")
         return []
     
@@ -1341,7 +1272,7 @@ class DatabaseManager:
                     })
                 
                 return threats
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all threats error: {e}")
             return []
     
@@ -1356,7 +1287,7 @@ class DatabaseManager:
                     ORDER BY created_at DESC
                 """)
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all logs error: {e}")
             return []
     
@@ -1367,16 +1298,19 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     INSERT INTO accounts (username, email, password_hash, is_active)
-                    VALUES (?, ?, ?, TRUE)
-                """, (username, email, password_hash))
-                conn.commit()
-                return cursor.lastrowid
-        except sqlite3.IntegrityError as e:
+                    VALUES (%s, %s, %s, TRUE)
+                    RETURNING id
+                """
+                cursor.execute(self._adapt_query(query), (username, email, password_hash))
+                self._commit_if_needed(conn)
+                result = cursor.fetchone()
+                return result["id"] if result else None
+        except psycopg2.IntegrityError as e:
             logger.error(f"Account creation error (duplicate): {e}")
             return None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Account creation error: {e}")
             return None
     
@@ -1385,10 +1319,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM accounts WHERE username = ?", (username,))
+                query = "SELECT * FROM accounts WHERE username = %s"
+                cursor.execute(self._adapt_query(query), (username,))
                 result = cursor.fetchone()
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get account by username error: {e}")
             return None
     
@@ -1397,10 +1332,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM accounts WHERE email = ?", (email,))
+                query = "SELECT * FROM accounts WHERE email = %s"
+                cursor.execute(self._adapt_query(query), (email,))
                 result = cursor.fetchone()
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get account by email error: {e}")
             return None
     
@@ -1409,10 +1345,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM accounts WHERE id = ?", (user_id,))
+                query = "SELECT * FROM accounts WHERE id = %s"
+                cursor.execute(self._adapt_query(query), (user_id,))
                 result = cursor.fetchone()
                 return dict(result) if result else None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get account by ID error: {e}")
             return None
     
@@ -1423,27 +1360,29 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 
                 # Проверяем, что ключ существует и не привязан
-                cursor.execute("SELECT user_id FROM api_keys WHERE api_key = ?", (api_key,))
+                query = "SELECT user_id FROM api_keys WHERE api_key = %s"
+                cursor.execute(self._adapt_query(query), (api_key,))
                 result = cursor.fetchone()
                 
                 if not result:
                     return False  # Ключ не найден
                 
-                if result[0] is not None:
+                if result["user_id"] is not None:
                     return False  # Ключ уже привязан
                 
                 # Привязываем ключ
-                cursor.execute("""
+                query = """
                     UPDATE api_keys 
-                    SET user_id = ? 
-                    WHERE api_key = ?
-                """, (user_id, api_key))
-                conn.commit()
+                    SET user_id = %s 
+                    WHERE api_key = %s
+                """
+                cursor.execute(self._adapt_query(query), (user_id, api_key))
+                self._commit_if_needed(conn)
                 
                 logger.info(f"API key {api_key} bound to account {user_id}")
                 return True
                 
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Bind API key error: {e}")
             return False
     
@@ -1452,16 +1391,17 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     SELECT api_key, name, description, access_level, expires_at,
                            created_at, last_used, requests_total
                     FROM api_keys 
-                    WHERE user_id = ?
+                    WHERE user_id = %s
                     ORDER BY created_at DESC
-                """, (user_id,))
+                """
+                cursor.execute(self._adapt_query(query), (user_id,))
                 
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get API keys for account error: {e}")
             return []
     
@@ -1479,7 +1419,7 @@ class DatabaseManager:
                 """)
                 
                 return [dict(row) for row in cursor.fetchall()]
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get free API keys error: {e}")
             return []
     
@@ -1488,13 +1428,14 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     UPDATE accounts 
                     SET last_login = CURRENT_TIMESTAMP 
-                    WHERE id = ?
-                """, (user_id,))
-                conn.commit()
-        except sqlite3.Error as e:
+                    WHERE id = %s
+                """
+                cursor.execute(self._adapt_query(query), (user_id,))
+                self._commit_if_needed(conn)
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Update last login error: {e}")
     
     # ===== SESSION MANAGEMENT METHODS =====
@@ -1504,14 +1445,15 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     SELECT session_token FROM active_sessions 
-                    WHERE user_id = ? 
+                    WHERE user_id = %s 
                     AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-                """, (user_id,))
+                """
+                cursor.execute(self._adapt_query(query), (user_id,))
                 result = cursor.fetchone()
-                return result[0] if result else None
-        except sqlite3.Error as e:
+                return result["session_token"] if result else None
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get active session token error: {e}")
             return None
     
@@ -1520,14 +1462,15 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     SELECT user_id, session_token, device_id, created_at, expires_at
                     FROM active_sessions 
-                    WHERE user_id = ? AND device_id = ?
-                """, (user_id, device_id))
+                    WHERE user_id = %s AND device_id = %s
+                """
+                cursor.execute(self._adapt_query(query), (user_id, device_id))
                 result = cursor.fetchone()
                 if result:
-                    expires_at_str = result[4]
+                    expires_at_str = result["expires_at"]
                     # Проверяем срок действия в Python
                     if expires_at_str:
                         try:
@@ -1539,14 +1482,14 @@ class DatabaseManager:
                             pass  # При ошибке парсинга считаем валидной
                     
                     return {
-                        "user_id": result[0],
-                        "session_token": result[1],
-                        "device_id": result[2],
-                        "created_at": result[3],
-                        "expires_at": result[4]
+                        "user_id": result["user_id"],
+                        "session_token": result["session_token"],
+                        "device_id": result["device_id"],
+                        "created_at": result["created_at"],
+                        "expires_at": result["expires_at"]
                     }
                 return None
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get session by device_id error: {e}")
             return None
     
@@ -1564,41 +1507,50 @@ class DatabaseManager:
                 
                 # Если device_id указан, проверяем существующую сессию для этого device_id
                 if device_id:
-                    cursor.execute("""
+                    query = """
                         SELECT user_id FROM active_sessions 
-                        WHERE user_id = ? AND device_id = ?
-                    """, (user_id, device_id))
+                        WHERE user_id = %s AND device_id = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (user_id, device_id))
                     existing = cursor.fetchone()
                     
                     if existing:
                         # Обновляем только expires_at для существующей сессии (НЕ меняем session_token!)
-                        cursor.execute("""
+                        query_update = """
                             UPDATE active_sessions 
-                            SET expires_at = ?
-                            WHERE user_id = ? AND device_id = ?
-                        """, (expires_at, user_id, device_id))
+                            SET expires_at = %s
+                            WHERE user_id = %s AND device_id = %s
+                        """
+                        cursor.execute(self._adapt_query(query_update), (expires_at, user_id, device_id))
                         logger.info(f"Updated existing session expiry for user_id={user_id}, device_id={device_id}")
                     else:
                         # Удаляем старую сессию для этого user_id (если есть) и создаем новую
-                        cursor.execute("DELETE FROM active_sessions WHERE user_id = ?", (user_id,))
-                        cursor.execute("""
+                        query_delete = "DELETE FROM active_sessions WHERE user_id = %s"
+                        cursor.execute(self._adapt_query(query_delete), (user_id,))
+                        query_insert = """
                             INSERT INTO active_sessions 
-                            (user_id, session_token, device_id, expires_at)
-                            VALUES (?, ?, ?, ?)
-                        """, (user_id, session_token, device_id, expires_at))
+                    (user_id, session_token, device_id, expires_at)
+                            VALUES (%s, %s, %s, %s)
+                        """
+                        cursor.execute(self._adapt_query(query_insert), (user_id, session_token, device_id, expires_at))
                         logger.info(f"Replaced session for user_id={user_id}, new device_id={device_id}")
                 else:
-                    # Если device_id не указан - используем INSERT OR REPLACE (старое поведение)
-                    cursor.execute("""
-                        INSERT OR REPLACE INTO active_sessions 
+                    # Если device_id не указан - используем INSERT ... ON CONFLICT для PostgreSQL
+                    query = """
+                        INSERT INTO active_sessions 
                         (user_id, session_token, device_id, expires_at)
-                        VALUES (?, ?, ?, ?)
-                    """, (user_id, session_token, device_id, expires_at))
-                    logger.info(f"Active session set for user_id={user_id}, device_id={device_id}")
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT(user_id) DO UPDATE SET
+                            session_token = EXCLUDED.session_token,
+                            device_id = EXCLUDED.device_id,
+                            expires_at = EXCLUDED.expires_at
+                    """
+                    cursor.execute(self._adapt_query(query), (user_id, session_token, device_id, expires_at))
+                logger.info(f"Active session set for user_id={user_id}, device_id={device_id}")
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Set active session error: {e}")
             return False
     
@@ -1609,16 +1561,17 @@ class DatabaseManager:
             
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     UPDATE active_sessions 
-                    SET expires_at = ?
-                    WHERE user_id = ? AND device_id = ?
-                """, (expires_at, user_id, device_id))
+                    SET expires_at = %s
+                    WHERE user_id = %s AND device_id = %s
+                """
+                cursor.execute(self._adapt_query(query), (expires_at, user_id, device_id))
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Updated session expiry for user_id={user_id}, device_id={device_id}")
                 return cursor.rowcount > 0
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Update session expiry error: {e}")
             return False
     
@@ -1631,19 +1584,20 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 # Получаем сессию и проверяем expires_at в Python (более надежно)
-                cursor.execute("""
+                query = """
                     SELECT user_id, expires_at, device_id FROM active_sessions 
-                    WHERE session_token = ?
-                """, (session_token,))
+                    WHERE session_token = %s
+                """
+                cursor.execute(self._adapt_query(query), (session_token,))
                 result = cursor.fetchone()
                 
                 if not result:
                     logger.debug(f"Session token not found: {session_token[:10]}...")
                     return None
                 
-                user_id = result[0]
-                expires_at_str = result[1]
-                device_id = result[2]
+                user_id = result["user_id"]
+                expires_at_str = result["expires_at"]
+                device_id = result["device_id"]
                 
                 # Если expires_at NULL - сессия бессрочная
                 if expires_at_str is None:
@@ -1670,7 +1624,7 @@ class DatabaseManager:
                 except (ValueError, AttributeError) as e:
                     logger.warning(f"Error parsing expires_at '{expires_at_str}': {e}, treating as valid")
                     return user_id  # При ошибке парсинга считаем сессию валидной
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Validate session token error: {e}", exc_info=True)
             return None
     
@@ -1679,10 +1633,11 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM active_sessions WHERE session_token = ?", (session_token,))
-                conn.commit()
+                query = "DELETE FROM active_sessions WHERE session_token = %s"
+                cursor.execute(self._adapt_query(query), (session_token,))
+                self._commit_if_needed(conn)
                 return cursor.rowcount > 0
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Delete session error: {e}")
             return False
     
@@ -1694,26 +1649,29 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("SELECT id FROM accounts WHERE email = ?", (email,))
+                query = "SELECT id FROM accounts WHERE email = %s"
+                cursor.execute(self._adapt_query(query), (email,))
                 result = cursor.fetchone()
                 if not result:
                     return None
 
-                user_id = result[0]
+                user_id = result["id"]
 
                 import secrets
                 code = str(secrets.randbelow(900000) + 100000)
 
                 expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
+                
+                query_delete = "DELETE FROM password_resets WHERE user_id = %s"
+                cursor.execute(self._adapt_query(query_delete), (user_id,))
 
-                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
-
-                cursor.execute("""
+                query_insert = """
                     INSERT INTO password_resets (user_id, token, expires_at)
-                    VALUES (?, ?, ?)
-                """, (user_id, code, expires_at))
+                    VALUES (%s, %s, %s)
+                """
+                cursor.execute(self._adapt_query(query_insert), (user_id, code, expires_at))
 
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Generated reset code {code} for user_id {user_id}")
                 return code
 
@@ -1726,17 +1684,19 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     SELECT reset_code, reset_code_expires
                     FROM accounts 
-                    WHERE email = ?
-                """, (email,))
+                    WHERE email = %s
+                """
+                cursor.execute(self._adapt_query(query), (email,))
                 
                 result = cursor.fetchone()
                 if not result:
                     return False
                 
-                stored_code, expires_str = result
+                stored_code = result["reset_code"]
+                expires_str = result["reset_code_expires"]
                 if not stored_code or stored_code != code:
                     return False
                 
@@ -1746,7 +1706,7 @@ class DatabaseManager:
                     return False
                 
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Verify reset code error: {e}")
             return False
     
@@ -1755,18 +1715,19 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                query = """
                     UPDATE accounts 
-                    SET password_hash = ?, reset_code = NULL, reset_code_expires = NULL
-                    WHERE email = ?
-                """, (new_password_hash, email))
+                    SET password_hash = %s, reset_code = NULL, reset_code_expires = NULL
+                    WHERE email = %s
+                """
+                cursor.execute(self._adapt_query(query), (new_password_hash, email))
                 
                 if cursor.rowcount == 0:
                     return False
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 return True
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Reset password error: {e}")
             return False
     
@@ -1777,13 +1738,13 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM malicious_urls")
-                count = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) as count FROM malicious_urls")
+                count = cursor.fetchone()["count"]
                 cursor.execute("DELETE FROM malicious_urls")
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Cleared {count} malicious URLs from database")
                 return count
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear malicious URLs error: {e}")
             return 0
     
@@ -1792,13 +1753,13 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM malicious_hashes")
-                count = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) as count FROM malicious_hashes")
+                count = cursor.fetchone()["count"]
                 cursor.execute("DELETE FROM malicious_hashes")
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Cleared {count} malicious hashes from database")
                 return count
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear malicious hashes error: {e}")
             return 0
     
@@ -1807,13 +1768,13 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM cached_whitelist")
-                count = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) as count FROM cached_whitelist")
+                count = cursor.fetchone()["count"]
                 cursor.execute("DELETE FROM cached_whitelist")
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Cleared {count} whitelist entries from cache")
                 return count
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear whitelist cache error: {e}")
             return 0
     
@@ -1822,13 +1783,13 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM cached_blacklist")
-                count = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) as count FROM cached_blacklist")
+                count = cursor.fetchone()["count"]
                 cursor.execute("DELETE FROM cached_blacklist")
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Cleared {count} blacklist entries from cache")
                 return count
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear blacklist cache error: {e}")
             return 0
     
@@ -1845,13 +1806,14 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM malicious_urls WHERE url = ?", (url.lower(),))
-                conn.commit()
+                query = "DELETE FROM malicious_urls WHERE url = %s"
+                cursor.execute(self._adapt_query(query), (url.lower(),))
+                self._commit_if_needed(conn)
                 deleted = cursor.rowcount > 0
                 if deleted:
                     logger.info(f"Removed malicious URL from database: {url}")
                 return deleted
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Remove malicious URL error: {e}")
             return False
     
@@ -1861,13 +1823,14 @@ class DatabaseManager:
             url_hash = self._hash_url(url)
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM cached_blacklist WHERE url_hash = ?", (url_hash,))
-                conn.commit()
+                query = "DELETE FROM cached_blacklist WHERE url_hash = %s"
+                cursor.execute(self._adapt_query(query), (url_hash,))
+                self._commit_if_needed(conn)
                 deleted = cursor.rowcount > 0
                 if deleted:
                     logger.info(f"Removed URL from blacklist cache: {url}")
                 return deleted
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Remove cached blacklist URL error: {e}")
             return False
     
@@ -1891,39 +1854,42 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 
                 # Поиск в malicious_urls
-                cursor.execute("""
+                query = """
                     SELECT url, domain, threat_type, severity, description, 
                            source, first_detected, last_updated, detection_count
                     FROM malicious_urls
-                    WHERE url LIKE ? OR domain LIKE ?
+                    WHERE url LIKE %s OR domain LIKE %s
                     ORDER BY last_updated DESC
-                    LIMIT ?
-                """, (f"%{search_lower}%", f"%{search_lower}%", limit))
+                    LIMIT %s
+                """
+                cursor.execute(self._adapt_query(query), (f"%{search_lower}%", f"%{search_lower}%", limit))
                 results["malicious_urls"] = [dict(row) for row in cursor.fetchall()]
                 
                 # Поиск в cached_blacklist
-                cursor.execute("""
+                query = """
                     SELECT url_hash, url, domain, threat_type, details, source,
                            first_seen, last_seen, hit_count
                     FROM cached_blacklist
-                    WHERE url LIKE ? OR domain LIKE ?
+                    WHERE url LIKE %s OR domain LIKE %s
                     ORDER BY last_seen DESC
-                    LIMIT ?
-                """, (f"%{search_lower}%", f"%{search_lower}%", limit))
+                    LIMIT %s
+                """
+                cursor.execute(self._adapt_query(query), (f"%{search_lower}%", f"%{search_lower}%", limit))
                 results["cached_blacklist"] = [dict(row) for row in cursor.fetchall()]
                 
                 # Поиск в cached_whitelist
-                cursor.execute("""
+                query = """
                     SELECT domain, details, detection_ratio, confidence, source,
                            first_seen, last_seen, hit_count
                     FROM cached_whitelist
-                    WHERE domain LIKE ?
+                    WHERE domain LIKE %s
                     ORDER BY last_seen DESC
-                    LIMIT ?
-                """, (f"%{search_lower}%", limit))
+                    LIMIT %s
+                """
+                cursor.execute(self._adapt_query(query), (f"%{search_lower}%", limit))
                 results["cached_whitelist"] = [dict(row) for row in cursor.fetchall()]
                 
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Search URLs error: {e}")
         
         return results
@@ -1950,7 +1916,7 @@ class DatabaseManager:
                             entry["payload"] = None
                     rows.append(entry)
                 return rows
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all cached whitelist error: {e}")
             return []
     
@@ -1976,7 +1942,7 @@ class DatabaseManager:
                             entry["payload"] = None
                     rows.append(entry)
                 return rows
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all cached blacklist error: {e}")
             return []
     
@@ -2003,29 +1969,18 @@ class DatabaseManager:
                 
                 for table in tables_to_clear:
                     try:
-                        cursor.execute(f"SELECT COUNT(*) FROM {table}")
-                        count = cursor.fetchone()[0]
+                        cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
+                        count = cursor.fetchone()["count"]
                         cursor.execute(f"DELETE FROM {table}")
                         results[table] = count
                         logger.info(f"Cleared {count} records from {table}")
-                    except sqlite3.Error as e:
+                    except (psycopg2.Error, Exception) as e:
                         logger.error(f"Error clearing {table}: {e}")
                         results[table] = 0
                 
-                conn.commit()
+                self._commit_if_needed(conn)
                 
-                # Очищаем JSONL файлы
-                try:
-                    if self.whitelist_file.exists():
-                        self.whitelist_file.unlink()
-                        logger.info("Deleted cache_whitelist.jsonl")
-                        results["cache_whitelist.jsonl"] = 1
-                    if self.blacklist_file.exists():
-                        self.blacklist_file.unlink()
-                        logger.info("Deleted cache_blacklist.jsonl")
-                        results["cache_blacklist.jsonl"] = 1
-                except Exception as e:
-                    logger.error(f"Error deleting JSONL files: {e}")
+                # JSONL файлы удалены - только PostgreSQL
                 
                 # Очищаем диск-кэш
                 try:
@@ -2039,7 +1994,7 @@ class DatabaseManager:
                 
                 logger.warning("⚠️ FULL DATABASE CLEAR completed - all data tables, JSONL files and cache cleared")
                 return results
-        except sqlite3.Error as e:
+        except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear all database data error: {e}")
             return {}
 
@@ -2048,31 +2003,32 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """INSERT INTO yookassa_payments 
-                       (payment_id, user_id, amount, license_type, status, is_renewal) 
-                       VALUES (?, ?, ?, ?, 'pending', ?)""",
-                    (payment_id, user_id, amount, license_type, is_renewal)
-                )
-                conn.commit()
+                query = """
+                    INSERT INTO yookassa_payments 
+                    (payment_id, user_id, amount, license_type, status, is_renewal) 
+                    VALUES (%s, %s, %s, %s, 'pending', %s)
+                """
+                cursor.execute(self._adapt_query(query), (payment_id, user_id, amount, license_type, is_renewal))
+                self._commit_if_needed(conn)
                 logger.info(f"Created YooKassa payment {payment_id} for user {user_id}, is_renewal={is_renewal}")
                 return True
-        except sqlite3.IntegrityError:
+        except psycopg2.IntegrityError:
             logger.warning(f"Payment {payment_id} already exists in database")
             return False
         except Exception as e:
             logger.error(f"Create YooKassa payment error: {e}", exc_info=True)
             return False
-    
+
     async def get_yookassa_payment(self, payment_id: str):
         """Получает платёж Юкассы по ID"""
         try:
             with self._get_connection() as conn:
-                cursor = conn.execute(
-                    "SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at "
-                    "FROM yookassa_payments WHERE payment_id = ?",
-                    (payment_id,)
-                )
+                cursor = conn.cursor()
+                query = """
+                    SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at 
+                    FROM yookassa_payments WHERE payment_id = %s
+                """
+                cursor.execute(self._adapt_query(query), (payment_id,))
                 row = cursor.fetchone()
                 if row:
                     return {
@@ -2098,21 +2054,21 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 from datetime import datetime
                 if license_key:
-                    cursor.execute(
-                        """UPDATE yookassa_payments 
-                           SET status = ?, license_key = ?, updated_at = ? 
-                           WHERE payment_id = ?""",
-                        (status, license_key, datetime.now(), payment_id)
-                    )
+                    query = """
+                        UPDATE yookassa_payments 
+                        SET status = %s, license_key = %s, updated_at = %s 
+                        WHERE payment_id = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (status, license_key, datetime.now(), payment_id))
                 else:
-                    cursor.execute(
-                        """UPDATE yookassa_payments 
-                           SET status = ?, updated_at = ? 
-                           WHERE payment_id = ?""",
-                        (status, datetime.now(), payment_id)
-                    )
-                conn.commit()
-                logger.info(f"Updated YooKassa payment {payment_id} status to {status}")
+                    query = """
+                        UPDATE yookassa_payments 
+                        SET status = %s, updated_at = %s 
+                        WHERE payment_id = %s
+                    """
+                    cursor.execute(self._adapt_query(query), (status, datetime.now(), payment_id))
+                self._commit_if_needed(conn)
+                logger.info(f"Updated YooKassa payment {payment_id} status to {status}, license_key={'set' if license_key else 'not set'}")
                 return True
         except Exception as e:
             logger.error(f"Update YooKassa payment status error: {e}", exc_info=True)
@@ -2122,10 +2078,9 @@ class DatabaseManager:
         """Получает пользователя Telegram бота по ID"""
         try:
             with self._get_connection() as conn:
-                cursor = conn.execute(
-                    "SELECT user_id, username, has_license, license_key, created_at FROM users WHERE user_id = ?",
-                    (user_id,)
-                )
+                cursor = conn.cursor()
+                query = "SELECT user_id, username, has_license, license_key, created_at FROM users WHERE user_id = %s"
+                cursor.execute(self._adapt_query(query), (user_id,))
                 row = cursor.fetchone()
                 if row:
                     return {
@@ -2145,11 +2100,13 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)""",
-                    (user_id, username)
-                )
-                conn.commit()
+                query = """
+                    INSERT INTO users (user_id, username) 
+                    VALUES (%s, %s)
+                    ON CONFLICT(user_id) DO NOTHING
+                """
+                cursor.execute(self._adapt_query(query), (user_id, username))
+                self._commit_if_needed(conn)
                 return True
         except Exception as e:
             logger.error(f"Create user error: {e}", exc_info=True)
@@ -2161,16 +2118,18 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 # Сначала создаем пользователя, если его нет
-                cursor.execute(
-                    """INSERT OR IGNORE INTO users (user_id) VALUES (?)""",
-                    (user_id,)
-                )
+                query_insert = """
+                    INSERT INTO users (user_id) 
+                    VALUES (%s)
+                    ON CONFLICT(user_id) DO NOTHING
+                """
+                cursor.execute(self._adapt_query(query_insert), (user_id,))
                 # Обновляем лицензию
-                cursor.execute(
-                    """UPDATE users SET has_license = TRUE, license_key = ? WHERE user_id = ?""",
-                    (license_key, user_id)
-                )
-                conn.commit()
+                query_update = """
+                    UPDATE users SET has_license = TRUE, license_key = %s WHERE user_id = %s
+                """
+                cursor.execute(self._adapt_query(query_update), (license_key, user_id))
+                self._commit_if_needed(conn)
                 logger.info(f"Updated license for user {user_id}")
                 return True
         except Exception as e:
@@ -2204,7 +2163,7 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Get subscription error: {e}", exc_info=True)
             return None
-    
+            
     def create_subscription(self, user_id: int, license_key: str, license_type: str, expires_at, auto_renew: bool = False):
         """Создает подписку для пользователя"""
         try:
@@ -2218,7 +2177,7 @@ class DatabaseManager:
                        VALUES (?, ?, ?, ?, ?, 'active')""",
                     (user_id, license_key, license_type, expires_at, auto_renew)
                 )
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Created subscription for user {user_id}, expires_at={expires_at}")
                 return True
         except Exception as e:
@@ -2239,7 +2198,7 @@ class DatabaseManager:
                        WHERE user_id = ? AND status = 'active'""",
                     (expires_at, datetime.now(), user_id)
                 )
-                conn.commit()
+                self._commit_if_needed(conn)
                 logger.info(f"Updated subscription expiry for user {user_id}, expires_at={expires_at}")
                 return True
         except Exception as e:
@@ -2250,11 +2209,12 @@ class DatabaseManager:
         """Получает платеж ЮKassa по license_key"""
         try:
             with self._get_connection() as conn:
-                cursor = conn.execute(
-                    """SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at
-                       FROM yookassa_payments WHERE license_key = ? ORDER BY created_at DESC LIMIT 1""",
-                    (license_key,)
-                )
+                cursor = conn.cursor()
+                query = """
+                    SELECT payment_id, user_id, amount, license_type, status, license_key, is_renewal, created_at, updated_at
+                    FROM yookassa_payments WHERE license_key = %s ORDER BY created_at DESC LIMIT 1
+                """
+                cursor.execute(self._adapt_query(query), (license_key,))
                 row = cursor.fetchone()
                 if row:
                     return {
@@ -2285,14 +2245,15 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 
                 # 1. Удаляем старые токены для этого пользователя (опционально, для чистоты)
-                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
+                query_delete = "DELETE FROM password_resets WHERE user_id = %s"
+                cursor.execute(self._adapt_query(query_delete), (user_id,))
                 
                 # 2. Вставляем новый токен
-                cursor.execute(
-                    "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)",
-                    (user_id, token, expires_at)
-                )
-                conn.commit()
+                query_insert = """
+                    INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)
+                """
+                cursor.execute(self._adapt_query(query_insert), (user_id, token, expires_at))
+                self._commit_if_needed(conn)
                 return True
         except Exception as e:
             logger.error(f"Error saving reset token: {e}")
@@ -2305,10 +2266,8 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT user_id, expires_at FROM password_resets WHERE token = ?",
-                    (token,)
-                )
+                query = "SELECT user_id, expires_at FROM password_resets WHERE token = %s"
+                cursor.execute(self._adapt_query(query), (token,))
                 result = cursor.fetchone()
 
                 if not result:
@@ -2347,11 +2306,9 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "UPDATE accounts SET password_hash = ? WHERE id = ?",
-                    (password_hash, user_id)
-                )
-                conn.commit()
+                query = "UPDATE accounts SET password_hash = %s WHERE id = %s"
+                cursor.execute(self._adapt_query(query), (password_hash, user_id))
+                self._commit_if_needed(conn)
                 return cursor.rowcount > 0
         except Exception as e:
             logger.error(f"Error updating password: {e}")
@@ -2364,11 +2321,35 @@ class DatabaseManager:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
-                conn.commit()
+                query = "DELETE FROM password_resets WHERE user_id = %s"
+                cursor.execute(self._adapt_query(query), (user_id,))
+                self._commit_if_needed(conn)
                 return True
         except Exception as e:
             logger.error(f"Error deleting reset tokens: {e}")
             return False
 # Глобальный экземпляр менеджера базы данных
-db_manager = DatabaseManager()
+# Только PostgreSQL через DATABASE_URL
+# КРИТИЧНО: Graceful degradation - не падаем если БД недоступна
+_db_url = os.getenv("DATABASE_URL")
+db_manager = None
+
+if _db_url:
+    try:
+        logger.info(f"Initializing database manager with DATABASE_URL: {_db_url[:30]}...")
+        db_manager = DatabaseManager(_db_url)
+        # Проверяем подключение (не блокирующее)
+        try:
+            conn = db_manager._get_connection()
+            conn.close()
+            logger.info("✅ Database connection successful")
+        except Exception as conn_error:
+            logger.warning(f"⚠️ Database connection failed (will retry on use): {conn_error}")
+            # Не падаем - сервис может работать без БД для JWT аутентификации
+    except Exception as init_error:
+        logger.error(f"❌ Failed to initialize database manager: {init_error}", exc_info=True)
+        logger.warning("⚠️ Service will run with limited functionality (JWT auth will work)")
+        db_manager = None
+else:
+    logger.warning("⚠️ DATABASE_URL not set - service will run with limited functionality")
+    logger.warning("⚠️ JWT authentication will work, but database features will be unavailable")

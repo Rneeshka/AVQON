@@ -44,7 +44,10 @@
     forgotEmail: document.getElementById('forgot-email'),
     resetCode: document.getElementById('reset-code'),
     newPassword: document.getElementById('new-password'),
-    resetCodeSection: document.getElementById('reset-code-section')
+    resetCodeSection: document.getElementById('reset-code-section'),
+    openWebsiteBtn: document.getElementById('open-telegram-bot'),
+    accountApiKeyInput: document.getElementById('account-api-key'),
+    accountSaveApiKeyBtn: document.getElementById('account-save-api-key-btn')
   };
 
   function normalizeApiBase(v) {
@@ -177,7 +180,7 @@
     el.accountStatus.textContent = 'Регистрация аккаунта';
   }
   
-  function showAccountInfo(account) {
+  async function showAccountInfo(account) {
     el.loginForm.style.display = 'none';
     el.registerForm.style.display = 'none';
     el.forgotForm.style.display = 'none';
@@ -185,12 +188,28 @@
     el.accountUsername.textContent = account.username;
     el.accountEmail.textContent = account.email;
     el.accountStatus.textContent = `Аккаунт: ${account.username}`;
+    
+    // Загружаем текущий API ключ
+    const storage = await new Promise((resolve) => {
+      chrome.storage.sync.get(['apiKey'], resolve);
+    });
+    
+    // Если ключ уже есть, скрываем поле ввода
+    if (storage.apiKey && storage.apiKey.trim().length > 0) {
+      const apiKeyField = el.accountApiKeyInput?.closest('.form-field') || el.accountApiKeyInput?.parentElement;
+      if (apiKeyField) apiKeyField.style.display = 'none';
+    } else {
+      // Если ключа нет, показываем поле и очищаем его
+      const apiKeyField = el.accountApiKeyInput?.closest('.form-field') || el.accountApiKeyInput?.parentElement;
+      if (apiKeyField) apiKeyField.style.display = 'block';
+      if (el.accountApiKeyInput) el.accountApiKeyInput.value = '';
+    }
   }
   
   async function loadAccount() {
     const data = await chrome.storage.sync.get(['account', 'apiKey']);
     if (data.account) {
-      showAccountInfo(data.account);
+      await showAccountInfo(data.account);
       // Обновляем состояние hover при загрузке
       updateHoverScanState();
     } else {
@@ -232,7 +251,10 @@
       }
       
       const data = await response.json();
-      await chrome.storage.sync.set({ account: data.account });
+      await chrome.storage.sync.set({ 
+        account: data.account,
+        session_token: data.access_token || data.session_token 
+      });
       
       // Автоматически сохраняем API ключ если есть
       if (data.api_keys && data.api_keys.length > 0) {
@@ -240,7 +262,7 @@
         await chrome.storage.sync.set({ apiKey });
       }
       
-      showAccountInfo(data.account);
+      await showAccountInfo(data.account);
       updateHoverScanState();
       alert('✅ Успешный вход!');
       
@@ -258,8 +280,8 @@
     const apiKey = el.registerApiKey.value.trim();
     const apiBase = normalizeApiBase(el.apiBase.value);
     
-    if (!username || !email || !password || !apiKey) {
-      alert('Заполните все поля');
+    if (!username || !email || !password) {
+      alert('Заполните все обязательные поля');
       return;
     }
     
@@ -284,7 +306,7 @@
           username,
           email,
           password,
-          api_key: apiKey
+          ...(apiKey ? { api_key: apiKey } : {})
         })
       }, 10000);
       
@@ -301,8 +323,10 @@
       // Сохраняем аккаунт
       await chrome.storage.sync.set({ account: { id: data.user_id, username, email } });
       
-      // Сохраняем API ключ
-      await chrome.storage.sync.set({ apiKey });
+      // Сохраняем API ключ, если он был указан
+      if (apiKey) {
+        await chrome.storage.sync.set({ apiKey });
+      }
       
       // Автоматически входим
       const loginResponse = await fetchWithTimeout(`${apiBase}/auth/login`, {
@@ -313,8 +337,32 @@
       
       if (loginResponse.ok) {
         const loginData = await loginResponse.json();
-        await chrome.storage.sync.set({ account: loginData.account });
-        showAccountInfo(loginData.account);
+        await chrome.storage.sync.set({ 
+          account: loginData.account,
+          session_token: loginData.access_token || loginData.session_token 
+        });
+        
+        // Если был указан API ключ при регистрации, привязываем его к аккаунту
+        if (apiKey) {
+          try {
+            const bindResponse = await fetchWithTimeout(`${apiBase}/auth/bind-api-key`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${loginData.access_token || loginData.session_token}`
+              },
+              body: JSON.stringify({ api_key: apiKey })
+            }, 10000);
+            
+            if (bindResponse.ok) {
+              await chrome.storage.sync.set({ apiKey });
+            }
+          } catch (bindError) {
+            console.error('[Aegis Options] Error binding API key:', bindError);
+          }
+        }
+        
+        await showAccountInfo(loginData.account);
         updateHoverScanState();
         alert('✅ Аккаунт создан и привязан!');
       }
@@ -428,6 +476,69 @@
 
   el.save.addEventListener('click', save);
   el.reset.addEventListener('click', (e) => { e.preventDefault(); reset(); });
+  
+  // Кнопка перехода на сайт AEGIS (ранее Telegram бот)
+  if (el.openWebsiteBtn) {
+    el.openWebsiteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const websiteUrl =
+        (window.AEGIS_CONFIG && window.AEGIS_CONFIG.WEBSITE_URL) ||
+        'https://www.aegis.builders';
+      window.open(websiteUrl, '_blank');
+    });
+  }
+  
+  // Сохранение API ключа после входа в аккаунт
+  if (el.accountSaveApiKeyBtn && el.accountApiKeyInput) {
+    el.accountSaveApiKeyBtn.addEventListener('click', async () => {
+      const apiKey = el.accountApiKeyInput.value.trim();
+      if (!apiKey) {
+        alert('Введите API ключ');
+        return;
+      }
+      
+      try {
+        // Получаем токен сессии для авторизации
+        const storage = await new Promise((resolve) => {
+          chrome.storage.sync.get(['session_token', 'account'], resolve);
+        });
+        
+        if (!storage.session_token || !storage.account) {
+          alert('❌ Необходимо войти в аккаунт');
+          return;
+        }
+        
+        // Привязываем ключ к аккаунту через API
+        const apiBase = normalizeApiBase(el.apiBase.value);
+        const response = await fetchWithTimeout(`${apiBase}/auth/bind-api-key`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${storage.session_token}`
+          },
+          body: JSON.stringify({ api_key: apiKey })
+        }, 10000);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ detail: 'Ошибка привязки ключа' }));
+          throw new Error(errorData.detail || 'Ошибка привязки ключа к аккаунту');
+        }
+        
+        // Сохраняем ключ локально
+        await chrome.storage.sync.set({ apiKey });
+        
+        // Скрываем поле ввода ключа
+        const apiKeyField = el.accountApiKeyInput.closest('.form-field') || el.accountApiKeyInput.parentElement;
+        if (apiKeyField) apiKeyField.style.display = 'none';
+        
+        await updateHoverScanState();
+        alert('✅ API ключ привязан к аккаунту! Анализ по наведению теперь доступен.');
+      } catch (error) {
+        console.error('[Aegis Options] Error saving API key:', error);
+        alert('❌ ' + (error.message || 'Ошибка сохранения ключа'));
+      }
+    });
+  }
   
   // Account event listeners
   el.showLoginBtn.addEventListener('click', showLoginForm);
