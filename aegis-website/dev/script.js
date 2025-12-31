@@ -1,4 +1,5 @@
 // ===== Configuration =====
+<<<<<<< HEAD
 // Автоматическое определение окружения по hostname
 function getApiBaseUrl() {
     const hostname = window.location.hostname;
@@ -45,6 +46,11 @@ async function checkApiHealth() {
         return false;
     }
 }
+=======
+const API_BASE_URL = 'http://localhost:8000'; // Измените на ваш URL API
+const PAYMENT_ENDPOINT = `${API_BASE_URL}/payments/create`;
+const CHECK_URL_ENDPOINT = `${API_BASE_URL}/check/url`;
+>>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
 
 // ===== Navigation =====
 document.addEventListener('DOMContentLoaded', async function() {
@@ -132,6 +138,7 @@ async function initiatePayment(licenseType, amount) {
     if (modal) {
         modal.classList.add('show');
         showPaymentForm();
+<<<<<<< HEAD
     }
 }
 
@@ -274,6 +281,111 @@ async function processPayment() {
     }
 }
 
+=======
+    }
+}
+
+async function processPayment() {
+    const emailInput = document.getElementById('userEmail');
+    const email = emailInput.value.trim();
+    
+    // Валидация email
+    if (!email || !validateEmail(email)) {
+        showPaymentError('Пожалуйста, введите корректный email адрес');
+        return;
+    }
+    
+    // Скрываем форму и показываем статус загрузки
+    showPaymentStatus();
+    
+    try {
+        // Проверяем доступность API перед запросом
+        console.log(`[PAYMENT] Creating payment request to: ${PAYMENT_ENDPOINT}`);
+        console.log(`[PAYMENT] Request data:`, {
+            amount: currentAmount,
+            license_type: currentLicenseType,
+            email: email
+        });
+        
+        // Create payment request
+        const response = await fetch(PAYMENT_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                amount: currentAmount,
+                license_type: currentLicenseType,
+                email: email,
+                username: email.split('@')[0] // Используем часть email как username
+            }),
+            // Добавляем timeout через AbortController
+            signal: AbortSignal.timeout(30000) // 30 секунд
+        });
+
+        console.log(`[PAYMENT] Response status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (jsonError) {
+                const text = await response.text();
+                console.error('[PAYMENT] Failed to parse error response:', text);
+                errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
+            }
+            
+            const errorMessage = errorData.detail || errorData.message || `Ошибка ${response.status}`;
+            console.error('[PAYMENT] API error:', errorMessage);
+            throw new Error(errorMessage);
+        }
+
+        const paymentData = await response.json();
+        console.log('[PAYMENT] Payment created:', paymentData);
+        
+        if (!paymentData.confirmation_url) {
+            console.error('[PAYMENT] Missing confirmation_url in response:', paymentData);
+            throw new Error('Не получен URL для оплаты. Обратитесь в поддержку.');
+        }
+        
+        if (!paymentData.payment_id) {
+            console.error('[PAYMENT] Missing payment_id in response:', paymentData);
+            throw new Error('Не получен ID платежа. Обратитесь в поддержку.');
+        }
+        
+        // Сохраняем payment_id для проверки после возврата
+        sessionStorage.setItem('last_payment_id', paymentData.payment_id);
+        
+        // Сохраняем email для использования на странице успешной оплаты
+        sessionStorage.setItem('payment_email', email);
+        
+        // Show success message
+        showPaymentSuccess();
+        
+        // Redirect to payment page immediately
+        window.location.href = paymentData.confirmation_url;
+        
+    } catch (error) {
+        console.error('[PAYMENT] Payment error:', error);
+        
+        let errorMessage = 'Не удалось создать платеж. Попробуйте позже.';
+        
+        // Детальная обработка ошибок
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+            errorMessage = 'Превышено время ожидания. Проверьте интернет-соединение и попробуйте снова.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение. Если проблема сохраняется, обратитесь в поддержку: aegisshieldos@gmail.com';
+        } else if (error.message.includes('CORS') || error.message.includes('CORS policy')) {
+            errorMessage = 'Ошибка доступа к серверу. Обратитесь в поддержку: aegisshieldos@gmail.com';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showPaymentError(errorMessage);
+    }
+}
+
+>>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
 function showPaymentForm() {
     const form = document.getElementById('paymentForm');
     const status = document.getElementById('paymentStatus');
