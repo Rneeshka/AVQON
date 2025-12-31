@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – обзор{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Панель администратора</h1>
+    <p class="muted">Краткая сводка состояния системы</p>
+</div>
+<div class="row">
+    <div class="card col">
+        <h2>Угрозы</h2>
+        <div>Хэши: <b>{{ stats.get('malicious_hashes', 0) }}</b></div>
+        <div>URL: <b>{{ stats.get('malicious_urls', 0) }}</b></div>
+        <div>Всего угроз: <b>{{ stats.get('total_threats', 0) }}</b></div>
+    </div>
+    <div class="card col">
+        <h2>API ключи</h2>
+        <div>Активных ключей: <b>{{ stats.get('active_api_keys', 0) }}</b></div>
+        <div>Всего запросов: <b>{{ stats.get('total_requests', 0) }}</b></div>
+    </div>
+</div>
+<div class="card">
+    <h2>Локальная база (hover-cache)</h2>
+    <div class="row">
+        <div class="col">
+            <div>Белый список: <b>{{ stats.get('whitelist_entries', 0) }}</b></div>
+        </div>
+        <div class="col">
+            <div>Чёрный список: <b>{{ stats.get('blacklist_entries', 0) }}</b></div>
+        </div>
+        <div class="col">
+            <div>Хитов кэша: <b>{{ stats.get('total_cache_hits', 0) }}</b></div>
+        </div>
+    </div>
+    <form method="post" action="/cache/refresh" style="margin-top:12px; display:grid; gap:8px; max-width:400px;">
+        <label>Что обновить</label>
+        <select name="target">
+            <option value="all" selected>Белый и чёрный списки</option>
+            <option value="whitelist">Только белый список</option>
+            <option value="blacklist">Только чёрный список</option>
+        </select>
+        <label>Сколько записей пересканировать (старейшие)</label>
+        <input type="number" name="limit" min="1" max="50" value="10" />
+        <button type="submit">Обновить локальную базу</button>
+        <p class="muted" style="font-size:12px;">Обновление вручную: мы пересканируем N самых старых записей через VirusTotal и перезапишем их в базе.</p>
+    </form>
+</div>
+<div class="row">
+    <div class="card col">
+        <h2>Быстрые действия</h2>
+        <div style="display:grid;gap:8px">
+            <button onclick="window.location.href='/keys'">Создать API ключ</button>
+            <button onclick="window.location.href='/threats'">Добавить угрозу</button>
+        </div>
+    </div>
+    <div class="card col" style="border: 2px solid #dc2626;">
+        <h2 style="color: #dc2626;">⚠️ Опасная зона</h2>
+        <p class="muted" style="color: #dc2626;">Полная очистка базы данных</p>
+        <button onclick="window.location.href='/danger'" style="background: #dc2626; margin-top: 8px;">Открыть опасную зону</button>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – IP репутация{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>IP репутация</h1>
+    <p class="muted">Сводка по известным IP из внешних источников</p>
+</div>
+<div class="card">
+    <div style="overflow:auto">
+        <table>
+            <thead>
+                <tr><th>IP</th><th>Тип угрозы</th><th>Оценка</th><th>Источник</th><th>Обновлено</th><th>Счетчик</th></tr>
+            </thead>
+            <tbody>
+                {% if ip_reputations %}
+                    {% for r in ip_reputations %}
+                    <tr>
+                        <td>{{ r.ip }}</td>
+                        <td>{{ r.get('threat_type') or '-' }}</td>
+                        <td>{{ r.get('reputation_score') if r.get('reputation_score') is not none else '-' }}</td>
+                        <td>{{ r.get('source') or '-' }}</td>
+                        <td class="muted">{{ r.get('last_updated') or '-' }}</td>
+                        <td>{{ r.get('detection_count') or 0 }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Пока нет данных</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

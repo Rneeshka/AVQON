@@ -144,9 +144,15 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
     if not website_url:
         # Если WEBSITE_URL не указан, определяем автоматически по ENV
         if ENVIRONMENT == "dev":
+<<<<<<< HEAD
             website_url = "https://site-dev.avqon.com"
         else:
             website_url = "https://avqon.com"
+=======
+            website_url = "https://www.devsite.aegis.builders"
+        else:
+            website_url = "https://www.aegis.builders"
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
     
     logger.info(f"[PAYMENTS] Using website URL for return_url: {website_url}")
 
@@ -471,7 +477,11 @@ async def generate_license_key_internal(email: str, username: str, is_lifetime: 
         logger.info(f"[PAYMENTS] Calling internal API: {api_url}")
         logger.info(f"[PAYMENTS] Request data: user_id={user_id}, expires_days={expires_days}, license_type={license_type}")
         
+<<<<<<< HEAD
         headers = {"X-Admin-Token": admin_token}
+=======
+        headers = {"Authorization": f"Bearer {admin_token}"}
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
         
         async with aiohttp.ClientSession() as session:
             async with session.post(api_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
@@ -1032,7 +1042,11 @@ async def yookassa_webhook_dev(request: Request):
     
     Для настройки в YooKassa:
     - Используйте тестовые ключи (YOOKASSA_SHOP_ID_DEV и YOOKASSA_SECRET_KEY_DEV)
+<<<<<<< HEAD
     - URL вебхука: https://dev.avqon.com/payments/webhook/yookassa/dev
+=======
+    - URL вебхука: https://api-dev.aegis.builders/payments/webhook/yookassa/dev
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
     - В dev режиме IP валидация отключена для удобства тестирования
     """
     # КРИТИЧНО: Логируем ВСЕ запросы СРАЗУ в начале функции

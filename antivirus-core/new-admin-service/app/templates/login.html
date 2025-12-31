@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Вход в админ-панель</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 24px;
+        }
+        .login-form {
+            display: grid;
+            gap: 16px;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="card">
+            <h1>Вход в админ-панель</h1>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            <form method="post" action="/api/auth/login" class="login-form">
+                <label>Имя пользователя</label>
+                <input name="username" type="text" required placeholder="Введите имя пользователя" />
+                <label>Пароль</label>
+                <input name="password" type="password" required placeholder="Введите пароль" />
+                <button type="submit">Войти</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

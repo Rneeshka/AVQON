@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Админ панель{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="icon" href="data:," />
+    <meta name="robots" content="noindex" />
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" {% if request.url.path == "/" %}class="active"{% endif %}>Обзор</a>
+            <a href="/keys" {% if request.url.path.startswith("/keys") %}class="active"{% endif %}>Ключи API</a>
+            <a href="/threats" {% if request.url.path.startswith("/threats") %}class="active"{% endif %}>Угрозы</a>
+            <a href="/cache" {% if request.url.path.startswith("/cache") %}class="active"{% endif %}>Кэш URL</a>
+            <a href="/ip" {% if request.url.path.startswith("/ip") %}class="active"{% endif %}>IP репутация</a>
+            <a href="/logs" {% if request.url.path.startswith("/logs") %}class="active"{% endif %}>Логи</a>
+            <a href="/danger" {% if request.url.path.startswith("/danger") %}class="active" style="color: #dc2626;"{% endif %}>⚠️ Опасная зона</a>
+            {% if user %}
+            <a href="/api/auth/logout" style="float:right">Выход ({{ user.get('username', 'admin') }})</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% if request.cookies.get("flash") %}
+        <div class="flash-message">{{ request.cookies.get("flash") | urldecode }}</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="/static/js/main.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+
