@@ -189,9 +189,15 @@ async def keys_page(request: Request):
             cur.execute("""
                 SELECT api_key, name, is_active, access_level, rate_limit_daily, rate_limit_hourly,
                        requests_total, requests_today, requests_hour, created_at, last_used, expires_at,
-                       user_id, 
-                       (SELECT username FROM accounts WHERE accounts.id = api_keys.user_id) as username,
-                       (SELECT email FROM accounts WHERE accounts.id = api_keys.user_id) as email,
+                       api_keys.user_id, 
+                       COALESCE(
+                           (SELECT username FROM accounts WHERE accounts.id = api_keys.user_id),
+                           (SELECT username FROM users WHERE users.user_id = api_keys.user_id)
+                       ) as username,
+                       COALESCE(
+                           (SELECT email FROM accounts WHERE accounts.id = api_keys.user_id),
+                           (SELECT email FROM users WHERE users.user_id = api_keys.user_id)
+                       ) as email,
                        (SELECT password_hash FROM accounts WHERE accounts.id = api_keys.user_id) as password_hash
                 FROM api_keys
                 ORDER BY created_at DESC
