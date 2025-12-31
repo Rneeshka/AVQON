@@ -17,7 +17,12 @@
             </div>
             
             <div id="successState" class="payment-state" style="display: none;">
-                <div class="success-icon-large">✅</div>
+                <div class="success-icon-large">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="38" stroke="var(--primary)" stroke-width="4" fill="none"/>
+                        <path d="M25 40 L35 50 L55 30" stroke="var(--primary)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                </div>
                 <h1>Оплата успешно завершена!</h1>
                 <div class="license-key-box">
                     <p class="license-label">Ваш лицензионный ключ:</p>
@@ -36,7 +41,12 @@
             </div>
             
             <div id="errorState" class="payment-state" style="display: none;">
-                <div class="error-icon-large">❌</div>
+                <div class="error-icon-large">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="38" stroke="var(--danger)" stroke-width="4" fill="none"/>
+                        <path d="M30 30 L50 50 M50 30 L30 50" stroke="var(--danger)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
                 <h2>Ошибка</h2>
                 <p id="errorMessage">Не удалось получить информацию о платеже</p>
                 <div class="action-buttons">
@@ -47,25 +57,63 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8000';
+        // Автоматическое определение окружения по hostname
+        function getApiBaseUrl() {
+            const hostname = window.location.hostname;
+            
+            // DEV окружение
+            if (hostname.includes('devsite.aegis.builders') || hostname === 'www.devsite.aegis.builders') {
+                return 'https://api-dev.aegis.builders';
+            }
+            
+            // PROD окружение
+            if (hostname.includes('aegis.builders') && !hostname.includes('devsite')) {
+                return 'https://api.aegis.builders';
+            }
+            
+            // Локальная разработка (localhost)
+            return 'http://localhost:8000';
+        }
+        
+        const API_BASE_URL = getApiBaseUrl();
+        console.log(`[CONFIG] Environment detected: ${window.location.hostname}`);
+        console.log(`[CONFIG] API Base URL: ${API_BASE_URL}`);
         
         let checkAttempts = 0;
         const MAX_ATTEMPTS = 20; // Максимум 20 попыток (около 1 минуты)
         
         async function checkPayment() {
-            // Пытаемся получить payment_id из разных источников
-            const urlParams = new URLSearchParams(window.location.search);
-            let paymentId = urlParams.get('payment_id') || urlParams.get('id');
+            // КРИТИЧНО: Приоритетно используем payment_id из sessionStorage (от бэкенда)
+            // ЮKassa может вернуть другой payment_id в URL, который не совпадает с нашим
+            let paymentId = sessionStorage.getItem('last_payment_id');
             
-            // Если нет в URL, проверяем sessionStorage
+            // Если нет в sessionStorage, проверяем localStorage (резерв)
             if (!paymentId) {
-                paymentId = sessionStorage.getItem('last_payment_id');
+                paymentId = localStorage.getItem('last_payment_id_backup');
+                if (paymentId) {
+                    console.log('[PAYMENT] Using payment_id from localStorage (backup from backend):', paymentId);
+                }
+            } else {
+                console.log('[PAYMENT] ✅ Using payment_id from sessionStorage (from backend):', paymentId);
+            }
+            
+            // Если все еще нет, пытаемся получить из URL (последний fallback)
+            if (!paymentId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                paymentId = urlParams.get('payment_id') || urlParams.get('id');
+                if (paymentId) {
+                    console.warn('[PAYMENT] ⚠️ Using payment_id from URL (fallback - may not match backend!):', paymentId);
+                    console.warn('[PAYMENT] ⚠️ This payment_id may not exist in database!');
+                }
             }
             
             if (!paymentId) {
+                console.error('[PAYMENT] Payment ID not found in sessionStorage or URL');
                 showError('ID платежа не найден. Проверьте email или обратитесь в поддержку: aegisshieldos@gmail.com');
                 return;
             }
+            
+            console.log('[PAYMENT] Checking payment with ID:', paymentId);
             
             checkAttempts++;
             if (checkAttempts > MAX_ATTEMPTS) {
@@ -75,36 +123,69 @@
             
             try {
                 // Сначала проверяем статус платежа
+                console.log(`[PAYMENT] Fetching status from: ${API_BASE_URL}/payments/status/${paymentId}`);
                 const statusResponse = await fetch(`${API_BASE_URL}/payments/status/${paymentId}`);
+                console.log(`[PAYMENT] Status response: ${statusResponse.status} ${statusResponse.statusText}`);
+                
                 if (!statusResponse.ok) {
+                    // Если статус 404, логируем детали
+                    if (statusResponse.status === 404) {
+                        const errorText = await statusResponse.text();
+                        console.error(`[PAYMENT] Payment ${paymentId} not found in backend. Response:`, errorText);
+                        console.error(`[PAYMENT] This payment_id was used:`, paymentId);
+                        console.error(`[PAYMENT] Check if this payment_id matches the one saved in sessionStorage`);
+                    }
+                    
                     // Если не найден по payment_id, пробуем найти через license endpoint
+                    console.log(`[PAYMENT] Trying license endpoint: ${API_BASE_URL}/payments/license/${paymentId}`);
                     const licenseResponse = await fetch(`${API_BASE_URL}/payments/license/${paymentId}`);
                     if (licenseResponse.ok) {
                         const licenseData = await licenseResponse.json();
+                        // Сохраняем API ключ в localStorage для использования на сайте
+                        if (licenseData.license_key) {
+                            localStorage.setItem('aegis_api_key', licenseData.license_key);
+                        }
                         showSuccess(licenseData.license_key, licenseData.license_type);
                         return;
                     }
-                    throw new Error('Платеж не найден');
+                    throw new Error(`Платеж не найден (status: ${statusResponse.status}). Проверьте, что payment_id совпадает с тем, что вернул бэкенд.`);
                 }
                 
                 const statusData = await statusResponse.json();
+                console.log(`[PAYMENT] Status response data:`, statusData);
+                console.log(`[PAYMENT] Payment status: ${statusData.status}`);
                 
                 if (statusData.status === 'succeeded') {
                     // Если платеж успешен, получаем ключ
+                    console.log(`[PAYMENT] Payment succeeded, fetching license key...`);
                     const licenseResponse = await fetch(`${API_BASE_URL}/payments/license/${paymentId}`);
+                    console.log(`[PAYMENT] License response status: ${licenseResponse.status} ${licenseResponse.statusText}`);
+                    
                     if (licenseResponse.ok) {
                         const licenseData = await licenseResponse.json();
+                        console.log(`[PAYMENT] ✅ License key received:`, licenseData);
+                        // Сохраняем API ключ в localStorage для использования на сайте
+                        if (licenseData.license_key) {
+                            localStorage.setItem('aegis_api_key', licenseData.license_key);
+                        }
                         showSuccess(licenseData.license_key, licenseData.license_type);
                     } else if (licenseResponse.status === 404) {
                         // Если ключ еще не выдан, ждем (webhook может быть еще не обработан)
+                        const errorText = await licenseResponse.text();
+                        console.warn(`[PAYMENT] ⚠️ License key not issued yet (404). Response:`, errorText);
+                        console.log(`[PAYMENT] ⚠️ Waiting for webhook to process payment. Retrying in 3 seconds... (attempt ${checkAttempts}/${MAX_ATTEMPTS})`);
                         setTimeout(checkPayment, 3000);
                     } else {
-                        throw new Error('Не удалось получить ключ');
+                        const errorText = await licenseResponse.text();
+                        console.error(`[PAYMENT] ❌ Failed to get license key. Status: ${licenseResponse.status}, Response:`, errorText);
+                        throw new Error(`Не удалось получить ключ (status: ${licenseResponse.status})`);
                     }
                 } else if (statusData.status === 'pending' || statusData.status === 'waiting_for_capture') {
                     // Платеж еще обрабатывается
+                    console.log(`[PAYMENT] Payment still processing (status: ${statusData.status}). Retrying in 3 seconds... (attempt ${checkAttempts}/${MAX_ATTEMPTS})`);
                     setTimeout(checkPayment, 3000);
                 } else {
+                    console.error(`[PAYMENT] ❌ Payment not completed. Status: ${statusData.status}`);
                     showError(`Платеж не завершен. Статус: ${statusData.status}`);
                 }
             } catch (error) {
@@ -159,7 +240,8 @@
         .payment-success-page {
             max-width: 600px;
             width: 100%;
-            background: var(--surface);
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(10px);
             border-radius: var(--radius);
             padding: 40px;
             border: 1px solid var(--border);
@@ -173,8 +255,32 @@
         
         .success-icon-large,
         .error-icon-large {
-            font-size: 80px;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .success-icon-large svg {
+            filter: drop-shadow(0 0 10px rgba(46, 79, 199, 0.5));
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+        
+        .error-icon-large svg {
+            filter: drop-shadow(0 0 10px rgba(255, 92, 92, 0.5));
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
         }
         
         .license-key-box {
