@@ -1,4 +1,5 @@
 // ===== Configuration =====
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 // Автоматическое определение окружения по hostname
 function getApiBaseUrl() {
@@ -51,6 +52,11 @@ const API_BASE_URL = 'http://localhost:8000'; // Измените на ваш UR
 const PAYMENT_ENDPOINT = `${API_BASE_URL}/payments/create`;
 const CHECK_URL_ENDPOINT = `${API_BASE_URL}/check/url`;
 >>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
+=======
+const API_BASE_URL = 'http://localhost:8000'; // Измените на ваш URL API
+const PAYMENT_ENDPOINT = `${API_BASE_URL}/payments/create`;
+const CHECK_URL_ENDPOINT = `${API_BASE_URL}/check/url`;
+>>>>>>> Stashed changes
 
 // ===== Navigation =====
 document.addEventListener('DOMContentLoaded', async function() {
@@ -138,6 +144,7 @@ async function initiatePayment(licenseType, amount) {
     if (modal) {
         modal.classList.add('show');
         showPaymentForm();
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     }
 }
@@ -285,6 +292,11 @@ async function processPayment() {
     }
 }
 
+=======
+    }
+}
+
+>>>>>>> Stashed changes
 async function processPayment() {
     const emailInput = document.getElementById('userEmail');
     const email = emailInput.value.trim();
@@ -385,7 +397,10 @@ async function processPayment() {
     }
 }
 
+<<<<<<< Updated upstream
 >>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
+=======
+>>>>>>> Stashed changes
 function showPaymentForm() {
     const form = document.getElementById('paymentForm');
     const status = document.getElementById('paymentStatus');

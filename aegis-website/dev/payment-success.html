@@ -164,10 +164,13 @@
                     
                     if (licenseResponse.ok) {
                         const licenseData = await licenseResponse.json();
+<<<<<<< Updated upstream
 <<<<<<< HEAD
                         console.log(`[PAYMENT] ✅ License key received:`, licenseData);
 =======
 >>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
+=======
+>>>>>>> Stashed changes
                         // Сохраняем API ключ в localStorage для использования на сайте
                         if (licenseData.license_key) {
                             localStorage.setItem('aegis_api_key', licenseData.license_key);
