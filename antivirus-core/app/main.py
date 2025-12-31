@@ -580,7 +580,10 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/payments/status/",
         "/payments/license/",
         "/payments/process/",
+<<<<<<< HEAD
         "/admin/api-keys/create",  # Использует ADMIN_API_TOKEN, не JWT
+=======
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
     )
             
     # Проверяем точное совпадение или начало пути
@@ -1933,7 +1936,11 @@ async def startup_event():
         app.state.yookassa_session = None
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
     
+<<<<<<< HEAD
     logger.info("✅ AVQON Server startup complete")
+=======
+    logger.info("✅ AEGIS Server startup complete")
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
 
 @app.on_event("shutdown")
 async def shutdown_event():

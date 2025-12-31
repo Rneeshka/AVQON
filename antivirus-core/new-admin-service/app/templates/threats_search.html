@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск URL{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Поиск URL в базе данных</h1>
+    <p class="muted">Найдите URL, который ошибочно помечен как опасный, и удалите его</p>
+</div>
+<div class="card">
+    <form method="get" style="display:grid; gap:8px;">
+        <label>Поиск URL или домена</label>
+        <input name="q" type="text" value="{{ query }}" placeholder="Введите URL или домен" required />
+        <button type="submit">Найти</button>
+    </form>
+</div>
+{% if query %}
+<div class="card">
+    <h2>Найдено в malicious_urls: {{ results.malicious_urls | length }}</h2>
+    <div style="max-height:400px;overflow:auto;">
+        <table>
+            <thead>
+                <tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Уровень</th><th>Обнаружений</th><th>Обновлено</th><th>Действие</th></tr>
+            </thead>
+            <tbody>
+                {% if results.malicious_urls %}
+                    {% for m in results.malicious_urls %}
+                    <tr>
+                        <td><a href="{{ m.url }}" target="_blank">{{ m.url[:80] }}{% if m.url | length > 80 %}...{% endif %}</a></td>
+                        <td>{{ m.get('domain', '-') }}</td>
+                        <td>{{ m.get('threat_type', '-') }}</td>
+                        <td>{{ m.get('severity', '-') }}</td>
+                        <td>{{ m.get('detection_count', 0) }}</td>
+                        <td class="muted">{{ m.get('last_updated', '-') }}</td>
+                        <td>
+                            <form method="post" action="/threats/remove" style="display:inline;">
+                                <input type="hidden" name="url" value="{{ m.url }}" />
+                                <input type="hidden" name="type" value="malicious" />
+                                <button type="submit" style="background: #dc2626; padding: 4px 8px; font-size: 12px;">Удалить</button>
+                            </form>
+                            <form method="post" action="/threats/recheck" style="display:inline; margin-left:4px;">
+                                <input type="hidden" name="url" value="{{ m.url }}" />
+                                <button type="submit" style="background: #059669; padding: 4px 8px; font-size: 12px;">Перепроверить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="7" class="muted">Не найдено</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <h2>Найдено в cached_blacklist: {{ results.cached_blacklist | length }}</h2>
+    <div style="max-height:400px;overflow:auto;">
+        <table>
+            <thead>
+                <tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Хитов</th><th>Последний раз</th><th>Действие</th></tr>
+            </thead>
+            <tbody>
+                {% if results.cached_blacklist %}
+                    {% for b in results.cached_blacklist %}
+                    <tr>
+                        <td><a href="{{ b.url }}" target="_blank">{{ b.url[:80] }}{% if b.url | length > 80 %}...{% endif %}</a></td>
+                        <td>{{ b.get('domain', '-') }}</td>
+                        <td>{{ b.get('threat_type', '-') }}</td>
+                        <td>{{ b.get('hit_count', 0) }}</td>
+                        <td class="muted">{{ b.get('last_seen', '-') }}</td>
+                        <td>
+                            <form method="post" action="/threats/remove" style="display:inline;">
+                                <input type="hidden" name="url" value="{{ b.url }}" />
+                                <input type="hidden" name="type" value="blacklist" />
+                                <button type="submit" style="background: #dc2626; padding: 4px 8px; font-size: 12px;">Удалить</button>
+                            </form>
+                            <form method="post" action="/threats/recheck" style="display:inline; margin-left:4px;">
+                                <input type="hidden" name="url" value="{{ b.url }}" />
+                                <button type="submit" style="background: #059669; padding: 4px 8px; font-size: 12px;">Перепроверить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Не найдено</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
