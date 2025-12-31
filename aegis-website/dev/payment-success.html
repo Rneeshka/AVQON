@@ -34,6 +34,7 @@
                 <div class="license-info">
                     <p id="licenseType"></p>
                     <p class="install-hint">Используйте этот ключ для активации расширения AEGIS</p>
+                    <p class="email-hint">📧 Ключ также отправлен на ваш email</p>
                 </div>
                 <div class="action-buttons">
                     <a href="index.html" class="btn btn-primary">Вернуться на главную</a>
@@ -163,7 +164,10 @@
                     
                     if (licenseResponse.ok) {
                         const licenseData = await licenseResponse.json();
+<<<<<<< HEAD
                         console.log(`[PAYMENT] ✅ License key received:`, licenseData);
+=======
+>>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
                         // Сохраняем API ключ в localStorage для использования на сайте
                         if (licenseData.license_key) {
                             localStorage.setItem('aegis_api_key', licenseData.license_key);
@@ -349,6 +353,13 @@
         .install-hint {
             font-size: 13px;
             color: var(--text-dark);
+        }
+        
+        .email-hint {
+            font-size: 13px;
+            color: var(--primary);
+            margin-top: 8px;
+            font-weight: 500;
         }
         
         .action-buttons {
