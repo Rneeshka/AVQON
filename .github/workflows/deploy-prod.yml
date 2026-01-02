@@ -1,47 +1,10 @@
-name: Deploy PROD
+echo "===> Update PROD code"
+cd /opt/avqon-prod
+git fetch origin
+git checkout main
+git reset --hard origin/main
 
-on:
-  push:
-    tags:
-      - 'v*.*.*'
+echo "===> Restart backend"
+sudo systemctl restart avqon-backend
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
-
-      - name: Deploy to PROD server
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-
-            set -e
-
-            echo "===> Update PROD backend"
-            cd /opt/aegis-prod
-            git fetch origin
-            git checkout main
-            git reset --hard origin/main
-
-            echo "===> Sync frontend to PROD directory"
-            rsync -av --delete \
-              /opt/aegis/aegis-website/ \
-              /opt/aegis/aegis-website/prod/ \
-              --exclude dev \
-              --exclude prod \
-              --exclude .git
-
-            echo "===> Restart PROD backend service"
-            sudo systemctl restart aegis-backend-prod
-
-            echo "===> PROD deployment finished successfully"
-
-          EOF
+echo "===> PROD deployment finished successfully"
