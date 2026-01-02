@@ -20,12 +20,20 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          set -e
 
-          cd /opt/avqon-dev
-          git fetch origin
-          git checkout dev
-          git reset --hard origin/dev
+            set -e
+
+            echo "===> Update DEV code"
+            cd /opt/avqon-dev
+
+            git fetch origin
+            git checkout dev
+            git reset --hard origin/dev
+
+            echo "===> Restart DEV backend"
+            sudo systemctl restart avqon-backend-dev
+
+            echo "===> DEV deploy done"
 
           sudo systemctl restart avqon-backend-dev
           echo "DEV deploy done"
