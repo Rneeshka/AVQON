@@ -1,10 +1,32 @@
-echo "===> Update PROD code"
-cd /opt/avqon-prod
-git fetch origin
-git checkout main
-git reset --hard origin/main
+name: Deploy PROD
 
-echo "===> Restart backend"
-sudo systemctl restart avqon-backend
+on:
+  push:
+    branches:
+      - main
+# ИЛИ (лучше):
+# on:
+#   push:
+#     tags:
+#       - 'v*.*.*'
 
-echo "===> PROD deployment finished successfully"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy PROD
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          set -e
+          cd /opt/avqon-prod
+          git fetch origin
+          git checkout main
+          git reset --hard origin/main
+          sudo systemctl restart avqon-backend-prod
+          EOF
