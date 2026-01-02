@@ -1937,10 +1937,14 @@ async def startup_event():
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
     
 <<<<<<< HEAD
+<<<<<<< HEAD
     logger.info("✅ AVQON Server startup complete")
 =======
     logger.info("✅ AEGIS Server startup complete")
 >>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
+=======
+    logger.info("✅ AVQON Server startup complete")
+>>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
 
 @app.on_event("shutdown")
 async def shutdown_event():

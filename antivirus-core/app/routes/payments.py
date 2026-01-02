@@ -145,6 +145,7 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
         # Если WEBSITE_URL не указан, определяем автоматически по ENV
         if ENVIRONMENT == "dev":
 <<<<<<< HEAD
+<<<<<<< HEAD
             website_url = "https://site-dev.avqon.com"
         else:
             website_url = "https://avqon.com"
@@ -153,6 +154,11 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
         else:
             website_url = "https://www.aegis.builders"
 >>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
+=======
+            website_url = "https://site-dev.avqon.com"
+        else:
+            website_url = "https://avqon.com"
+>>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
     
     logger.info(f"[PAYMENTS] Using website URL for return_url: {website_url}")
 
@@ -1043,10 +1049,14 @@ async def yookassa_webhook_dev(request: Request):
     Для настройки в YooKassa:
     - Используйте тестовые ключи (YOOKASSA_SHOP_ID_DEV и YOOKASSA_SECRET_KEY_DEV)
 <<<<<<< HEAD
+<<<<<<< HEAD
     - URL вебхука: https://dev.avqon.com/payments/webhook/yookassa/dev
 =======
     - URL вебхука: https://api-dev.aegis.builders/payments/webhook/yookassa/dev
 >>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
+=======
+    - URL вебхука: https://dev.avqon.com/payments/webhook/yookassa/dev
+>>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
     - В dev режиме IP валидация отключена для удобства тестирования
     """
     # КРИТИЧНО: Логируем ВСЕ запросы СРАЗУ в начале функции
