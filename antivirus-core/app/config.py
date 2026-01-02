@@ -45,7 +45,7 @@ class LoggingConfig:
 
 class SecurityConfig:
     """Конфигурация безопасности"""
-    ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN", "admin_token_123")
+    ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN", "e972cfe7ff57a6175f8d5b828532c83ff62e71ad6d619714c01dbb3b23880352")
     SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
     MAX_URL_LENGTH = int(os.getenv("MAX_URL_LENGTH", "2048"))

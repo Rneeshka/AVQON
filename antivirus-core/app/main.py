@@ -580,6 +580,7 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/payments/status/",
         "/payments/license/",
         "/payments/process/",
+        "/admin/api-keys/create",  # Использует ADMIN_API_TOKEN, не JWT
     )
             
     # Проверяем точное совпадение или начало пути
