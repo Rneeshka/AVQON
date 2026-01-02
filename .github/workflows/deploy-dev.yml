@@ -10,43 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.8.0
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Deploy to DEV server
         run: |
           ssh -o StrictHostKeyChecking=no \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          set -e
 
-            set -e
+          cd /opt/avqon-dev
+          git fetch origin
+          git checkout dev
+          git reset --hard origin/dev
 
-<<<<<<< HEAD
-            echo "===> Go to DEV directory"
-            cd /opt/avqon-dev
-
-            echo "===> Update DEV branch"
-=======
-            cd /opt/avqon-dev
-
->>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
-            git fetch origin
-            git checkout dev
-            git reset --hard origin/dev
-
-<<<<<<< HEAD
-            echo "===> Restart DEV backend"
-            sudo systemctl restart avqon-backend-dev
-
-            echo "===> DEV deployment finished successfully"
-=======
-            sudo systemctl restart avqon-backend-dev
-
-            echo "DEV deploy done"
->>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
-
+          sudo systemctl restart avqon-backend-dev
+          echo "DEV deploy done"
           EOF
