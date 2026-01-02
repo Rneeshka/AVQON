@@ -10,14 +10,14 @@ const ENV = 'PROD'; // PROD для продакшена, DEV для разраб
 // Конфигурация для DEV и PROD
 const CONFIG = {
   DEV: {
-    API_BASE: 'https://api-dev.aegis.builders',
-    WS_URL: 'wss://api-dev.aegis.builders/ws',
-    WEBSITE_URL: 'https://www.devsite.aegis.builders'
+    API_BASE: 'https://dev.avqon.com',
+    WS_URL: 'wss://dev.avqon.com/ws',
+    WEBSITE_URL: 'https://site-dev.avqon.com'
   },
   PROD: {
-    API_BASE: 'https://api.aegis.builders',
-    WS_URL: 'wss://api.aegis.builders/ws',
-    WEBSITE_URL: 'https://www.aegis.builders'
+    API_BASE: 'https://prod.avqon.com',
+    WS_URL: 'wss://prod.avqon.com/ws',
+    WEBSITE_URL: 'https://avqon.com'
   }
 };
 
@@ -26,12 +26,12 @@ const CURRENT_CONFIG = CONFIG[ENV];
 
 // Делаем доступным глобально (для фонового скрипта и content scripts)
 if (typeof window !== 'undefined') {
-  window.AEGIS_CONFIG = CURRENT_CONFIG;
+  window.AVQON_CONFIG = CURRENT_CONFIG;
 }
 
 // Для Service Worker (background.js)
 if (typeof self !== 'undefined') {
-  self.AEGIS_CONFIG = CURRENT_CONFIG;
+  self.AVQON_CONFIG = CURRENT_CONFIG;
 }
 
 // Для обратной совместимости (если где-то используется старая переменная)

@@ -144,9 +144,9 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
     if not website_url:
         # Если WEBSITE_URL не указан, определяем автоматически по ENV
         if ENVIRONMENT == "dev":
-            website_url = "https://www.devsite.aegis.builders"
+            website_url = "https://site-dev.avqon.com"
         else:
-            website_url = "https://www.aegis.builders"
+            website_url = "https://avqon.com"
     
     logger.info(f"[PAYMENTS] Using website URL for return_url: {website_url}")
 
@@ -164,7 +164,7 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
             "return_url": f"{website_url}/payment-success.html"
         },
         "capture": True,
-        "description": f"AEGIS {license_type.upper()} payment",
+        "description": f"AVQON {license_type.upper()} payment",
 
         # ===== ОБЯЗАТЕЛЬНЫЙ ЧЕК (receipt) =====
         "receipt": {
@@ -174,7 +174,7 @@ async def create_payment(request_data: WebPaymentRequest, request: Request):
             },
             "items": [
                 {
-                    "description": f"AEGIS {license_type.upper()} license",
+                    "description": f"AVQON {license_type.upper()} license",
                     "quantity": "1.00",
                     "amount": {
                         "value": f"{amount}.00",
@@ -556,11 +556,11 @@ async def send_license_key_email(email: str, license_key: str, license_type: str
             license_text = "Ваша подписка активирована на 30 дней."
             license_period = "месячную подписку"
         
-        subject = "🎉 Оплата успешно получена! Ваш лицензионный ключ AEGIS"
+        subject = "🎉 Оплата успешно получена! Ваш лицензионный ключ AVQON"
         
         body = f"""Здравствуйте!
 
-Благодарим вас за покупку {license_period} AEGIS!
+Благодарим вас за покупку {license_period} AVQON (Adaptive Verification & Qualitative Observation Node)!
 
 🎉 Оплата успешно получена!
 
@@ -573,15 +573,15 @@ async def send_license_key_email(email: str, license_key: str, license_type: str
 {install_link}
 
 Как использовать ключ:
-1. Установите расширение AEGIS по ссылке выше
+1. Установите расширение AVQON по ссылке выше
 2. Откройте настройки расширения
 3. Введите ваш лицензионный ключ для активации
 
 Если у вас возникли вопросы, обращайтесь в поддержку:
-aegisshieldos@gmail.com
+support@avqon.com
 
 С уважением,
-Команда AEGIS
+Команда AVQON
 """
         
         success = AuthManager._send_email(
@@ -1032,7 +1032,7 @@ async def yookassa_webhook_dev(request: Request):
     
     Для настройки в YooKassa:
     - Используйте тестовые ключи (YOOKASSA_SHOP_ID_DEV и YOOKASSA_SECRET_KEY_DEV)
-    - URL вебхука: https://api-dev.aegis.builders/payments/webhook/yookassa/dev
+    - URL вебхука: https://dev.avqon.com/payments/webhook/yookassa/dev
     - В dev режиме IP валидация отключена для удобства тестирования
     """
     # КРИТИЧНО: Логируем ВСЕ запросы СРАЗУ в начале функции

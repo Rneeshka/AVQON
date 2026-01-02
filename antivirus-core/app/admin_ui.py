@@ -882,7 +882,7 @@ async def danger_zone_page(request: Request):
           </ul>
           <strong style="color: #dc2626;">ВНИМАНИЕ:</strong> Кэш в браузерном расширении нужно очищать отдельно:
           <ol style="margin: 8px 0 0 20px; padding: 0;">
-            <li>Откройте расширение Aegis</li>
+            <li>Откройте расширение AVQON</li>
             <li>Перейдите в настройки</li>
             <li>Найдите опцию "Очистить кэш" или выполните в консоли браузера: <code style="background: #fff; padding: 2px 4px; border-radius: 3px;">chrome.storage.local.clear()</code></li>
           </ol>

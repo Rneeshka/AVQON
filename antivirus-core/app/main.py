@@ -1534,7 +1534,7 @@ async def forgot_password(request: Request):
 
         sent = AuthManager._send_email(
             to_email=email,
-            subject="Aegis Password Reset Code",
+            subject="AVQON Password Reset Code",
             body=f"Ваш код восстановления пароля: {reset_code}"
         )
 
@@ -1834,7 +1834,7 @@ async def bind_api_key(request: Request, bind_request: BindApiKeyRequest):
 @app.on_event("startup")
 async def startup_event():
     """Инициализация при старте сервера"""
-    logger.info("🚀 AEGIS Server starting up...")
+    logger.info("🚀 AVQON Server starting up...")
     
     # КРИТИЧНО: Проверяем что база данных инициализирована и таблицы созданы
     if db_manager:
@@ -1933,7 +1933,7 @@ async def startup_event():
         app.state.yookassa_session = None
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
     
-    logger.info("✅ AEGIS Server startup complete")
+    logger.info("✅ AVQON Server startup complete")
 
 @app.on_event("shutdown")
 async def shutdown_event():
