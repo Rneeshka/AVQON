@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата успешна - AEGIS</title>
+    <title>Оплата успешна - AVQON</title>
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -33,8 +33,7 @@
                 </div>
                 <div class="license-info">
                     <p id="licenseType"></p>
-                    <p class="install-hint">Используйте этот ключ для активации расширения AEGIS</p>
-                    <p class="email-hint">📧 Ключ также отправлен на ваш email</p>
+                    <p class="install-hint">Используйте этот ключ для активации расширения AVQON</p>
                 </div>
                 <div class="action-buttons">
                     <a href="index.html" class="btn btn-primary">Вернуться на главную</a>
@@ -60,20 +59,31 @@
     <script>
         // Автоматическое определение окружения по hostname
         function getApiBaseUrl() {
-            const hostname = window.location.hostname;
+            const hostname = window.location.hostname.toLowerCase();
             
             // DEV окружение
-            if (hostname.includes('devsite.aegis.builders') || hostname === 'www.devsite.aegis.builders') {
-                return 'https://api-dev.aegis.builders';
+            if (hostname.includes('site-dev.avqon.com') || hostname === 'www.site-dev.avqon.com') {
+                return 'https://dev.avqon.com';
             }
             
-            // PROD окружение
-            if (hostname.includes('aegis.builders') && !hostname.includes('devsite')) {
-                return 'https://api.aegis.builders';
+            // PROD окружение (avqon.com или www.avqon.com, но не site-dev)
+            if ((hostname === 'avqon.com' || hostname === 'www.avqon.com') && !hostname.includes('site-dev')) {
+                return 'https://prod.avqon.com';
             }
             
-            // Локальная разработка (localhost)
-            return 'http://localhost:8000';
+            // Локальная разработка (localhost или 127.0.0.1)
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                // По умолчанию используем dev порт, но можно определить по порту страницы
+                const port = window.location.port;
+                if (port === '8100' || port === '8101') {
+                    return 'http://127.0.0.1:8100';
+                }
+                return 'http://127.0.0.1:8000';
+            }
+            
+            // Fallback для других случаев - используем prod
+            console.warn(`[CONFIG] Unknown hostname: ${hostname}, using PROD API`);
+            return 'https://prod.avqon.com';
         }
         
         const API_BASE_URL = getApiBaseUrl();
@@ -110,7 +120,7 @@
             
             if (!paymentId) {
                 console.error('[PAYMENT] Payment ID not found in sessionStorage or URL');
-                showError('ID платежа не найден. Проверьте email или обратитесь в поддержку: aegisshieldos@gmail.com');
+                showError('ID платежа не найден. Проверьте email или обратитесь в поддержку: support@avqon.com');
                 return;
             }
             
@@ -118,7 +128,7 @@
             
             checkAttempts++;
             if (checkAttempts > MAX_ATTEMPTS) {
-                showError('Превышено время ожидания. Пожалуйста, обратитесь в поддержку: aegisshieldos@gmail.com');
+                showError('Превышено время ожидания. Пожалуйста, обратитесь в поддержку: support@avqon.com');
                 return;
             }
             
@@ -144,7 +154,7 @@
                         const licenseData = await licenseResponse.json();
                         // Сохраняем API ключ в localStorage для использования на сайте
                         if (licenseData.license_key) {
-                            localStorage.setItem('aegis_api_key', licenseData.license_key);
+                            localStorage.setItem('avqon_api_key', licenseData.license_key);
                         }
                         showSuccess(licenseData.license_key, licenseData.license_type);
                         return;
@@ -164,16 +174,10 @@
                     
                     if (licenseResponse.ok) {
                         const licenseData = await licenseResponse.json();
-<<<<<<< Updated upstream
-<<<<<<< HEAD
                         console.log(`[PAYMENT] ✅ License key received:`, licenseData);
-=======
->>>>>>> 4264469 (WIP Wed Dec 31 12:44:59 MSK 2025)
-=======
->>>>>>> Stashed changes
                         // Сохраняем API ключ в localStorage для использования на сайте
                         if (licenseData.license_key) {
-                            localStorage.setItem('aegis_api_key', licenseData.license_key);
+                            localStorage.setItem('avqon_api_key', licenseData.license_key);
                         }
                         showSuccess(licenseData.license_key, licenseData.license_type);
                     } else if (licenseResponse.status === 404) {
@@ -201,7 +205,7 @@
                 if (checkAttempts < MAX_ATTEMPTS) {
                     setTimeout(checkPayment, 3000);
                 } else {
-                    showError('Не удалось проверить статус платежа. Обратитесь в поддержку: aegisshieldos@gmail.com');
+                    showError('Не удалось проверить статус платежа. Обратитесь в поддержку: support@avqon.com');
                 }
             }
         }
@@ -356,13 +360,6 @@
         .install-hint {
             font-size: 13px;
             color: var(--text-dark);
-        }
-        
-        .email-hint {
-            font-size: 13px;
-            color: var(--primary);
-            margin-top: 8px;
-            font-weight: 500;
         }
         
         .action-buttons {

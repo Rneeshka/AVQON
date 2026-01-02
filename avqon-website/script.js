@@ -1,10 +1,76 @@
 // ===== Configuration =====
-const API_BASE_URL = 'http://localhost:8000'; // Измените на ваш URL API
+// Автоматическое определение окружения по hostname
+function getApiBaseUrl() {
+    const hostname = window.location.hostname.toLowerCase();
+    
+    // DEV окружение
+    if (hostname.includes('site-dev.avqon.com') || hostname === 'www.site-dev.avqon.com') {
+        return 'https://dev.avqon.com';
+    }
+    
+    // PROD окружение (avqon.com или www.avqon.com, но не site-dev)
+    if ((hostname === 'avqon.com' || hostname === 'www.avqon.com') && !hostname.includes('site-dev')) {
+        return 'https://prod.avqon.com';
+    }
+    
+    // Локальная разработка (localhost или 127.0.0.1)
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // По умолчанию используем dev порт, но можно определить по порту страницы
+        const port = window.location.port;
+        if (port === '8100' || port === '8101') {
+            return 'http://127.0.0.1:8100';
+        }
+        return 'http://127.0.0.1:8000';
+    }
+    
+    // Fallback для других случаев - используем prod
+    console.warn(`[CONFIG] Unknown hostname: ${hostname}, using PROD API`);
+    return 'https://prod.avqon.com';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 const PAYMENT_ENDPOINT = `${API_BASE_URL}/payments/create`;
 const CHECK_URL_ENDPOINT = `${API_BASE_URL}/check/url`;
 
+console.log(`[CONFIG] Environment detected: ${window.location.hostname}`);
+console.log(`[CONFIG] Full URL: ${window.location.href}`);
+console.log(`[CONFIG] API Base URL: ${API_BASE_URL}`);
+console.log(`[CONFIG] Payment Endpoint: ${PAYMENT_ENDPOINT}`);
+
+// ===== API Health Check =====
+async function checkApiHealth() {
+    try {
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 3000); // 3 секунды для проверки
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`, {
+                method: 'GET',
+                signal: abortController.signal
+            });
+            clearTimeout(timeoutId);
+            return response.ok;
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            return false;
+        }
+    } catch (error) {
+        console.warn('[API] Health check failed:', error.message);
+        return false;
+    }
+}
+
 // ===== Navigation =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Проверяем доступность API при загрузке страницы
+    if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1')) {
+        const isApiAvailable = await checkApiHealth();
+        if (!isApiAvailable) {
+            console.warn('[API] Backend server is not available. Payment functionality will not work.');
+            // Можно показать предупреждение пользователю, но не блокируем загрузку страницы
+        } else {
+            console.log('[API] Backend server is available');
+        }
+    }
     // Mobile menu toggle
     const navToggle = document.querySelector('.nav-toggle');
     const navMenu = document.querySelector('.nav-menu');
@@ -104,21 +170,35 @@ async function processPayment() {
             email: email
         });
         
-        // Create payment request
-        const response = await fetch(PAYMENT_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                amount: currentAmount,
-                license_type: currentLicenseType,
-                email: email,
-                username: email.split('@')[0] // Используем часть email как username
-            }),
-            // Добавляем timeout через AbortController
-            signal: AbortSignal.timeout(30000) // 30 секунд
-        });
+        // Create payment request with timeout using AbortController for browser compatibility
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30 секунд
+        
+        let response;
+        try {
+            response = await fetch(PAYMENT_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: currentAmount,
+                    license_type: currentLicenseType,
+                    email: email,
+                    username: email.split('@')[0] // Используем часть email как username
+                }),
+                signal: abortController.signal
+            });
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                showPaymentError('Превышено время ожидания ответа от сервера. Попробуйте еще раз.');
+                return;
+            }
+            throw fetchError;
+        }
+        
+        clearTimeout(timeoutId);
 
         console.log(`[PAYMENT] Response status: ${response.status} ${response.statusText}`);
 
@@ -132,8 +212,24 @@ async function processPayment() {
                 errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
             }
             
-            const errorMessage = errorData.detail || errorData.message || `Ошибка ${response.status}`;
-            console.error('[PAYMENT] API error:', errorMessage);
+            // Детальная обработка ошибок по статусу
+            let errorMessage = errorData.detail || errorData.message || `Ошибка ${response.status}`;
+            
+            if (response.status === 404) {
+                errorMessage = `Эндпоинт не найден (404). Проверьте, что API доступен по адресу: ${API_BASE_URL}`;
+            } else if (response.status === 500) {
+                errorMessage = `Внутренняя ошибка сервера (500). Обратитесь в поддержку: support@avqon.com`;
+            } else if (response.status === 503) {
+                errorMessage = `Сервис временно недоступен (503). Попробуйте позже или обратитесь в поддержку: support@avqon.com`;
+            }
+            
+            console.error('[PAYMENT] API error:', {
+                status: response.status,
+                statusText: response.statusText,
+                message: errorMessage,
+                url: PAYMENT_ENDPOINT,
+                apiBase: API_BASE_URL
+            });
             throw new Error(errorMessage);
         }
 
@@ -150,8 +246,16 @@ async function processPayment() {
             throw new Error('Не получен ID платежа. Обратитесь в поддержку.');
         }
         
-        // Сохраняем payment_id для проверки после возврата
+        // КРИТИЧНО: Сохраняем payment_id от бэкенда (это правильный ID, который сохранен в БД)
+        // ЮKassa может вернуть другой payment_id в redirect URL, поэтому используем только наш
+        console.log('[PAYMENT] Saving payment_id from backend:', paymentData.payment_id);
+        console.log('[PAYMENT] This is the payment_id that backend saved to database');
+        
+        // Сохраняем в sessionStorage (основной источник)
         sessionStorage.setItem('last_payment_id', paymentData.payment_id);
+        
+        // Также сохраняем в localStorage как резерв (на случай, если sessionStorage потеряется)
+        localStorage.setItem('last_payment_id_backup', paymentData.payment_id);
         
         // Сохраняем email для использования на странице успешной оплаты
         sessionStorage.setItem('payment_email', email);
@@ -171,9 +275,26 @@ async function processPayment() {
         if (error.name === 'AbortError' || error.name === 'TimeoutError') {
             errorMessage = 'Превышено время ожидания. Проверьте интернет-соединение и попробуйте снова.';
         } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение. Если проблема сохраняется, обратитесь в поддержку: aegisshieldos@gmail.com';
+            // Проверяем, это ли ошибка подключения к localhost
+            if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1')) {
+                errorMessage = 'Не удалось подключиться к серверу API. Убедитесь, что backend запущен на порту 8000.\n\n' +
+                              'Для запуска backend выполните:\n' +
+                              'cd antivirus-core\n' +
+                              'uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload\n\n' +
+                              'Или обратитесь в поддержку: support@avqon.com';
+            } else {
+                errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение. Если проблема сохраняется, обратитесь в поддержку: support@avqon.com';
+            }
+        } else if (error.message.includes('ERR_CONNECTION_REFUSED') || error.message.includes('Connection refused')) {
+            errorMessage = 'Сервер API недоступен!\n\n' +
+                          'Backend не запущен или недоступен на ' + API_BASE_URL + '\n\n' +
+                          'Для запуска backend:\n' +
+                          '1. Откройте терминал\n' +
+                          '2. Перейдите в папку: cd antivirus-core\n' +
+                          '3. Запустите: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload\n\n' +
+                          'Или обратитесь в поддержку: support@avqon.com';
         } else if (error.message.includes('CORS') || error.message.includes('CORS policy')) {
-            errorMessage = 'Ошибка доступа к серверу. Обратитесь в поддержку: aegisshieldos@gmail.com';
+            errorMessage = 'Ошибка доступа к серверу. Обратитесь в поддержку: support@avqon.com';
         } else if (error.message) {
             errorMessage = error.message;
         }
@@ -314,7 +435,7 @@ function createCursorTooltip() {
     if (!cursorTooltip) {
         cursorTooltip = document.createElement('div');
         cursorTooltip.id = 'cursor-tooltip';
-        cursorTooltip.className = 'aegis-hover-tooltip';
+        cursorTooltip.className = 'avqon-hover-tooltip';
         document.body.appendChild(cursorTooltip);
     }
     return cursorTooltip;
@@ -485,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Сохранение API ключа после успешной оплаты
 function saveApiKey(apiKey) {
-    localStorage.setItem('aegis_api_key', apiKey);
+    localStorage.setItem('avqon_api_key', apiKey);
     // Скрываем предупреждение если оно было показано
     const warningDiv = document.getElementById('demo-subscription-warning');
     if (warningDiv) {

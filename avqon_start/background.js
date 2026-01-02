@@ -1,7 +1,7 @@
 // background.js
 // КРИТИЧНО: Конфигурация синхронизирована с config.js
 // Для Service Worker (Manifest V3) конфиг должен быть встроен напрямую
-// Синхронизируйте изменения с aegis_start/config.js
+// Синхронизируйте изменения с aegis_start/config.js (AVQON)
 
 // ===== ПЕРЕКЛЮЧАТЕЛЬ СРЕДЫ =====
 // Должен совпадать с ENV в config.js
@@ -11,12 +11,12 @@ const IS_DEV = false; // false = PROD, true = DEV
 
 const CONFIG = {
   DEV: {
-    API_BASE: 'https://api-dev.aegis.builders',
-    WS_URL: 'wss://api-dev.aegis.builders/ws'
+    API_BASE: 'https://dev.avqon.com',
+    WS_URL: 'wss://dev.avqon.com/ws'
   },
   PROD: {
-    API_BASE: 'https://api.aegis.builders',
-    WS_URL: 'wss://api.aegis.builders/ws'
+    API_BASE: 'https://prod.avqon.com',
+    WS_URL: 'wss://prod.avqon.com/ws'
   }
 };
 
@@ -24,7 +24,7 @@ const CURRENT_CONFIG = IS_DEV ? CONFIG.DEV : CONFIG.PROD;
 
 // Делаем доступным глобально для Service Worker
 if (typeof self !== 'undefined') {
-  self.AEGIS_CONFIG = CURRENT_CONFIG;
+  self.AVQON_CONFIG = CURRENT_CONFIG;
 }
 
 const DEFAULTS = { antivirusEnabled: true, linkCheck: true, hoverScan: true, notify: true };
@@ -60,7 +60,7 @@ function initSidePanelIntegration() {
 
   const disableDefaultBehavior = () => {
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch((err) => {
-      console.warn('[Aegis] sidePanel behavior setup failed:', err);
+      console.warn('[AVQON] sidePanel behavior setup failed:', err);
     });
   };
 
@@ -84,7 +84,7 @@ function initSidePanelIntegration() {
       }
       await chrome.sidePanel.open(openOptions);
     } catch (error) {
-      console.error('[Aegis] Failed to open side panel:', error);
+      console.error('[AVQON] Failed to open side panel:', error);
     }
   });
 }
@@ -115,13 +115,13 @@ function generateRequestId(prefix = 'req') {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
 }
 
-class AegisWebSocketClient {
+class AVQONWebSocketClient {
   constructor() {
     this.ws = null;
     this.reconnectTimer = null;
   }
 
-async ensureConnected() {
+  async ensureConnected() {
     // Если уже подключен, возвращаем
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       return this.ws;
@@ -137,7 +137,7 @@ async ensureConnected() {
       const apiKey = await getApiKey();
       const wsUrl = this._buildUrl(apiBase, apiKey);
       
-      console.log('[Aegis WS] Connecting to:', wsUrl.replace(/api_key=[^&]+/, 'api_key=***'));
+      console.log('[AVQON WS] Connecting to:', wsUrl.replace(/api_key=[^&]+/, 'api_key=***'));
 
       return await new Promise((resolve, reject) => {
         let settled = false;
@@ -170,7 +170,7 @@ async ensureConnected() {
 
           socket.onerror = (event) => {
             const errorMsg = event?.message || event?.error?.message || 'WebSocket connection error';
-            console.error('[Aegis WS] Connection error:', errorMsg, wsUrl.replace(/api_key=[^&]+/, 'api_key=***'));
+            console.error('[AVQON WS] Connection error:', errorMsg, wsUrl.replace(/api_key=[^&]+/, 'api_key=***'));
             if (!settled) {
               settled = true;
               clearTimeout(connectTimeout);
@@ -181,7 +181,7 @@ async ensureConnected() {
 
           socket.onclose = (event) => {
             const closeReason = event.reason || `Code ${event.code}`;
-            console.warn('[Aegis WS] Connection closed:', closeReason, `(code: ${event.code})`);
+            console.warn('[AVQON WS] Connection closed:', closeReason, `(code: ${event.code})`);
             if (!settled) {
               settled = true;
               clearTimeout(connectTimeout);
@@ -213,13 +213,13 @@ async ensureConnected() {
         }
       });
     } catch (error) {
-      console.error('[Aegis WS] Connect failed:', error);
+      console.error('[AVQON WS] Connect failed:', error);
       this._scheduleReconnect();
       throw error;
     }
   }
 
-_buildUrl(apiBase, apiKey) {
+  _buildUrl(apiBase, apiKey) {
     try {
       const url = new URL(apiBase.replace(/\/+$/, ''));
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -258,7 +258,7 @@ _buildUrl(apiBase, apiKey) {
 
   _handleError(event) {
     const message = event && event.message ? event.message : 'WebSocket error';
-    console.warn('[Aegis WS] Error:', message);
+    console.warn('[AVQON WS] Error:', message);
   }
 
   _handleMessage(event) {
@@ -266,7 +266,7 @@ _buildUrl(apiBase, apiKey) {
     try {
       data = JSON.parse(event.data);
     } catch (err) {
-      console.warn('[Aegis WS] Failed to parse message', err);
+      console.warn('[AVQON WS] Failed to parse message', err);
       return;
     }
     if (!data || typeof data !== 'object') {
@@ -296,7 +296,7 @@ _buildUrl(apiBase, apiKey) {
         }
       }
       
-      console.log('[Aegis WS] analysis_result received, requestId:', data.requestId, 'result.safe:', result?.safe, 'result.threat_type:', result?.threat_type, 'full result keys:', result ? Object.keys(result) : 'null');
+      console.log('[AVQON WS] analysis_result received, requestId:', data.requestId, 'result.safe:', result?.safe, 'result.threat_type:', result?.threat_type, 'full result keys:', result ? Object.keys(result) : 'null');
       
       // КРИТИЧНО: Нормализуем результат перед передачей
       // Это гарантирует что safe всегда явно true/false/null
@@ -341,7 +341,7 @@ _buildUrl(apiBase, apiKey) {
       try {
         this.ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
       } catch (err) {
-        console.warn('[Aegis WS] Failed to send heartbeat', err);
+        console.warn('[AVQON WS] Failed to send heartbeat', err);
       }
     }, WS_HEARTBEAT_INTERVAL);
   }
@@ -448,12 +448,12 @@ _buildUrl(apiBase, apiKey) {
     this._rejectAllPending('Connection closed');
   }
 
-forceReconnect() {
+  forceReconnect() {
     if (this.ws) this.ws.close();
     this.ensureConnected();
+    }
   }
-}
-const wsClient = new AegisWebSocketClient();
+const wsClient = new AVQONWebSocketClient();
 
 async function loadConnectionState(force = false) {
   // Не загружаем слишком часто (кроме принудительной загрузки)
@@ -820,7 +820,7 @@ function notifyFileAnalysis({ level = 'info', title, message, details }) {
     }
 
     try {
-      chrome.notifications.create(`aegis-file-${Date.now()}-${Math.random().toString(16).slice(2)}`, notificationOptions, () => chrome.runtime.lastError && void 0);
+      chrome.notifications.create(`avqon-file-${Date.now()}-${Math.random().toString(16).slice(2)}`, notificationOptions, () => chrome.runtime.lastError && void 0);
     } catch (_) {
       // Игнорируем ошибки уведомлений
     }
@@ -837,25 +837,25 @@ function getCached(url) {
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     // КРИТИЧНО: Проверяем что кэшированные данные валидны
     if (!cached.data || typeof cached.data !== 'object') {
-      console.warn('[Aegis] Cache contains invalid data, ignoring');
+      console.warn('[AVQON] Cache contains invalid data, ignoring');
       cache.delete(normalizedUrl);
       return null;
     }
     
-    console.log('[Aegis] Cache hit for:', normalizedUrl, 'cached safe:', cached.data?.safe, 'cached threat_type:', cached.data?.threat_type);
+    console.log('[AVQON] Cache hit for:', normalizedUrl, 'cached safe:', cached.data?.safe, 'cached threat_type:', cached.data?.threat_type);
     // КРИТИЧНО: Если в кэше safe: true, но URL содержит опасные паттерны - игнорируем кэш
     const urlLower = normalizedUrl.toLowerCase();
     const dangerousPatterns = ['eicar', 'testfile', 'malware-test', 'virus-test', 'download-anti-malware-testfile'];
     const hasDangerousPattern = dangerousPatterns.some(pattern => urlLower.includes(pattern));
     if (hasDangerousPattern && cached.data?.safe === true) {
-      console.warn('[Aegis] Ignoring cached safe result for dangerous pattern URL:', url);
+      console.warn('[AVQON] Ignoring cached safe result for dangerous pattern URL:', url);
       cache.delete(url);
       return null;
     }
     return cached.data;
   }
   if (cached) {
-    console.log('[Aegis] Cache expired for:', url);
+    console.log('[AVQON] Cache expired for:', url);
     cache.delete(url);
   }
   return null;
@@ -867,7 +867,7 @@ function setCached(url, data) {
   
   // КРИТИЧНО: Проверяем что данные валидны перед кэшированием
   if (!data || typeof data !== 'object') {
-    console.warn('[Aegis] Cannot cache invalid data:', data);
+    console.warn('[AVQON] Cannot cache invalid data:', data);
     return;
   }
   
@@ -891,7 +891,7 @@ function getConfig() {
 async function getApiBase() {
   // 1. Пробуем получить из локальных настроек (если юзер менял вручную)
   try {
-    const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
+  const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
     if (storage?.apiBase) {
       return storage.apiBase;
     }
@@ -902,8 +902,8 @@ async function getApiBase() {
   // 2. Используем конфигурацию по умолчанию (PROD или DEV)
   // КРИТИЧНО: Используем CURRENT_CONFIG, а не CURRENT_ENV (старая переменная)
   if (typeof CURRENT_CONFIG === 'undefined') {
-    console.error('[Aegis] CURRENT_CONFIG is not defined! Using fallback PROD API');
-    return 'https://api.aegis.builders';
+    console.error('[AVQON] CURRENT_CONFIG is not defined! Using fallback PROD API');
+    return 'https://prod.avqon.com';
   }
   return CURRENT_CONFIG.API_BASE;
 }
@@ -913,9 +913,9 @@ async function getApiKey() {
     const storage = await new Promise(r => chrome.storage.sync.get(['apiKey'], r));
     return storage?.apiKey || null;
   } catch (e) {
-    console.warn('[Aegis] Failed to get API key from storage:', e);
+    console.warn('[AVQON] Failed to get API key from storage:', e);
     return null;
-  }
+}
 }
 
 async function warmUpConnection() {
@@ -1162,7 +1162,7 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
   
   // Если WebSocket не подключен, сразу используем REST
   if (!wsAvailable) {
-    console.log('[Aegis] WebSocket not connected, using REST API directly');
+    console.log('[AVQON] WebSocket not connected, using REST API directly');
     try {
       return await requestRestFallback(type, payload);
     } catch (restError) {
@@ -1173,7 +1173,7 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
           return await wsClient.request(type, payload, options);
         }
       } catch (wsError) {
-        console.warn('[Aegis] WebSocket connection failed, using REST:', wsError?.message);
+        console.warn('[AVQON] WebSocket connection failed, using REST:', wsError?.message);
       }
       throw restError;
     }
@@ -1189,22 +1189,22 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
       
       // Если response содержит payload (WebSocket формат), извлекаем его
       if (response.payload && typeof response.payload === 'object') {
-        console.log('[Aegis WS] Extracting payload from response, payload.safe:', response.payload.safe, 'payload.threat_type:', response.payload.threat_type);
+        console.log('[AVQON WS] Extracting payload from response, payload.safe:', response.payload.safe, 'payload.threat_type:', response.payload.threat_type);
         result = response.payload;
       }
       // Если response содержит data
       else if (response.data && typeof response.data === 'object') {
-        console.log('[Aegis WS] Extracting data from response, data.safe:', response.data.safe);
+        console.log('[AVQON WS] Extracting data from response, data.safe:', response.data.safe);
         result = response.data;
       }
       // Если response уже содержит safe напрямую, используем как есть
       else if ('safe' in response) {
-        console.log('[Aegis WS] Response has safe field directly:', response.safe, 'threat_type:', response.threat_type);
+        console.log('[AVQON WS] Response has safe field directly:', response.safe, 'threat_type:', response.threat_type);
         result = response;
       }
       // Если response не содержит safe, но содержит другие поля - логируем
       else {
-        console.warn('[Aegis WS] Response does not contain safe field!', Object.keys(response));
+        console.warn('[AVQON WS] Response does not contain safe field!', Object.keys(response));
         // Пробуем найти результат в других полях
         if (response.result && typeof response.result === 'object') {
           result = response.result;
@@ -1219,7 +1219,7 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
         connectionState.lastCheck = Date.now();
         connectionState.retryCount = 0;
         await saveConnectionState();
-        console.log('[Aegis WS] Returning normalized result - safe:', normalized.safe, 'threat_type:', normalized.threat_type);
+        console.log('[AVQON WS] Returning normalized result - safe:', normalized.safe, 'threat_type:', normalized.threat_type);
         return normalized;
       }
       
@@ -1228,7 +1228,7 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
       connectionState.lastCheck = Date.now();
       connectionState.retryCount = 0;
       await saveConnectionState();
-      console.log('[Aegis WS] Returning response as-is (normalization failed):', JSON.stringify(response).substring(0, 300));
+      console.log('[AVQON WS] Returning response as-is (normalization failed):', JSON.stringify(response).substring(0, 300));
       return response;
     }
     
@@ -1238,17 +1238,17 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
   } catch (error) {
     const errorMsg = error?.message || String(error) || 'WebSocket error';
     const closeCode = error?.closeCode;
-    console.warn('[Aegis WS] Request failed, trying REST fallback:', errorMsg, closeCode ? `(code: ${closeCode})` : '');
+    console.warn('[AVQON WS] Request failed, trying REST fallback:', errorMsg, closeCode ? `(code: ${closeCode})` : '');
     
     // КРИТИЧНО: Всегда пробуем REST fallback при любой ошибке WebSocket
     try {
-      console.log('[Aegis] Falling back to REST API');
+      console.log('[AVQON] Falling back to REST API');
       const restResult = await requestRestFallback(type, payload);
       // Успешный fallback - возвращаем результат
       return restResult;
     } catch (restError) {
       // Если и REST не работает, выбрасываем более понятную ошибку
-      console.error('[Aegis] Both WebSocket and REST failed:', restError);
+      console.error('[AVQON] Both WebSocket and REST failed:', restError);
       const combinedError = new Error(`Сервер недоступен: ${restError?.message || errorMsg}`);
       combinedError.originalError = error;
       combinedError.restError = restError;
@@ -1376,7 +1376,7 @@ async function requestRestFallback(type, payload) {
 // КРИТИЧНО: Нормализация результатов анализа для единообразной обработки
 function normalizeAnalysisPayload(payload, url) {
   if (!payload || typeof payload !== 'object') {
-    console.warn('[Aegis] normalizeAnalysisPayload: invalid payload', payload);
+    console.warn('[AVQON] normalizeAnalysisPayload: invalid payload', payload);
     return null;
   }
   
@@ -1425,23 +1425,23 @@ async function scanUrl(url, useCache = true) {
   if (useCache) {
     const cached = getCached(url);
     if (cached) {
-      console.log('[Aegis] scanUrl returning cached result, safe:', cached.safe, 'threat_type:', cached.threat_type);
+      console.log('[AVQON] scanUrl returning cached result, safe:', cached.safe, 'threat_type:', cached.threat_type);
       return cached;
     }
   }
 
   try {
-    console.log('[Aegis] scanUrl requesting analysis for:', url);
+    console.log('[AVQON] scanUrl requesting analysis for:', url);
     const payload = await requestWsAnalysis('analyze_url', { url, context: 'link_check' });
-    console.log('[Aegis] scanUrl received payload:', JSON.stringify(payload).substring(0, 300));
+    console.log('[AVQON] scanUrl received payload:', JSON.stringify(payload).substring(0, 300));
     const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
-    console.log('[Aegis] scanUrl normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
+    console.log('[AVQON] scanUrl normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
     const enriched = await enrichWithFileAnalysis(url, normalized);
-    console.log('[Aegis] scanUrl enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
+    console.log('[AVQON] scanUrl enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
     setCached(url, enriched);
     return enriched;
   } catch (error) {
-    console.error('[Aegis] scanUrl failed:', error);
+    console.error('[AVQON] scanUrl failed:', error);
     // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
     const fallback = {
       safe: null, // Не можем определить безопасность
@@ -1461,7 +1461,7 @@ async function scanHover(url) {
     const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
     return await enrichWithFileAnalysis(url, normalized);
   } catch (error) {
-    console.error('[Aegis] scanHover failed:', error);
+    console.error('[AVQON] scanHover failed:', error);
     // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
     const fallback = {
       safe: null, // Не можем определить безопасность
@@ -1551,16 +1551,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const url = msg.url;
     (async () => {
       try {
-        console.log('[Aegis] ws_analyze_url request for:', url);
+        console.log('[AVQON] ws_analyze_url request for:', url);
         const payload = await requestWsAnalysis('analyze_url', { url, context: msg.context || 'popup' });
-        console.log('[Aegis] ws_analyze_url payload received:', JSON.stringify(payload).substring(0, 300));
+        console.log('[AVQON] ws_analyze_url payload received:', JSON.stringify(payload).substring(0, 300));
         const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
-        console.log('[Aegis] ws_analyze_url normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
+        console.log('[AVQON] ws_analyze_url normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
         const enriched = await enrichWithFileAnalysis(url, normalized);
-        console.log('[Aegis] ws_analyze_url enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
+        console.log('[AVQON] ws_analyze_url enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
         sendResponse({ ok: true, data: enriched });
       } catch (error) {
-        console.error('[Aegis] ws_analyze_url error:', error);
+        console.error('[AVQON] ws_analyze_url error:', error);
         // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
         const fallback = {
           safe: null,
@@ -1618,7 +1618,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           // КРИТИЧНО: Выполняем анализ hover
           res = await scanHover(url);
           
-          console.log('[Aegis] hover_url: scanHover result - safe:', res?.safe, 'threat_type:', res?.threat_type, 'source:', res?.source);
+          console.log('[AVQON] hover_url: scanHover result - safe:', res?.safe, 'threat_type:', res?.threat_type, 'source:', res?.source);
 
           // После каждого запроса проверяем состояние подключения
           if (res && res.source === 'error') {
@@ -1628,9 +1628,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             // КРИТИЧНО: Кэшируем результат только если он валидный (safe: true/false/null)
             // НЕ кэшируем если res === null или undefined
             setCached(url, res);
-            console.log('[Aegis] hover_url: cached result for:', url, 'safe:', res.safe);
+            console.log('[AVQON] hover_url: cached result for:', url, 'safe:', res.safe);
           } else {
-            console.warn('[Aegis] hover_url: invalid result, not caching:', res);
+            console.warn('[AVQON] hover_url: invalid result, not caching:', res);
           }
         } else {
           // Кэш есть, но проверяем подключение периодически (каждые 30 секунд)
@@ -1644,7 +1644,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         
         if (tabId != null && res) {
-          console.log('[Aegis] hover_url: sending result to tab:', tabId, 'safe:', res.safe, 'threat_type:', res.threat_type, 'source:', res.source);
+          console.log('[AVQON] hover_url: sending result to tab:', tabId, 'safe:', res.safe, 'threat_type:', res.threat_type, 'source:', res.source);
           chrome.tabs.sendMessage(tabId, { 
             type: 'hover_result', 
             url, 
@@ -1652,10 +1652,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             mouseX: msg.mouseX, 
             mouseY: msg.mouseY 
           }).catch(err => {
-            console.error('[Aegis] Failed to send hover_result to tab:', err);
+            console.error('[AVQON] Failed to send hover_result to tab:', err);
           });
         } else {
-          console.log('[Aegis] hover_url: not sending result (tabId:', tabId, 'res:', res, ')');
+          console.log('[AVQON] hover_url: not sending result (tabId:', tabId, 'res:', res, ')');
         }
       } catch (e) {
         // При ошибке отправляем сообщение об ошибке
@@ -1792,11 +1792,11 @@ restoreStateAfterRestart().then(() => {
     startConnectionMonitoring();
     // Сразу идем в сокет, минуя кривой fetch к корню
     wsClient.ensureConnected().catch(() => {
-      connectionState.isOnline = false;
+        connectionState.isOnline = false;
+      });
+      broadcastReinitHover();
     });
-    broadcastReinitHover();
   });
-});
 
 // Слушатель настроек
 chrome.storage.onChanged.addListener((changes) => {
