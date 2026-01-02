@@ -2,13 +2,8 @@ name: Deploy PROD
 
 on:
   push:
-    branches:
-      - main
-# ИЛИ (лучше):
-# on:
-#   push:
-#     tags:
-#       - 'v*.*.*'
+    tags:
+      - 'v*.*.*'
 
 jobs:
   deploy:
@@ -22,11 +17,14 @@ jobs:
 
       - name: Deploy PROD
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           set -e
           cd /opt/avqon-prod
           git fetch origin
           git checkout main
           git reset --hard origin/main
           sudo systemctl restart avqon-backend-prod
+          echo "PROD deploy done"
           EOF
