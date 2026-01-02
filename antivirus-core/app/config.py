@@ -59,12 +59,12 @@ class ServerConfig:
     
     # Базовые URL для API и WebSocket
     # DEV окружение
-    API_BASE_DEV = "https://api-dev.aegis.builders"
-    WS_BASE_DEV = "wss://api-dev.aegis.builders"
+    API_BASE_DEV = "https://dev.avqon.com"
+    WS_BASE_DEV = "wss://dev.avqon.com"
     
     # PROD окружение
-    API_BASE_PROD = "https://api.aegis.builders"
-    WS_BASE_PROD = "wss://api.aegis.builders"
+    API_BASE_PROD = "https://prod.avqon.com"
+    WS_BASE_PROD = "wss://prod.avqon.com"
     
     # Текущие значения в зависимости от окружения
     @property

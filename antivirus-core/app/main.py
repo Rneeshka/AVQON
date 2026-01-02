@@ -422,6 +422,10 @@ async def websocket_health_check():
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
     """КРИТИЧНО: Все вызовы БД обернуты в try-except для предотвращения падения"""
+    # КРИТИЧНО: Логируем webhook запросы ДО всех проверок
+    if "/webhook/yookassa" in request.url.path:
+        logger.info(f"[WEBHOOK MIDDLEWARE] ===== WEBHOOK REQUEST DETECTED ===== Path: {request.url.path}, Method: {request.method}, IP: {request.client.host if request.client else 'unknown'}")
+    
     # КРИТИЧНО: WebSocket upgrade запросы должны пропускаться без обработки
     if request.url.path == "/ws":
         upgrade_header = request.headers.get("Upgrade", "").lower()
@@ -490,6 +494,10 @@ async def request_logging_middleware(request: Request, call_next):
 @app.middleware("http")
 async def filter_invalid_requests(request: Request, call_next):
     """Фильтрует некорректные HTTP запросы"""
+    
+    # КРИТИЧНО: Логируем webhook запросы ДО всех проверок
+    if "/webhook/yookassa" in request.url.path:
+        logger.info(f"[FILTER MIDDLEWARE] ===== WEBHOOK REQUEST IN FILTER ===== Path: {request.url.path}, Method: {request.method}")
     
     # КРИТИЧНО: WebSocket upgrade запросы должны пропускаться без обработки
     # FastAPI автоматически обрабатывает их через @app.websocket, но для надежности проверяем
@@ -564,14 +572,24 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/ws",
         "/ws/health",
         "/payments/debug",
+        "/payments/debug/routes",
         "/payments/create",
         "/payments/webhook",
         "/payments/webhook/yookassa",
+        "/payments/webhook/yookassa/dev",
+        "/payments/status/",
+        "/payments/license/",
+        "/payments/process/",
     )
             
     # Проверяем точное совпадение или начало пути
-    if (request.url.path in PUBLIC_PATHS or 
-        any(request.url.path.startswith(path) for path in PUBLIC_PATHS)):
+    is_public = request.url.path in PUBLIC_PATHS or any(request.url.path.startswith(path) for path in PUBLIC_PATHS)
+    
+    # Логируем для диагностики payments запросов
+    if "/payments" in request.url.path:
+        logger.info(f"[JWT MIDDLEWARE] Payments request: path={request.url.path}, is_public={is_public}, method={request.method}")
+    
+    if is_public:
         return await call_next(request)
     
     # WebSocket upgrade запросы пропускаем
@@ -1243,16 +1261,24 @@ async def create_api_key(request: Request):
         hourly_limit = body.get("hourly_limit")  # None или <=0 = без лимитов
         expires_days = body.get("expires_days", 30)
         
-        # Для Telegram-бота: если передан user_id, используем expires_days из запроса
+        # Для Telegram-бота и веб-платежей: если передан user_id, используем expires_days из запроса
         user_id = body.get("user_id")
+        user_id_int = None
         if user_id:
+            try:
+                user_id_int = int(user_id)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid user_id format: {user_id}, ignoring")
+                user_id_int = None
+            
             # expires_days уже установлен из body (36500 для вечной, 30 для месячной)
             if not name:
-                name = f"Telegram User {user_id}"
+                name = f"Telegram User {user_id_int}" if user_id_int else "Web User"
             if not description:
                 username = body.get("username", "")
                 license_type = "Lifetime" if expires_days >= 36500 else "Monthly"
-                description = f"{license_type} license for Telegram user {user_id}" + (f" (@{username})" if username else "")
+                user_desc = f"Telegram user {user_id_int}" if user_id_int else "Web user"
+                description = f"{license_type} license for {user_desc}" + (f" (@{username})" if username else "")
         
         # Валидация обязательных полей
         if not name:
@@ -1262,7 +1288,7 @@ async def create_api_key(request: Request):
         if access_level != "premium":
             raise HTTPException(status_code=400, detail="Only premium keys can be created")
         
-        api_key = db_manager.create_api_key(name, description, access_level, daily_limit, hourly_limit, expires_days)
+        api_key = db_manager.create_api_key(name, description, access_level, daily_limit, hourly_limit, expires_days, user_id=user_id_int)
         if api_key:
             response = {
                 "status": "success",
@@ -1508,7 +1534,7 @@ async def forgot_password(request: Request):
 
         sent = AuthManager._send_email(
             to_email=email,
-            subject="Aegis Password Reset Code",
+            subject="AVQON Password Reset Code",
             body=f"Ваш код восстановления пароля: {reset_code}"
         )
 
@@ -1808,7 +1834,7 @@ async def bind_api_key(request: Request, bind_request: BindApiKeyRequest):
 @app.on_event("startup")
 async def startup_event():
     """Инициализация при старте сервера"""
-    logger.info("🚀 AEGIS Server starting up...")
+    logger.info("🚀 AVQON Server starting up...")
     
     # КРИТИЧНО: Проверяем что база данных инициализирована и таблицы созданы
     if db_manager:
@@ -1890,8 +1916,7 @@ async def startup_event():
     except Exception as yk_check_error:
         logger.error(f"❌ Failed to check YooKassa config: {yk_check_error}")
     
-    logger.info("✅ AEGIS Server startup complete")
-        # === YooKassa aiohttp session init (CRITICAL) ===
+    # === YooKassa aiohttp session init (CRITICAL) ===
     try:
         from app.routes.payments import YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY
 
@@ -1907,6 +1932,8 @@ async def startup_event():
     except Exception as e:
         app.state.yookassa_session = None
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
+    
+    logger.info("✅ AVQON Server startup complete")
 
 @app.on_event("shutdown")
 async def shutdown_event():

@@ -25,17 +25,28 @@ jobs:
 
             set -e
 
+<<<<<<< HEAD
             echo "===> Go to DEV directory"
             cd /opt/avqon-dev
 
             echo "===> Update DEV branch"
+=======
+            cd /opt/avqon-dev
+
+>>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
             git fetch origin
             git checkout dev
             git reset --hard origin/dev
 
+<<<<<<< HEAD
             echo "===> Restart DEV backend"
             sudo systemctl restart avqon-backend-dev
 
             echo "===> DEV deployment finished successfully"
+=======
+            sudo systemctl restart avqon-backend-dev
+
+            echo "DEV deploy done"
+>>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
 
           EOF

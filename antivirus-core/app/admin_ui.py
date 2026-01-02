@@ -189,9 +189,15 @@ async def keys_page(request: Request):
             cur.execute("""
                 SELECT api_key, name, is_active, access_level, rate_limit_daily, rate_limit_hourly,
                        requests_total, requests_today, requests_hour, created_at, last_used, expires_at,
-                       user_id, 
-                       (SELECT username FROM accounts WHERE accounts.id = api_keys.user_id) as username,
-                       (SELECT email FROM accounts WHERE accounts.id = api_keys.user_id) as email,
+                       api_keys.user_id, 
+                       COALESCE(
+                           (SELECT username FROM accounts WHERE accounts.id = api_keys.user_id),
+                           (SELECT username FROM users WHERE users.user_id = api_keys.user_id)
+                       ) as username,
+                       COALESCE(
+                           (SELECT email FROM accounts WHERE accounts.id = api_keys.user_id),
+                           (SELECT email FROM users WHERE users.user_id = api_keys.user_id)
+                       ) as email,
                        (SELECT password_hash FROM accounts WHERE accounts.id = api_keys.user_id) as password_hash
                 FROM api_keys
                 ORDER BY created_at DESC
@@ -876,7 +882,7 @@ async def danger_zone_page(request: Request):
           </ul>
           <strong style="color: #dc2626;">ВНИМАНИЕ:</strong> Кэш в браузерном расширении нужно очищать отдельно:
           <ol style="margin: 8px 0 0 20px; padding: 0;">
-            <li>Откройте расширение Aegis</li>
+            <li>Откройте расширение AVQON</li>
             <li>Перейдите в настройки</li>
             <li>Найдите опцию "Очистить кэш" или выполните в консоли браузера: <code style="background: #fff; padding: 2px 4px; border-radius: 3px;">chrome.storage.local.clear()</code></li>
           </ol>

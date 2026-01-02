@@ -311,7 +311,7 @@ class DatabaseManager:
                     CREATE TABLE IF NOT EXISTS yookassa_payments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         payment_id TEXT UNIQUE NOT NULL,
-                        user_id BIGINT NOT NULL,
+                        user_id BIGINT,  -- NULLABLE: платеж может быть сохранен без пользователя
                         amount INTEGER NOT NULL,
                         license_type TEXT NOT NULL,
                         status TEXT DEFAULT 'pending',
@@ -383,49 +383,14 @@ class DatabaseManager:
             raise
 
     def _migrate_schema(self, conn):
-        """DEPRECATED: Миграции схемы БД больше не используются для PostgreSQL."""
-        """Миграции схемы БД для существующих инсталляций."""
-        try:
-            cur = conn.cursor()
-            
-            # Миграция request_logs
-            cur.execute("PRAGMA table_info(request_logs)")
-            cols = {row[1] for row in cur.fetchall()}  # row[1] = name
-            if "api_key_hash" not in cols:
-                cur.execute("ALTER TABLE request_logs ADD COLUMN api_key_hash TEXT")
-            if "client_ip_truncated" not in cols:
-                cur.execute("ALTER TABLE request_logs ADD COLUMN client_ip_truncated TEXT")
-            
-            # Миграция api_keys для новых полей
-            cur.execute("PRAGMA table_info(api_keys)")
-            api_cols = {row[1] for row in cur.fetchall()}
-            if "access_level" not in api_cols:
-                cur.execute("ALTER TABLE api_keys ADD COLUMN access_level TEXT DEFAULT 'basic'")
-            if "features" not in api_cols:
-                cur.execute("ALTER TABLE api_keys ADD COLUMN features TEXT DEFAULT '[]'")
-            if "user_id" not in api_cols:
-                cur.execute("ALTER TABLE api_keys ADD COLUMN user_id INTEGER DEFAULT NULL")
-            
-            # Миграция accounts для восстановления пароля
-            cur.execute("PRAGMA table_info(accounts)")
-            account_cols = {row[1] for row in cur.fetchall()}
-            if "reset_code" not in account_cols:
-                cur.execute("ALTER TABLE accounts ADD COLUMN reset_code TEXT DEFAULT NULL")
-            if "reset_code_expires" not in account_cols:
-                cur.execute("ALTER TABLE accounts ADD COLUMN reset_code_expires TIMESTAMP DEFAULT NULL")
-            
-            # Миграция yookassa_payments для is_renewal
-            try:
-                cur.execute("PRAGMA table_info(yookassa_payments)")
-                payment_cols = {row[1] for row in cur.fetchall()}
-                if "is_renewal" not in payment_cols:
-                    cur.execute("ALTER TABLE yookassa_payments ADD COLUMN is_renewal BOOLEAN DEFAULT FALSE")
-            except psycopg2.Error:
-                pass  # Таблица может не существовать
-            
-            self._commit_if_needed(conn)
-        except Exception as e:
-            logger.error(f"Schema migration error: {e}")
+        """
+        DEPRECATED: Миграции схемы БД больше не используются для PostgreSQL.
+        Все миграции должны выполняться через отдельные SQL файлы в папке migrations/.
+        Этот метод оставлен для обратной совместимости, но не выполняет никаких действий.
+        """
+        # Миграции теперь выполняются через отдельные SQL файлы
+        # См. migrations/001_add_missing_columns.sql
+        pass
     
     def _add_test_data(self, cursor):
         """DEPRECATED: Тестовые данные больше не добавляются автоматически."""
@@ -486,7 +451,8 @@ class DatabaseManager:
     
     def create_api_key(self, name: str, description: str = "", 
                       access_level: str = "basic", daily_limit: Optional[int] = 10000, 
-                      hourly_limit: Optional[int] = 10000, expires_days: int = 365) -> Optional[str]:
+                      hourly_limit: Optional[int] = 10000, expires_days: int = 365, 
+                      user_id: Optional[int] = None) -> Optional[str]:
         """Создает новый API ключ в формате XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"""
         try:
             safe_name = (name or "").strip() or "Client"
@@ -506,7 +472,7 @@ class DatabaseManager:
 
             # Генерируем ключ в новом формате
             api_key = self._generate_formatted_key(access_level)
-            logger.info(f"Generated API key: {api_key[:10]}... for {safe_name}")
+            logger.info(f"Generated API key: {api_key[:10]}... for {safe_name}, user_id={user_id}")
             
             # Определяем доступные функции в зависимости от уровня
             if access_level == "premium":
@@ -525,19 +491,19 @@ class DatabaseManager:
                             api_key, name, description, is_active, access_level, features,
                             rate_limit_daily, rate_limit_hourly,
                             requests_total, requests_today, requests_hour,
-                            created_at, last_used, expires_at
+                            created_at, last_used, expires_at, user_id
                         ) VALUES (
-                            ?, ?, ?, 1, ?, ?,
-                            ?, ?,
+                            %s, %s, %s, TRUE, %s, %s,
+                            %s, %s,
                             0, 0, 0,
-                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s, %s
                         )
                         """,
                         (api_key, safe_name, safe_desc, access_level, features, 
-                         daily_limit, hourly_limit, expires_at)
+                         daily_limit, hourly_limit, expires_at, user_id)
                     )
                     self._commit_if_needed(conn)
-                    logger.info(f"✅ API key created successfully for {safe_name} with level {access_level}: {api_key[:10]}...")
+                    logger.info(f"✅ API key created successfully in api_keys table for {safe_name} (user_id={user_id}) with level {access_level}: {api_key[:10]}...")
                     return api_key
                 except psycopg2.IntegrityError as e:
                     logger.error(f"❌ API key creation failed - duplicate key: {e}")
@@ -548,18 +514,18 @@ class DatabaseManager:
                             api_key, name, description, is_active, access_level, features,
                             rate_limit_daily, rate_limit_hourly,
                             requests_total, requests_today, requests_hour,
-                            created_at, last_used, expires_at
+                            created_at, last_used, expires_at, user_id
                         ) VALUES (
                             %s, %s, %s, TRUE, %s, %s,
                             %s, %s,
                             0, 0, 0,
-                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s, %s
                         )
                     """
                     cursor.execute(self._adapt_query(query), (api_key, safe_name, safe_desc, access_level, features, 
-                         daily_limit, hourly_limit, expires_at))
+                         daily_limit, hourly_limit, expires_at, user_id))
                     self._commit_if_needed(conn)
-                    logger.info(f"✅ API key created on retry for {safe_name}: {api_key[:10]}...")
+                    logger.info(f"✅ API key created on retry in api_keys table for {safe_name} (user_id={user_id}): {api_key[:10]}...")
                     return api_key
         except (psycopg2.Error, Exception) as e:
             logger.error(f"❌ API key creation error: {e}", exc_info=True)
@@ -637,16 +603,17 @@ class DatabaseManager:
                 
                 keys = []
                 for row in cursor.fetchall():
+                    # cursor использует RealDictCursor, поэтому row - это dict, а не tuple
                     keys.append({
-                        "api_key": row[0],
-                        "name": row[1],
-                        "description": row[2],
-                        "access_level": row[3],
-                        "features": row[4],
-                        "daily_limit": row[5],
-                        "hourly_limit": row[6],
-                        "created_at": row[7],
-                        "expires_at": row[8],
+                        "api_key": row["api_key"],
+                        "name": row["name"],
+                        "description": row["description"],
+                        "access_level": row["access_level"],
+                        "features": row["features"],
+                        "daily_limit": row["daily_limit"],
+                        "hourly_limit": row["hourly_limit"],
+                        "created_at": row["created_at"],
+                        "expires_at": row["expires_at"],
                         "requests_today": 0
                     })
                 
@@ -1195,7 +1162,7 @@ class DatabaseManager:
                        requests_total, requests_today, requests_hour,
                        created_at, last_used, expires_at
                 FROM api_keys 
-                WHERE api_key = ?
+                WHERE api_key = %s
             """, (api_key,))
             
                 result = cursor.fetchone()
@@ -1900,11 +1867,11 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT domain, details, detection_ratio, confidence, source, 
+                    SELECT domain, details, detection_ratio, confidence, source,
                            first_seen, last_seen, hit_count, payload
                     FROM cached_whitelist
                     ORDER BY last_seen DESC
-                    LIMIT ?
+                    LIMIT %s
                 """, (limit,))
                 rows = []
                 for row in cursor.fetchall():
@@ -1930,7 +1897,7 @@ class DatabaseManager:
                            first_seen, last_seen, hit_count, payload
                     FROM cached_blacklist
                     ORDER BY last_seen DESC
-                    LIMIT ?
+                    LIMIT %s
                 """, (limit,))
                 rows = []
                 for row in cursor.fetchall():
@@ -1998,9 +1965,10 @@ class DatabaseManager:
             logger.error(f"Clear all database data error: {e}")
             return {}
 
-    async def create_yookassa_payment(self, payment_id: str, user_id: int, amount: int, license_type: str, is_renewal: bool = False):
-        """Создает запись о платеже ЮKassa"""
+    async def create_yookassa_payment(self, payment_id: str, user_id: int = None, amount: int = 0, license_type: str = "forever", is_renewal: bool = False):
+        """Создает запись о платеже ЮKassa. user_id может быть None (nullable)."""
         try:
+            logger.info(f"[DB] Creating YooKassa payment: payment_id={payment_id}, user_id={user_id}, amount={amount}, license_type={license_type}, is_renewal={is_renewal}")
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 query = """
@@ -2008,15 +1976,21 @@ class DatabaseManager:
                     (payment_id, user_id, amount, license_type, status, is_renewal) 
                     VALUES (%s, %s, %s, %s, 'pending', %s)
                 """
+                logger.debug(f"[DB] Executing query: {query}")
+                logger.debug(f"[DB] Parameters: payment_id={payment_id}, user_id={user_id}, amount={amount}, license_type={license_type}, is_renewal={is_renewal}")
                 cursor.execute(self._adapt_query(query), (payment_id, user_id, amount, license_type, is_renewal))
+                logger.debug(f"[DB] Query executed, committing...")
                 self._commit_if_needed(conn)
-                logger.info(f"Created YooKassa payment {payment_id} for user {user_id}, is_renewal={is_renewal}")
+                logger.info(f"[DB] ✅ Created YooKassa payment {payment_id} for user {user_id}, is_renewal={is_renewal}")
                 return True
-        except psycopg2.IntegrityError:
-            logger.warning(f"Payment {payment_id} already exists in database")
+        except psycopg2.IntegrityError as e:
+            logger.warning(f"[DB] Payment {payment_id} already exists in database (IntegrityError: {e})")
+            return False
+        except psycopg2.Error as e:
+            logger.error(f"[DB] PostgreSQL error creating YooKassa payment: {type(e).__name__}: {e}", exc_info=True)
             return False
         except Exception as e:
-            logger.error(f"Create YooKassa payment error: {e}", exc_info=True)
+            logger.error(f"[DB] Unexpected error creating YooKassa payment: {type(e).__name__}: {e}", exc_info=True)
             return False
 
     async def get_yookassa_payment(self, payment_id: str):
@@ -2031,16 +2005,17 @@ class DatabaseManager:
                 cursor.execute(self._adapt_query(query), (payment_id,))
                 row = cursor.fetchone()
                 if row:
+                    # cursor использует RealDictCursor, поэтому row - это dict, а не tuple
                     return {
-                        "payment_id": row[0],
-                        "user_id": row[1],
-                        "amount": row[2],
-                        "license_type": row[3],
-                        "status": row[4],
-                        "license_key": row[5],
-                        "is_renewal": bool(row[6]) if row[6] is not None else False,
-                        "created_at": row[7],
-                        "updated_at": row[8]
+                        "payment_id": row["payment_id"],
+                        "user_id": row["user_id"],
+                        "amount": row["amount"],
+                        "license_type": row["license_type"],
+                        "status": row["status"],
+                        "license_key": row["license_key"],
+                        "is_renewal": bool(row["is_renewal"]) if row["is_renewal"] is not None else False,
+                        "created_at": row["created_at"],
+                        "updated_at": row["updated_at"]
                     }
                 return None
         except Exception as e:
@@ -2083,54 +2058,56 @@ class DatabaseManager:
                 cursor.execute(self._adapt_query(query), (user_id,))
                 row = cursor.fetchone()
                 if row:
+                    # cursor использует RealDictCursor, поэтому row - это dict, а не tuple
                     return {
-                        "user_id": row[0],
-                        "username": row[1],
-                        "has_license": bool(row[2]),
-                        "license_key": row[3],
-                        "created_at": row[4]
+                        "user_id": row["user_id"],
+                        "username": row["username"],
+                        "has_license": bool(row["has_license"]),
+                        "license_key": row["license_key"],
+                        "created_at": row["created_at"]
                     }
                 return None
         except Exception as e:
             logger.error(f"Get user error: {e}", exc_info=True)
             return None
     
-    def create_user(self, user_id: int, username: str = None):
-        """Создает пользователя Telegram бота"""
+    def create_user(self, user_id: int, username: str = None, email: str = None):
+        """Создает пользователя Telegram бота или веб-пользователя"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 query = """
-                    INSERT INTO users (user_id, username) 
-                    VALUES (%s, %s)
-                    ON CONFLICT(user_id) DO NOTHING
+                    INSERT INTO users (user_id, username, email) 
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT(user_id) DO UPDATE SET username = COALESCE(EXCLUDED.username, users.username), email = COALESCE(EXCLUDED.email, users.email)
                 """
-                cursor.execute(self._adapt_query(query), (user_id, username))
+                cursor.execute(self._adapt_query(query), (user_id, username, email))
                 self._commit_if_needed(conn)
+                logger.info(f"Created/updated user: user_id={user_id}, username={username}, email={email}")
                 return True
         except Exception as e:
             logger.error(f"Create user error: {e}", exc_info=True)
             return False
     
-    def update_user_license(self, user_id: int, license_key: str):
+    def update_user_license(self, user_id: int, license_key: str, email: str = None):
         """Обновляет лицензию пользователя"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 # Сначала создаем пользователя, если его нет
                 query_insert = """
-                    INSERT INTO users (user_id) 
-                    VALUES (%s)
-                    ON CONFLICT(user_id) DO NOTHING
+                    INSERT INTO users (user_id, email) 
+                    VALUES (%s, %s)
+                    ON CONFLICT(user_id) DO UPDATE SET email = COALESCE(EXCLUDED.email, users.email)
                 """
-                cursor.execute(self._adapt_query(query_insert), (user_id,))
+                cursor.execute(self._adapt_query(query_insert), (user_id, email))
                 # Обновляем лицензию
                 query_update = """
-                    UPDATE users SET has_license = TRUE, license_key = %s WHERE user_id = %s
+                    UPDATE users SET has_license = TRUE, license_key = %s, email = COALESCE(%s, users.email) WHERE user_id = %s
                 """
-                cursor.execute(self._adapt_query(query_update), (license_key, user_id))
+                cursor.execute(self._adapt_query(query_update), (license_key, email, user_id))
                 self._commit_if_needed(conn)
-                logger.info(f"Updated license for user {user_id}")
+                logger.info(f"Updated license for user {user_id}, email={email}")
                 return True
         except Exception as e:
             logger.error(f"Update user license error: {e}", exc_info=True)
@@ -2140,24 +2117,24 @@ class DatabaseManager:
         """Получает активную подписку пользователя"""
         try:
             with self._get_connection() as conn:
-                cursor = conn.execute(
-                    """SELECT id, user_id, license_key, license_type, expires_at, auto_renew, renewal_count, status, created_at, updated_at
-                       FROM subscriptions WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1""",
-                    (user_id,)
-                )
+                cursor = conn.cursor()
+                query = """SELECT id, user_id, license_key, license_type, expires_at, auto_renew, renewal_count, status, created_at, updated_at
+                           FROM subscriptions WHERE user_id = %s AND status = 'active' ORDER BY created_at DESC LIMIT 1"""
+                cursor.execute(self._adapt_query(query), (user_id,))
                 row = cursor.fetchone()
                 if row:
+                    # cursor использует RealDictCursor, поэтому row - это dict, а не tuple
                     return {
-                        "id": row[0],
-                        "user_id": row[1],
-                        "license_key": row[2],
-                        "license_type": row[3],
-                        "expires_at": row[4],
-                        "auto_renew": bool(row[5]),
-                        "renewal_count": row[6],
-                        "status": row[7],
-                        "created_at": row[8],
-                        "updated_at": row[9]
+                        "id": row["id"],
+                        "user_id": row["user_id"],
+                        "license_key": row["license_key"],
+                        "license_type": row["license_type"],
+                        "expires_at": row["expires_at"],
+                        "auto_renew": bool(row["auto_renew"]),
+                        "renewal_count": row["renewal_count"],
+                        "status": row["status"],
+                        "created_at": row["created_at"],
+                        "updated_at": row["updated_at"]
                     }
                 return None
         except Exception as e:
@@ -2174,7 +2151,7 @@ class DatabaseManager:
                     expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
                 cursor.execute(
                     """INSERT INTO subscriptions (user_id, license_key, license_type, expires_at, auto_renew, status)
-                       VALUES (?, ?, ?, ?, ?, 'active')""",
+                       VALUES (%s, %s, %s, %s, %s, 'active')""",
                     (user_id, license_key, license_type, expires_at, auto_renew)
                 )
                 self._commit_if_needed(conn)
@@ -2194,8 +2171,8 @@ class DatabaseManager:
                     expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
                 cursor.execute(
                     """UPDATE subscriptions 
-                       SET expires_at = ?, renewal_count = renewal_count + 1, updated_at = ?
-                       WHERE user_id = ? AND status = 'active'""",
+                       SET expires_at = %s, renewal_count = renewal_count + 1, updated_at = %s
+                       WHERE user_id = %s AND status = 'active'""",
                     (expires_at, datetime.now(), user_id)
                 )
                 self._commit_if_needed(conn)
@@ -2217,16 +2194,17 @@ class DatabaseManager:
                 cursor.execute(self._adapt_query(query), (license_key,))
                 row = cursor.fetchone()
                 if row:
+                    # cursor использует RealDictCursor, поэтому row - это dict, а не tuple
                     return {
-                        "payment_id": row[0],
-                        "user_id": row[1],
-                        "amount": row[2],
-                        "license_type": row[3],
-                        "status": row[4],
-                        "license_key": row[5],
-                        "is_renewal": bool(row[6]) if row[6] is not None else False,
-                        "created_at": row[7],
-                        "updated_at": row[8]
+                        "payment_id": row["payment_id"],
+                        "user_id": row["user_id"],
+                        "amount": row["amount"],
+                        "license_type": row["license_type"],
+                        "status": row["status"],
+                        "license_key": row["license_key"],
+                        "is_renewal": bool(row["is_renewal"]) if row["is_renewal"] is not None else False,
+                        "created_at": row["created_at"],
+                        "updated_at": row["updated_at"]
                     }
                 return None
         except Exception as e:
@@ -2273,7 +2251,9 @@ class DatabaseManager:
                 if not result:
                     return None
 
-                user_id, expires_str = result
+                # cursor использует RealDictCursor, поэтому result - это dict, а не tuple
+                user_id = result["user_id"]
+                expires_str = result["expires_at"]
 
                 if expires_str:
                     try:
