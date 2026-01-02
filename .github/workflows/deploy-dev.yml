@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.8.0
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
@@ -37,4 +35,6 @@ jobs:
 
             echo "===> DEV deploy done"
 
+          sudo systemctl restart avqon-backend-dev
+          echo "DEV deploy done"
           EOF
