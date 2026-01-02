@@ -21,32 +21,20 @@ jobs:
       - name: Deploy to DEV server
         run: |
           ssh -o StrictHostKeyChecking=no \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
 
             set -e
 
-<<<<<<< HEAD
-            echo "===> Go to DEV directory"
+            echo "===> Update DEV code"
             cd /opt/avqon-dev
 
-            echo "===> Update DEV branch"
-=======
-            cd /opt/avqon-dev
-
->>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
             git fetch origin
             git checkout dev
             git reset --hard origin/dev
 
-<<<<<<< HEAD
             echo "===> Restart DEV backend"
             sudo systemctl restart avqon-backend-dev
 
-            echo "===> DEV deployment finished successfully"
-=======
-            sudo systemctl restart avqon-backend-dev
-
-            echo "DEV deploy done"
->>>>>>> 7c2fa51 (fix(ci): restore workflows and correct paths)
+            echo "===> DEV deploy done"
 
           EOF
