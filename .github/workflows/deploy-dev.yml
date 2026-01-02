@@ -4,25 +4,20 @@ on:
   push:
     branches:
       - dev
-      - develop
-      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Забираем репозиторий (нужно GitHub Actions)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Подключаем SSH-ключ для доступа к серверу
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
-      # 3. Деплой на DEV-сервер
       - name: Deploy to DEV server
         run: |
           ssh -o StrictHostKeyChecking=no \
@@ -30,24 +25,16 @@ jobs:
 
             set -e
 
-            echo "===> Go to project directory"
-            cd /opt/aegis
+            echo "===> Go to DEV directory"
+            cd /opt/avqon-dev
 
-            echo "===> Update repository"
+            echo "===> Update DEV branch"
             git fetch origin
-            git checkout main
-            git reset --hard origin/main
+            git checkout dev
+            git reset --hard origin/dev
 
-            echo "===> Sync website files to DEV directory"
-            rsync -av --delete \
-              /opt/aegis/aegis-website/ \
-              /opt/aegis/aegis-website/dev/ \
-              --exclude dev \
-              --exclude prod \
-              --exclude .git
-
-            echo "===> Restart DEV backend service"
-            sudo systemctl restart aegis-backend-dev
+            echo "===> Restart DEV backend"
+            sudo systemctl restart avqon-backend-dev
 
             echo "===> DEV deployment finished successfully"
 
