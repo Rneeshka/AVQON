@@ -1,4 +1,4 @@
--- PostgreSQL initialization script for AEGIS DEV
+-- PostgreSQL initialization script for AVQON DEV
 -- This script creates all necessary tables for the application
 -- Run automatically on first container start via docker-entrypoint-initdb.d
 

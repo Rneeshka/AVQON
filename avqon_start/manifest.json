@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AEGIS - Антивирусное расширение",
-  "version": "1.0.4",
-  "description": "Антивирусное расширение для защиты от вредоносных URL и файлов",
+  "name": "AVQON",
+  "version": "1.0.6",
+  "description": "Расширение обеспечивающие безопасность в интеренете",
   "permissions": [
     "storage",
     "activeTab",
@@ -12,22 +12,22 @@
     "sidePanel"
   ],
   "host_permissions": [
-  "https://api.aegis.builders/*",
-  "wss://api.aegis.builders/*",
-  "https://api-dev.aegis.builders/*",
-  "wss://api-dev.aegis.builders/*"
+  "https://prod.avqon.com/*",
+  "wss://prod.avqon.com/*",
+  "https://dev.avqon.com/*",
+  "wss://dev.avqon.com/*"
 ],
   
   "content_security_policy": {
-  "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.aegis.builders wss://api.aegis.builders https://api-dev.aegis.builders wss://api-dev.aegis.builders;",
-  "sandbox": "sandbox allow-scripts; script-src 'self'; connect-src https://api.aegis.builders wss://api.aegis.builders;",
-  "content_scripts": "script-src 'self'; connect-src 'self' https://api.aegis.builders wss://api.aegis.builders;"
+  "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com https://dev.avqon.com wss://dev.avqon.com;",
+  "sandbox": "sandbox allow-scripts; script-src 'self'; connect-src https://prod.avqon.com wss://prod.avqon.com;",
+  "content_scripts": "script-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com;"
   },
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "AEGIS",
+    "default_title": "AVQON",
     "default_icon": {
       "16": "icons/logo16.png",
       "32": "icons/logo32.png",

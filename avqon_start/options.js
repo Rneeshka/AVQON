@@ -1,6 +1,6 @@
 // options.js
 (function() {
-  const DEFAULT_API_BASE = window.AEGIS_CONFIG?.API_BASE || 'https://api.aegis.builders';
+  const DEFAULT_API_BASE = window.AVQON_CONFIG?.API_BASE || 'https://prod.avqon.com';
   const defaults = {
     antivirusEnabled: true,
     linkCheck: true,
@@ -52,7 +52,7 @@
 
   function normalizeApiBase(v) {
     let base = (v || '').toString().trim();
-    if (!base) return window.AEGIS_CONFIG?.API_BASE || DEFAULT_API_BASE;
+    if (!base) return window.AVQON_CONFIG?.API_BASE || DEFAULT_API_BASE;
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }
@@ -325,7 +325,7 @@
       
       // Сохраняем API ключ, если он был указан
       if (apiKey) {
-        await chrome.storage.sync.set({ apiKey });
+      await chrome.storage.sync.set({ apiKey });
       }
       
       // Автоматически входим
@@ -358,7 +358,7 @@
               await chrome.storage.sync.set({ apiKey });
             }
           } catch (bindError) {
-            console.error('[Aegis Options] Error binding API key:', bindError);
+            console.error('[AVQON Options] Error binding API key:', bindError);
           }
         }
         
@@ -477,13 +477,13 @@
   el.save.addEventListener('click', save);
   el.reset.addEventListener('click', (e) => { e.preventDefault(); reset(); });
   
-  // Кнопка перехода на сайт AEGIS (ранее Telegram бот)
+  // Кнопка перехода на сайт AVQON (ранее Telegram бот)
   if (el.openWebsiteBtn) {
     el.openWebsiteBtn.addEventListener('click', (e) => {
       e.preventDefault();
       const websiteUrl =
-        (window.AEGIS_CONFIG && window.AEGIS_CONFIG.WEBSITE_URL) ||
-        'https://www.aegis.builders';
+        (window.AVQON_CONFIG && window.AVQON_CONFIG.WEBSITE_URL) ||
+        'https://avqon.com';
       window.open(websiteUrl, '_blank');
     });
   }
@@ -534,7 +534,7 @@
         await updateHoverScanState();
         alert('✅ API ключ привязан к аккаунту! Анализ по наведению теперь доступен.');
       } catch (error) {
-        console.error('[Aegis Options] Error saving API key:', error);
+        console.error('[AVQON Options] Error saving API key:', error);
         alert('❌ ' + (error.message || 'Ошибка сохранения ключа'));
       }
     });
