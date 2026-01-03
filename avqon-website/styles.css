@@ -1,4 +1,4 @@
-/* ===== CSS Variables (AEGIS Brand Colors - Ultramarine & Black) ===== */
+/* ===== CSS Variables (AVQON Brand Colors - Ultramarine & Black) ===== */
 :root {
     /* Ultramarine colors - немного темнее */
     --primary: #2E4FC7; /* Darker Royal Blue / Ultramarine */
@@ -945,7 +945,7 @@ section {
 }
 
 /* ===== Cursor Tooltip (как в расширении) ===== */
-.aegis-hover-tooltip {
+.avqon-hover-tooltip {
     position: fixed;
     background: #0f172a;
     color: #E2E8F0;
@@ -963,22 +963,22 @@ section {
     line-height: 1.4;
 }
 
-.aegis-hover-tooltip[data-variant="safe"] {
+.avqon-hover-tooltip[data-variant="safe"] {
     border-color: rgba(16,185,129,0.4);
     box-shadow: 0 14px 32px rgba(16,185,129,0.2);
 }
 
-.aegis-hover-tooltip[data-variant="malicious"] {
+.avqon-hover-tooltip[data-variant="malicious"] {
     border-color: rgba(239,68,68,0.5);
     box-shadow: 0 14px 32px rgba(239,68,68,0.25);
 }
 
-.aegis-hover-tooltip[data-variant="suspicious"] {
+.avqon-hover-tooltip[data-variant="suspicious"] {
     border-color: rgba(245,158,11,0.45);
     box-shadow: 0 14px 32px rgba(245,158,11,0.25);
 }
 
-.aegis-hover-tooltip[data-variant="unknown"] {
+.avqon-hover-tooltip[data-variant="unknown"] {
     border-color: rgba(148,163,184,0.5);
 }
 
