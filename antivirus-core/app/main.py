@@ -1243,15 +1243,14 @@ async def validate_token_endpoint(request: Request):
 async def create_api_key(request: Request):
     """Создание нового премиум API ключа."""
     try:
-        # Проверка авторизации через Bearer token (для Telegram-бота)
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header.split(" ", 1)[1].strip()
-            import os
-            # env.env уже загружен в начале файла через _load_env_file()
-            admin_token = os.getenv("ADMIN_API_TOKEN", "")
-            if token != admin_token:
-                raise HTTPException(status_code=403, detail="Invalid authorization token")
+        # Проверка авторизации через X-Admin-Token
+        import os
+        # env.env уже загружен в начале файла через _load_env_file()
+        admin_token = os.getenv("ADMIN_API_TOKEN", "")
+        
+        token_header = request.headers.get("X-Admin-Token", "")
+        if not token_header or token_header != admin_token:
+            raise HTTPException(status_code=403, detail="Invalid authorization token")
         
         # Получаем данные из JSON body
         body = await request.json()

@@ -1,13 +1,33 @@
-- name: Deploy PROD
-  run: |
-    ssh -o StrictHostKeyChecking=no \
-        -o UserKnownHostsFile=/dev/null \
-        ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-    set -e
-    cd /opt/avqon-prod/antivirus-core
-    git fetch origin
-    git checkout main
-    git pull origin main
-    sudo systemctl restart avqon-backend-prod
-    echo "PROD deploy done"
-    EOF
+name: Deploy PROD (by tag)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy PROD
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          set -e
+
+          cd /opt/avqon-prod/antivirus-core
+
+          git fetch --tags
+          git checkout $GITHUB_REF_NAME
+
+          sudo systemctl restart avqon-backend-prod
+          echo "PROD deploy done for version $GITHUB_REF_NAME"
+          EOF

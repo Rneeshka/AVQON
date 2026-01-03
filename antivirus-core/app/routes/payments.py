@@ -471,7 +471,7 @@ async def generate_license_key_internal(email: str, username: str, is_lifetime: 
         logger.info(f"[PAYMENTS] Calling internal API: {api_url}")
         logger.info(f"[PAYMENTS] Request data: user_id={user_id}, expires_days={expires_days}, license_type={license_type}")
         
-        headers = {"Authorization": f"Bearer {admin_token}"}
+        headers = {"X-Admin-Token": admin_token}
         
         async with aiohttp.ClientSession() as session:
             async with session.post(api_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
@@ -516,7 +516,7 @@ async def renew_license_internal(license_key: str, extend_days: int = 30) -> boo
             "extend_days": extend_days
         }
         
-        headers = {"Authorization": f"Bearer {admin_token}"}
+        headers = {"X-Admin-Token": admin_token}
         
         async with aiohttp.ClientSession() as session:
             async with session.post(extend_url, json=data, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
