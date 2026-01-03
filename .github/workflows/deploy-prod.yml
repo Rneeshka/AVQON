@@ -1,18 +1,14 @@
-name: Deploy PROD
+name: Deploy PROD (by tag)
 
 on:
   push:
-    branches:
-      - main
-# ИЛИ (лучше):
-# on:
-#   push:
-#     tags:
-#       - 'v*.*.*'
+    tags:
+      - 'v*.*.*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -22,11 +18,16 @@ jobs:
 
       - name: Deploy PROD
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           set -e
-          cd /opt/avqon-prod
-          git fetch origin
-          git checkout main
-          git reset --hard origin/main
+
+          cd /opt/avqon-prod/antivirus-core
+
+          git fetch --tags
+          git checkout $GITHUB_REF_NAME
+
           sudo systemctl restart avqon-backend-prod
+          echo "PROD deploy done for version $GITHUB_REF_NAME"
           EOF
