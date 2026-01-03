@@ -893,6 +893,17 @@ async function getApiBase() {
   try {
   const storage = await new Promise(r => chrome.storage.sync.get(['apiBase'], r));
     if (storage?.apiBase) {
+      // МИГРАЦИЯ: Автоматически обновляем старые URL на новые
+      const oldUrl = storage.apiBase.toLowerCase();
+      if (oldUrl.includes('api.aegis.builders') || oldUrl.includes('aegis.builders')) {
+        console.log('[AVQON] Migrating old API URL from storage:', storage.apiBase);
+        // Обновляем на правильный URL
+        const newUrl = CURRENT_CONFIG.API_BASE;
+        chrome.storage.sync.set({ apiBase: newUrl }, () => {
+          console.log('[AVQON] Migrated API URL to:', newUrl);
+        });
+        return newUrl;
+      }
       return storage.apiBase;
     }
   } catch (e) {

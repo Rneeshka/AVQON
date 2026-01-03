@@ -53,6 +53,18 @@
   function normalizeApiBase(v) {
     let base = (v || '').toString().trim();
     if (!base) return window.AVQON_CONFIG?.API_BASE || DEFAULT_API_BASE;
+    
+    // МИГРАЦИЯ: Автоматически обновляем старые URL на новые
+    const oldUrl = base.toLowerCase();
+    if (oldUrl.includes('api.aegis.builders') || oldUrl.includes('aegis.builders')) {
+      console.log('[AVQON] Migrating old API URL:', base);
+      base = window.AVQON_CONFIG?.API_BASE || DEFAULT_API_BASE;
+      // Сохраняем обновленный URL
+      chrome.storage.sync.set({ apiBase: base }, () => {
+        console.log('[AVQON] Migrated API URL to:', base);
+      });
+    }
+    
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }

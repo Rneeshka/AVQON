@@ -3,7 +3,7 @@
     linkCheck: true,
     hoverScan: true,
     notify: true,
-    apiBase: window.AEGIS_CONFIG?.API_BASE || 'https://api.aegis.builders',
+    apiBase: window.AVQON_CONFIG?.API_BASE || 'https://prod.avqon.com',
     hoverTheme: 'classic'
   };
 
@@ -74,6 +74,18 @@
   function normalizeApiBase(value) {
     let base = (value || '').toString().trim();
     if (!base) return DEFAULTS.apiBase;
+    
+    // МИГРАЦИЯ: Автоматически обновляем старые URL на новые
+    const oldUrl = base.toLowerCase();
+    if (oldUrl.includes('api.aegis.builders') || oldUrl.includes('aegis.builders')) {
+      console.log('[AVQON] Migrating old API URL:', base);
+      base = window.AVQON_CONFIG?.API_BASE || DEFAULTS.apiBase;
+      // Сохраняем обновленный URL
+      chrome.storage.sync.set({ apiBase: base }, () => {
+        console.log('[AVQON] Migrated API URL to:', base);
+      });
+    }
+    
     if (!/^https?:\/\//i.test(base)) base = `https://${base}`;
     try {
       const url = new URL(base);
@@ -1292,14 +1304,14 @@
       scanActiveTab();
       
     });
-    // Обработчик для кнопки перехода на сайт AEGIS
+    // Обработчик для кнопки перехода на сайт AVQON
     const botLink = document.getElementById('open-telegram-bot');
     if (botLink) {
       botLink.addEventListener('click', (e) => {
         e.preventDefault();
         const websiteUrl =
-          (window.AEGIS_CONFIG && window.AEGIS_CONFIG.WEBSITE_URL) ||
-          'https://www.aegis.builders';
+          (window.AVQON_CONFIG && window.AVQON_CONFIG.WEBSITE_URL) ||
+          'https://avqon.com';
         chrome.tabs.create({ url: websiteUrl });
       });
     }
