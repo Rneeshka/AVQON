@@ -61,10 +61,12 @@ class ServerConfig:
     # DEV окружение
     API_BASE_DEV = "https://dev.avqon.com"
     WS_BASE_DEV = "wss://dev.avqon.com"
+    INTERNAL_API_BASE_DEV = "http://127.0.0.1:8000"
     
     # PROD окружение
     API_BASE_PROD = "https://prod.avqon.com"
     WS_BASE_PROD = "wss://prod.avqon.com"
+    INTERNAL_API_BASE_PROD = "http://127.0.0.1:8100"
     
     # Текущие значения в зависимости от окружения
     @property
@@ -74,6 +76,11 @@ class ServerConfig:
     @property
     def WS_BASE(self):
         return self.WS_BASE_DEV if self.ENVIRONMENT == "dev" else self.WS_BASE_PROD
+    
+    @property
+    def INTERNAL_API_BASE(self):
+        """Внутренний URL для API вызовов (localhost)"""
+        return self.INTERNAL_API_BASE_DEV if self.ENVIRONMENT == "dev" else self.INTERNAL_API_BASE_PROD
     
     # WebSocket endpoint path (одинаковый для всех окружений)
     WS_ENDPOINT_PATH = "/ws"

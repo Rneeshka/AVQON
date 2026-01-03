@@ -14,6 +14,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.logger import logger
 from app.database import DatabaseManager
+from app.config import server_config
 
 router = APIRouter()
 
@@ -464,8 +465,8 @@ async def generate_license_key_internal(email: str, username: str, is_lifetime: 
             "expires_days": expires_days
         }
         
-        # Используем внутренний URL (localhost)
-        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        # Используем внутренний URL из конфигурации
+        base_url = os.getenv("INTERNAL_API_BASE_URL") or server_config.INTERNAL_API_BASE
         api_url = f"{base_url}/admin/api-keys/create"
         
         logger.info(f"[PAYMENTS] Calling internal API: {api_url}")
@@ -508,7 +509,7 @@ async def renew_license_internal(license_key: str, extend_days: int = 30) -> boo
             logger.error("[PAYMENTS] ADMIN_API_TOKEN not configured")
             return False
         
-        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        base_url = os.getenv("INTERNAL_API_BASE_URL") or server_config.INTERNAL_API_BASE
         extend_url = f"{base_url}/admin/api-keys/extend"
         
         data = {
