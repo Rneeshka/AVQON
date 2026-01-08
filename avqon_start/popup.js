@@ -512,14 +512,22 @@
     const backToLoginBtn = document.getElementById('back-to-login-btn');
 
     function applyAccountMode(mode) {
-      const normalized = mode || 'login';
-      if (document.body) {
-        document.body.setAttribute('data-account-mode', normalized);
-      }
-      if (loginForm) loginForm.style.display = normalized === 'login' ? 'block' : 'none';
-      if (registerForm) registerForm.style.display = normalized === 'register' ? 'block' : 'none';
-      if (forgotForm) forgotForm.style.display = normalized === 'forgot' ? 'block' : 'none';
-      if (accountInfo) accountInfo.style.display = normalized === 'account' ? 'block' : 'none';
+      // КРИТИЧНО: Все формы аккаунта полностью скрыты (бесплатный режим)
+      // Старый код закомментирован (можно вернуть):
+      // const normalized = mode || 'login';
+      // if (document.body) {
+      //   document.body.setAttribute('data-account-mode', normalized);
+      // }
+      // if (loginForm) loginForm.style.display = normalized === 'login' ? 'block' : 'none';
+      // if (registerForm) registerForm.style.display = normalized === 'register' ? 'block' : 'none';
+      // if (forgotForm) forgotForm.style.display = normalized === 'forgot' ? 'block' : 'none';
+      // if (accountInfo) accountInfo.style.display = normalized === 'account' ? 'block' : 'none';
+      
+      // Все формы аккаунта всегда скрыты
+      if (loginForm) loginForm.style.display = 'none';
+      if (registerForm) registerForm.style.display = 'none';
+      if (forgotForm) forgotForm.style.display = 'none';
+      if (accountInfo) accountInfo.style.display = 'none';
     }
 
     function showLogin() {
@@ -528,10 +536,16 @@
       if (currentMode === 'account') return;
       applyAccountMode('login');
     }
+    // КРИТИЧНО: Функция регистрации закомментирована (бесплатный режим)
+    // Старый код закомментирован (можно вернуть):
+    // function showRegister() {
+    //   const currentMode = document.body?.getAttribute('data-account-mode');
+    //   if (currentMode === 'account') return;
+    //   applyAccountMode('register');
+    // }
     function showRegister() {
-      const currentMode = document.body?.getAttribute('data-account-mode');
-      if (currentMode === 'account') return;
-      applyAccountMode('register');
+      // Регистрация отключена - анализ теперь бесплатный
+      console.log('[AVQON] Registration disabled - hover analysis is now free');
     }
     function showForgot() {
       const currentMode = document.body?.getAttribute('data-account-mode');
@@ -539,24 +553,33 @@
       applyAccountMode('forgot');
     }
 
-    if (registerBtn) registerBtn.addEventListener('click', showRegister);
+    // КРИТИЧНО: Обработчик регистрации отключен (бесплатный режим)
+    // Старый код закомментирован (можно вернуть):
+    // if (registerBtn) registerBtn.addEventListener('click', showRegister);
+    // Регистрация не нужна - анализ бесплатный
     if (loginBtn) loginBtn.addEventListener('click', showLogin);
     if (forgotBtn) forgotBtn.addEventListener('click', showForgot);
     if (backToLoginBtn) backToLoginBtn.addEventListener('click', showLogin);
 
-    chrome.storage?.sync?.get(['account', 'apiKey'], async (data) => {
-      if (chrome.runtime?.lastError) {
-        applyAccountMode('login');
-        return;
-      }
-      if (data?.account) {
-        applyAccountMode('account');
-        await showAccountInfo(data.account);
-        await updateHoverScanState();
-      } else {
-        applyAccountMode('login');
-      }
-    });
+    // КРИТИЧНО: Аккаунты полностью скрыты (бесплатный режим)
+    // Старый код закомментирован (можно вернуть):
+    // chrome.storage?.sync?.get(['account', 'apiKey'], async (data) => {
+    //   if (chrome.runtime?.lastError) {
+    //     applyAccountMode('login');
+    //     return;
+    //   }
+    //   if (data?.account) {
+    //     applyAccountMode('account');
+    //     await showAccountInfo(data.account);
+    //     await updateHoverScanState();
+    //   } else {
+    //     applyAccountMode('login');
+    //   }
+    // });
+    
+    // Всегда скрываем формы аккаунта и включаем hover
+    applyAccountMode();
+    updateHoverScanState().catch(() => {});
 
     // Обработчики кнопок
     const loginSubmitBtn = document.getElementById('login-btn');
@@ -568,9 +591,11 @@
     if (loginSubmitBtn) {
       loginSubmitBtn.addEventListener('click', handleLogin);
     }
-    if (registerSubmitBtn) {
-      registerSubmitBtn.addEventListener('click', handleRegister);
-    }
+    // КРИТИЧНО: Обработчик регистрации отключен (бесплатный режим)
+    // Старый код закомментирован (можно вернуть):
+    // if (registerSubmitBtn) {
+    //   registerSubmitBtn.addEventListener('click', handleRegister);
+    // }
     if (forgotSubmitBtn) {
       forgotSubmitBtn.addEventListener('click', handleForgotPassword);
     }
@@ -635,30 +660,40 @@
    * Обновляет состояние ползунка "анализ по наведению" в зависимости от наличия аккаунта и API ключа
    */
   async function updateHoverScanState() {
-    const storage = await new Promise((resolve) => {
-      chrome.storage.sync.get(['account', 'apiKey'], resolve);
-    });
-    const hasAccount = !!storage.account;
-    const hasApiKey = !!storage.apiKey && storage.apiKey.trim().length > 0;
+    // КРИТИЧНО: Анализ по наведению теперь бесплатный, всегда доступен
+    // Старая проверка закомментирована (можно вернуть если нужно):
+    // const storage = await new Promise((resolve) => {
+    //   chrome.storage.sync.get(['account', 'apiKey'], resolve);
+    // });
+    // const hasAccount = !!storage.account;
+    // const hasApiKey = !!storage.apiKey && storage.apiKey.trim().length > 0;
+    // 
+    // const hoverToggle = elements.hoverToggle;
+    // if (!hoverToggle) return;
+    // 
+    // // Включаем hover только если есть аккаунт И ключ
+    // if (hasAccount && hasApiKey) {
+    //   hoverToggle.disabled = false;
+    //   const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
+    //   if (parent) parent.style.opacity = '1';
+    // } else {
+    //   // Блокируем и выключаем, если нет аккаунта или ключа
+    //   hoverToggle.checked = false;
+    //   hoverToggle.disabled = true;
+    //   const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
+    //   if (parent) parent.style.opacity = '0.5';
+    //   
+    //   // Сохраняем выключенное состояние
+    //   state.settings.hoverScan = false;
+    //   await saveSettings(state.settings);
+    // }
     
+    // Теперь hover всегда доступен
     const hoverToggle = elements.hoverToggle;
-    if (!hoverToggle) return;
-    
-    // Включаем hover только если есть аккаунт И ключ
-    if (hasAccount && hasApiKey) {
+    if (hoverToggle) {
       hoverToggle.disabled = false;
       const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
       if (parent) parent.style.opacity = '1';
-    } else {
-      // Блокируем и выключаем, если нет аккаунта или ключа
-      hoverToggle.checked = false;
-      hoverToggle.disabled = true;
-      const parent = hoverToggle.closest('.toggle-group') || hoverToggle.parentElement;
-      if (parent) parent.style.opacity = '0.5';
-      
-      // Сохраняем выключенное состояние
-      state.settings.hoverScan = false;
-      await saveSettings(state.settings);
     }
   }
   

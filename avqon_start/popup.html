@@ -513,6 +513,53 @@
       }
 
       .hidden { display: none !important; }
+      
+      /* КРИТИЧНО: Форма регистрации всегда скрыта (бесплатный режим) */
+      /* Старый код закомментирован (можно вернуть): */
+      /* Можно добавить дополнительные стили если нужно */
+      #register-form {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      #show-register-btn {
+        display: none !important;
+      }
+      
+      /* КРИТИЧНО: Полностью скрываем все элементы аккаунта (бесплатный режим) */
+      .section-title:has(+ .account-card),
+      .section-title:has(+ * .account-card),
+      .account-card,
+      #account-info,
+      #login-form,
+      #register-form,
+      #forgot-form,
+      #account-status,
+      #account-username,
+      #account-email,
+      #account-api-key-popup,
+      #account-save-api-key-popup-btn,
+      #login-btn,
+      #logout-btn,
+      #forgot-password-btn,
+      #show-register-btn,
+      #show-login-btn,
+      #back-to-login-btn {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Скрываем секцию "Аккаунт" - используем более специфичный селектор */
+      .section-title:has(+ .account-card) {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -630,8 +677,9 @@
               </div>
             </div>
 
-            <div class="section-title">Аккаунт</div>
-            <div class="account-card">
+            <!-- КРИТИЧНО: Секция аккаунта полностью скрыта (бесплатный режим) -->
+            <!-- <div class="section-title">Аккаунт</div> -->
+            <div class="account-card" style="display:none !important;">
               <div id="account-info" style="display:none;">
                 <div class="avatar" id="account-avatar">U</div>
                 <div class="form-field">
@@ -663,12 +711,14 @@
                 </div>
                 <div class="actions">
                   <button type="button" class="btn primary" id="login-btn">Войти</button>
-                  <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button>
+                  <!-- Регистрация временно скрыта (можно вернуть) -->
+                  <!-- <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button> -->
                   <button type="button" class="btn secondary" id="forgot-password-btn">Забыли пароль?</button>
                 </div>
               </form>
 
-              <form id="register-form" style="display:none;">
+              <!-- Форма регистрации временно скрыта (можно вернуть) -->
+              <form id="register-form" style="display:none !important;">
                 <div class="form-field">
                   <label for="register-username">Логин</label>
                   <input type="text" id="register-username" placeholder="Придумайте логин" />
@@ -932,13 +982,14 @@
               </label>
             </div>
 
+            <!-- КРИТИЧНО: Секция аккаунта полностью скрыта (бесплатный режим) -->
             <!-- Аккаунт -->
-            <div class="analysis-card" style="margin-top:12px;">
+            <div class="analysis-card" style="display:none !important; margin-top:12px;">
               <div class="row" style="margin-bottom:8px;">
                 <div class="status" id="account-status">Вход в аккаунт</div>
               </div>
               <!-- Блок аккаунта (когда вошли) -->
-              <div id="account-info" style="display:none;">
+              <div id="account-info" style="display:none !important;">
                 <div class="kv" style="margin-bottom:8px;">
                   <div class="k">Пользователь</div><div class="v" id="account-username">—</div>
                   <div class="k">Email</div><div class="v" id="account-email">—</div>
@@ -956,13 +1007,14 @@
                 </div>
                 <div class="actions">
                   <button type="button" class="btn primary sm" id="login-btn">Войти</button>
-                  <button type="button" class="btn secondary sm" id="show-register-btn">Регистрация</button>
+                  <!-- Регистрация временно скрыта (можно вернуть) -->
+                  <!-- <button type="button" class="btn secondary sm" id="show-register-btn">Регистрация</button> -->
                   <button type="button" class="btn secondary sm" id="forgot-password-btn">Забыли пароль?</button>
                 </div>
               </form>
 
-              <!-- Регистрация -->
-              <form id="register-form" style="display:none;">
+              <!-- Форма регистрации временно скрыта (можно вернуть) -->
+              <form id="register-form" style="display:none !important;">
                 <div class="kv" style="margin-bottom:8px;">
                   <div class="k">Логин</div><div class="v"><input id="register-username" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>
                   <div class="k">Email</div><div class="v"><input id="register-email" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); color:var(--text);" /></div>

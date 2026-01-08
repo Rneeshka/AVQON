@@ -790,23 +790,26 @@ function setupHoverListeners() {
       return;
     }
     
-    // Check if hover analysis is enabled (не требуем ключ)
-    safeStorageGet(['hoverScan','antivirusEnabled','account','apiKey'], (result) => {
+    // Check if hover analysis is enabled (теперь бесплатно, без аккаунта)
+    safeStorageGet(['hoverScan','antivirusEnabled'], (result) => {
       // КРИТИЧНО: Проверяем доступность расширения после получения storage
       if (extensionContextInvalidated || !isExtensionAvailable()) {
         if (tooltip) hideTooltip(tooltip);
         return;
       }
       
-      // Требуем: включена защита, включен hover, и есть аккаунт+apiKey
+      // Требуем только: включена защита и включен hover (без проверки аккаунта/API ключа)
       // По умолчанию считаем включенными, если ключи отсутствуют
       const antivirusEnabled = result.antivirusEnabled !== false;
       const hoverScan = result.hoverScan !== false;
-      const hasAccount = !!result.account;
-      const hasApiKey = !!result.apiKey;
       
-      // КРИТИЧНО: Если нет аккаунта - просто не показываем ничего, без промежуточных подсказок
-      if (!antivirusEnabled || !hoverScan || !hasAccount || !hasApiKey) {
+      // КРИТИЧНО: Анализ по наведению теперь бесплатный, работает без аккаунта
+      // Старая проверка закомментирована (можно вернуть если нужно):
+      // const hasAccount = !!result.account;
+      // const hasApiKey = !!result.apiKey;
+      // if (!antivirusEnabled || !hoverScan || !hasAccount || !hasApiKey) {
+      
+      if (!antivirusEnabled || !hoverScan) {
         // Скрываем тултип, если он был показан
         if (tooltip) {
           hideTooltip(tooltip);
