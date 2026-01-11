@@ -580,7 +580,10 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/payments/status/",
         "/payments/license/",
         "/payments/process/",
+<<<<<<< HEAD
         "/admin/api-keys/create",  # Использует ADMIN_API_TOKEN, не JWT
+=======
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
     )
             
     # Проверяем точное совпадение или начало пути
@@ -589,6 +592,10 @@ async def jwt_auth_middleware(request: Request, call_next):
     # Логируем для диагностики payments запросов
     if "/payments" in request.url.path:
         logger.info(f"[JWT MIDDLEWARE] Payments request: path={request.url.path}, is_public={is_public}, method={request.method}")
+    
+    # Логируем для диагностики admin api-keys запросов
+    if "/admin/api-keys/create" in request.url.path:
+        logger.info(f"[JWT MIDDLEWARE] Admin API request: path={request.url.path}, is_public={is_public}, method={request.method}, X-Admin-Token={bool(request.headers.get('X-Admin-Token'))}")
     
     if is_public:
         return await call_next(request)
@@ -1249,7 +1256,14 @@ async def create_api_key(request: Request):
         admin_token = os.getenv("ADMIN_API_TOKEN", "")
         
         token_header = request.headers.get("X-Admin-Token", "")
-        if not token_header or token_header != admin_token:
+        logger.info(f"[ADMIN API] /admin/api-keys/create called: X-Admin-Token present={bool(token_header)}, token length={len(token_header) if token_header else 0}, expected length={len(admin_token) if admin_token else 0}")
+        
+        if not token_header:
+            logger.error(f"[ADMIN API] X-Admin-Token header missing")
+            raise HTTPException(status_code=403, detail="Missing X-Admin-Token header")
+        
+        if token_header != admin_token:
+            logger.error(f"[ADMIN API] Token mismatch: received={token_header[:10]}..., expected={admin_token[:10] if admin_token else 'NOT SET'}...")
             raise HTTPException(status_code=403, detail="Invalid authorization token")
         
         # Получаем данные из JSON body
@@ -1933,7 +1947,15 @@ async def startup_event():
         app.state.yookassa_session = None
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
     
+<<<<<<< HEAD
+<<<<<<< HEAD
     logger.info("✅ AVQON Server startup complete")
+=======
+    logger.info("✅ AEGIS Server startup complete")
+>>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
+=======
+    logger.info("✅ AVQON Server startup complete")
+>>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
 
 @app.on_event("shutdown")
 async def shutdown_event():

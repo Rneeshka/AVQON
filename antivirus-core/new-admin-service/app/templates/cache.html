@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – кэш URL{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Кэш URL</h1>
+    <p class="muted">Все URL, проанализированные системой и сохраненные в кэш</p>
+</div>
+<div class="row">
+    <div class="card col">
+        <h2>Статистика</h2>
+        <div>
+            <div><strong>Whitelist записей:</strong> {{ whitelist_entries | length }}</div>
+            <div><strong>Blacklist записей:</strong> {{ blacklist_entries | length }}</div>
+            <div><strong>Всего:</strong> {{ (whitelist_entries | length) + (blacklist_entries | length) }}</div>
+        </div>
+    </div>
+    <div class="card col">
+        <h2>Очистка кэша</h2>
+        <p class="muted" style="color: #dc2626; font-weight: 600;">⚠️ ВНИМАНИЕ: Действие необратимо!</p>
+        <form method="post" action="/cache/clear" style="margin-top:12px; display:grid; gap:8px;">
+            <label>Что очистить</label>
+            <select name="target" required>
+                <option value="whitelist">Только whitelist</option>
+                <option value="blacklist">Только blacklist</option>
+                <option value="all">Весь кэш</option>
+            </select>
+            <button type="submit" style="background: #dc2626;">Очистить кэш</button>
+        </form>
+    </div>
+</div>
+<div class="card">
+    <h2>Whitelist (безопасные домены)</h2>
+    <div style="max-height:400px;overflow:auto">
+        <table>
+            <thead>
+                <tr><th>Домен</th><th>Уверенность</th><th>Соотношение</th><th>Источник</th><th>Хитов</th><th>Последний раз</th></tr>
+            </thead>
+            <tbody>
+                {% if whitelist_entries %}
+                    {% for w in whitelist_entries %}
+                    <tr>
+                        <td><a href="https://{{ w.domain }}" target="_blank">{{ w.domain }}</a></td>
+                        <td>{{ w.get('confidence', '-') }}</td>
+                        <td>{{ w.get('detection_ratio', '-') }}</td>
+                        <td>{{ w.get('source', '-') }}</td>
+                        <td>{{ w.get('hit_count', 0) }}</td>
+                        <td class="muted">{{ w.get('last_seen', '-') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Whitelist пуст</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <h2>Blacklist (опасные URL)</h2>
+    <div style="max-height:400px;overflow:auto">
+        <table>
+            <thead>
+                <tr><th>URL</th><th>Домен</th><th>Тип угрозы</th><th>Источник</th><th>Хитов</th><th>Последний раз</th></tr>
+            </thead>
+            <tbody>
+                {% if blacklist_entries %}
+                    {% for b in blacklist_entries %}
+                    <tr>
+                        <td><a href="{{ b.url }}" target="_blank">{{ b.url[:80] }}{% if b.url | length > 80 %}...{% endif %}</a></td>
+                        <td>{{ b.get('domain', '-') }}</td>
+                        <td>{{ b.get('threat_type', '-') }}</td>
+                        <td>{{ b.get('source', '-') }}</td>
+                        <td>{{ b.get('hit_count', 0) }}</td>
+                        <td class="muted">{{ b.get('last_seen', '-') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Blacklist пуст</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

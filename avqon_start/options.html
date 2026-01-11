@@ -31,6 +31,46 @@
       .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
       a { color: var(--primary); text-decoration: none; }
       a:hover { text-decoration: underline; }
+      
+      /* КРИТИЧНО: Форма регистрации всегда скрыта (бесплатный режим) */
+      /* Старый код закомментирован (можно вернуть): */
+      #register-form {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      #show-register-btn {
+        display: none !important;
+      }
+      
+      /* КРИТИЧНО: Полностью скрываем все элементы аккаунта (бесплатный режим) */
+      h2:has(+ * #login-form),
+      h2:has(+ * #account-info),
+      #account-status,
+      #login-form,
+      #register-form,
+      #forgot-form,
+      #account-info,
+      #account-username,
+      #account-email,
+      #account-api-key,
+      #account-save-api-key-btn,
+      #login-btn,
+      #logout-btn,
+      #forgot-password-btn,
+      #show-register-btn,
+      #show-login-btn,
+      #back-to-login-btn {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
     </style>
   </head>
   <body>
@@ -91,10 +131,11 @@
           </div>
       </div>
 
+      <!-- КРИТИЧНО: Секция аккаунта полностью скрыта (бесплатный режим) -->
       <!-- Секция аккаунта -->
-      <div class="card">
+      <div class="card" style="display:none !important;">
         <h2 style="margin: 0 0 12px; font-size: 18px;">Аккаунт Premium</h2>
-        <p class="muted" id="account-status" style="margin: 0 0 16px;">Не авторизован</p>
+        <p class="muted" id="account-status" style="margin: 0 0 16px; display:none !important;">Не авторизован</p>
         
         <!-- Форма входа -->
         <div id="login-form" style="display: none;">
@@ -103,7 +144,8 @@
             <input type="password" id="login-password" placeholder="Пароль" />
           </div>
           <button class="btn primary" id="login-btn">Войти</button>
-          <button class="btn" id="show-register-btn" style="margin-left: 8px;">Регистрация</button>
+          <!-- Регистрация временно скрыта (можно вернуть) -->
+          <!-- <button class="btn" id="show-register-btn" style="margin-left: 8px;">Регистрация</button> -->
           <button class="btn-secondary" id="forgot-password-btn" style="margin-top: 8px;">Забыли пароль?</button>
         </div>
 
@@ -125,8 +167,8 @@
           <button class="btn-secondary" id="back-to-login-btn">← Назад к входу</button>
         </div>
         
-        <!-- Форма регистрации -->
-        <div id="register-form" style="display: none;">
+        <!-- Форма регистрации временно скрыта (можно вернуть) -->
+        <div id="register-form" style="display: none !important;">
           <div style="display: grid; gap: 10px; margin-bottom: 12px;">
             <input type="text" id="register-username" placeholder="Username" />
             <input type="email" id="register-email" placeholder="Email" />

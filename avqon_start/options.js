@@ -53,6 +53,7 @@
   function normalizeApiBase(v) {
     let base = (v || '').toString().trim();
     if (!base) return window.AVQON_CONFIG?.API_BASE || DEFAULT_API_BASE;
+<<<<<<< HEAD
     
     // МИГРАЦИЯ: Автоматически обновляем старые URL на новые
     const oldUrl = base.toLowerCase();
@@ -65,6 +66,8 @@
       });
     }
     
+=======
+>>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }
@@ -98,12 +101,13 @@
 
   function load() {
     chrome.storage.sync.get(defaults, (cfg) => {
-      el.antivirus.checked = cfg.antivirusEnabled;
-      el.linkCheck.checked = cfg.linkCheck;
-      el.hoverScan.checked = cfg.hoverScan;
-      el.notify.checked = cfg.notify;
+      // КРИТИЧНО: Добавляем проверки на null для sidepanel (там нет этих элементов)
+      if (el.antivirus) el.antivirus.checked = cfg.antivirusEnabled;
+      if (el.linkCheck) el.linkCheck.checked = cfg.linkCheck;
+      if (el.hoverScan) el.hoverScan.checked = cfg.hoverScan;
+      if (el.notify) el.notify.checked = cfg.notify;
       const normalizedBase = normalizeApiBase(cfg.apiBase);
-      el.apiBase.value = normalizedBase;
+      if (el.apiBase) el.apiBase.value = normalizedBase;
       if (cfg.apiBase !== normalizedBase) {
         chrome.storage.sync.set({ apiBase: normalizedBase }, () => chrome.runtime?.lastError && void 0);
       }
@@ -113,32 +117,44 @@
   }
   
   async function updateHoverScanState() {
-    const data = await chrome.storage.sync.get(['account', 'apiKey']);
-    const hasAccount = !!data.account;
-    const hasApiKey = !!data.apiKey;
+    // КРИТИЧНО: Анализ по наведению теперь бесплатный, всегда доступен
+    // Старая проверка закомментирована (можно вернуть если нужно):
+    // const data = await chrome.storage.sync.get(['account', 'apiKey']);
+    // const hasAccount = !!data.account;
+    // const hasApiKey = !!data.apiKey;
+    // 
+    // // Включаем hover только если есть аккаунт и ключ
+    // if (hasAccount && hasApiKey) {
+    //   if (el.hoverScan) {
+    //     el.hoverScan.disabled = false;
+    //     if (el.hoverScan.parentElement) el.hoverScan.parentElement.style.opacity = '1';
+    //   }
+    // } else {
+    //   if (el.hoverScan) {
+    //     el.hoverScan.checked = false;
+    //     el.hoverScan.disabled = true;
+    //     if (el.hoverScan.parentElement) el.hoverScan.parentElement.style.opacity = '0.5';
+    //   }
+    // }
     
-    // Включаем hover только если есть аккаунт и ключ
-    if (hasAccount && hasApiKey) {
+    // Теперь hover всегда доступен
+    if (el.hoverScan) {
       el.hoverScan.disabled = false;
-      el.hoverScan.parentElement.style.opacity = '1';
-    } else {
-      el.hoverScan.checked = false;
-      el.hoverScan.disabled = true;
-      el.hoverScan.parentElement.style.opacity = '0.5';
+      if (el.hoverScan.parentElement) el.hoverScan.parentElement.style.opacity = '1';
     }
   }
 
   function save() {
     const cfg = {
-      antivirusEnabled: el.antivirus.checked,
-      linkCheck: el.linkCheck.checked,
-      hoverScan: el.hoverScan.checked,
-      notify: el.notify.checked,
-      apiBase: normalizeApiBase(el.apiBase.value)
+      antivirusEnabled: el.antivirus ? el.antivirus.checked : DEFAULTS.antivirusEnabled,
+      linkCheck: el.linkCheck ? el.linkCheck.checked : DEFAULTS.linkCheck,
+      hoverScan: el.hoverScan ? el.hoverScan.checked : DEFAULTS.hoverScan,
+      notify: el.notify ? el.notify.checked : DEFAULTS.notify,
+      apiBase: normalizeApiBase(el.apiBase ? el.apiBase.value : DEFAULTS.apiBase)
     };
     chrome.storage.sync.set(cfg, () => {
-      el.save.textContent = 'Сохранено';
-      setTimeout(() => (el.save.textContent = 'Сохранить'), 1200);
+      if (el.save) el.save.textContent = 'Сохранено';
+      setTimeout(() => { if (el.save) el.save.textContent = 'Сохранить'; }, 1200);
       
       // Notify background script of changes
       chrome.runtime.sendMessage({
@@ -153,18 +169,20 @@
   }
 
   // Мгновенно сохраняем переключатель hover
-  el.hoverScan.addEventListener('change', () => {
-    const cfg = {
-      antivirusEnabled: el.antivirus.checked,
-      linkCheck: el.linkCheck.checked,
-      hoverScan: el.hoverScan.checked,
-      notify: el.notify.checked,
-      apiBase: normalizeApiBase(el.apiBase.value)
-    };
-    chrome.storage.sync.set(cfg, () => {
-      chrome.runtime.sendMessage({ type: 'settings_updated', settings: cfg });
+  if (el.hoverScan) {
+    el.hoverScan.addEventListener('change', () => {
+      const cfg = {
+        antivirusEnabled: el.antivirus ? el.antivirus.checked : DEFAULTS.antivirusEnabled,
+        linkCheck: el.linkCheck ? el.linkCheck.checked : DEFAULTS.linkCheck,
+        hoverScan: el.hoverScan ? el.hoverScan.checked : DEFAULTS.hoverScan,
+        notify: el.notify ? el.notify.checked : DEFAULTS.notify,
+        apiBase: normalizeApiBase(el.apiBase ? el.apiBase.value : DEFAULTS.apiBase)
+      };
+      chrome.storage.sync.set(cfg, () => {
+        chrome.runtime.sendMessage({ type: 'settings_updated', settings: cfg });
+      });
     });
-  });
+  }
 
   // ===== ACCOUNT MANAGEMENT =====
   
@@ -184,12 +202,23 @@
     el.accountStatus.textContent = 'Восстановление пароля';
   }
   
+  // КРИТИЧНО: Функция регистрации закомментирована (бесплатный режим)
+  // Старый код закомментирован (можно вернуть):
+  // function showRegisterForm() {
+  //   el.loginForm.style.display = 'none';
+  //   el.registerForm.style.display = 'block';
+  //   el.forgotForm.style.display = 'none';
+  //   el.accountInfo.style.display = 'none';
+  //   el.accountStatus.textContent = 'Регистрация аккаунта';
+  // }
   function showRegisterForm() {
-    el.loginForm.style.display = 'none';
-    el.registerForm.style.display = 'block';
+    // Регистрация отключена - анализ теперь бесплатный
+    console.log('[AVQON] Registration disabled - hover analysis is now free');
+    // Всегда показываем форму входа
+    el.loginForm.style.display = 'block';
+    el.registerForm.style.display = 'none';
     el.forgotForm.style.display = 'none';
     el.accountInfo.style.display = 'none';
-    el.accountStatus.textContent = 'Регистрация аккаунта';
   }
   
   async function showAccountInfo(account) {
@@ -219,14 +248,23 @@
   }
   
   async function loadAccount() {
-    const data = await chrome.storage.sync.get(['account', 'apiKey']);
-    if (data.account) {
-      await showAccountInfo(data.account);
-      // Обновляем состояние hover при загрузке
-      updateHoverScanState();
-    } else {
-      showLoginForm();
-    }
+    // КРИТИЧНО: Аккаунты полностью скрыты (бесплатный режим)
+    // Старый код закомментирован (можно вернуть):
+    // const data = await chrome.storage.sync.get(['account', 'apiKey']);
+    // if (data.account) {
+    //   await showAccountInfo(data.account);
+    //   // Обновляем состояние hover при загрузке
+    //   updateHoverScanState();
+    // } else {
+    //   showLoginForm();
+    // }
+    
+    // Всегда скрываем формы аккаунта и включаем hover
+    if (el.loginForm) el.loginForm.style.display = 'none';
+    if (el.registerForm) el.registerForm.style.display = 'none';
+    if (el.forgotForm) el.forgotForm.style.display = 'none';
+    if (el.accountInfo) el.accountInfo.style.display = 'none';
+    await updateHoverScanState();
   }
   
   async function handleLogin() {
@@ -486,8 +524,9 @@
     });
   }
 
-  el.save.addEventListener('click', save);
-  el.reset.addEventListener('click', (e) => { e.preventDefault(); reset(); });
+  // КРИТИЧНО: Добавляем проверки на null для sidepanel (там нет этих элементов)
+  if (el.save) el.save.addEventListener('click', save);
+  if (el.reset) el.reset.addEventListener('click', (e) => { e.preventDefault(); reset(); });
   
   // Кнопка перехода на сайт AVQON (ранее Telegram бот)
   if (el.openWebsiteBtn) {
@@ -553,15 +592,20 @@
   }
   
   // Account event listeners
-  el.showLoginBtn.addEventListener('click', showLoginForm);
-  el.showRegisterBtn.addEventListener('click', showRegisterForm);
-  el.forgotPasswordBtn.addEventListener('click', showForgotForm);
-  el.backToLoginBtn.addEventListener('click', showLoginForm);
-  el.loginBtn.addEventListener('click', handleLogin);
-  el.registerBtn.addEventListener('click', handleRegister);
-  el.forgotBtn.addEventListener('click', handleForgotPassword);
-  el.resetBtn.addEventListener('click', handleResetPassword);
-  el.logoutBtn.addEventListener('click', handleLogout);
+  // КРИТИЧНО: Добавляем проверки на null, чтобы не было ошибок если элементы не найдены
+  if (el.showLoginBtn) el.showLoginBtn.addEventListener('click', showLoginForm);
+  // КРИТИЧНО: Обработчик регистрации отключен (бесплатный режим)
+  // Старый код закомментирован (можно вернуть):
+  // if (el.showRegisterBtn) el.showRegisterBtn.addEventListener('click', showRegisterForm);
+  // Регистрация не нужна - анализ бесплатный
+  if (el.forgotPasswordBtn) el.forgotPasswordBtn.addEventListener('click', showForgotForm);
+  if (el.backToLoginBtn) el.backToLoginBtn.addEventListener('click', showLoginForm);
+  if (el.loginBtn) el.loginBtn.addEventListener('click', handleLogin);
+  // КРИТИЧНО: Обработчик регистрации отключен (бесплатный режим)
+  // if (el.registerBtn) el.registerBtn.addEventListener('click', handleRegister);
+  if (el.forgotBtn) el.forgotBtn.addEventListener('click', handleForgotPassword);
+  if (el.resetBtn) el.resetBtn.addEventListener('click', handleResetPassword);
+  if (el.logoutBtn) el.logoutBtn.addEventListener('click', handleLogout);
   
   // Initialize
   document.addEventListener('DOMContentLoaded', load);

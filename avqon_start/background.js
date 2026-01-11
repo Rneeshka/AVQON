@@ -1594,25 +1594,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (!cfg.antivirusEnabled || !cfg.hoverScan) {
         return;
       }
-      const accData = await new Promise(r => chrome.storage.sync.get(['account', 'apiKey'], r));
-      const hasAccount = !!accData.account;
-      const hasApiKey = !!accData.apiKey;
-      if (!hasAccount || !hasApiKey) {
-        if (tabId != null) {
-          chrome.tabs.sendMessage(tabId, {
-            type: 'hover_result',
-            url,
-            res: {
-              safe: null,
-              details: 'Войдите в аккаунт, чтобы включить Hover-анализ',
-              source: 'error'
-            },
-            mouseX: msg.mouseX,
-            mouseY: msg.mouseY
-          });
-        }
-        return;
-      }
+      // КРИТИЧНО: Анализ по наведению теперь бесплатный, работает без аккаунта
+      // Старая проверка закомментирована (можно вернуть если нужно):
+      // const accData = await new Promise(r => chrome.storage.sync.get(['account', 'apiKey'], r));
+      // const hasAccount = !!accData.account;
+      // const hasApiKey = !!accData.apiKey;
+      // if (!hasAccount || !hasApiKey) {
+      //   if (tabId != null) {
+      //     chrome.tabs.sendMessage(tabId, {
+      //       type: 'hover_result',
+      //       url,
+      //       res: {
+      //         safe: null,
+      //         details: 'Войдите в аккаунт, чтобы включить Hover-анализ',
+      //         source: 'error'
+      //       },
+      //     });
+      //   }
+      //   return;
+      // }
+      
+      // Теперь анализ работает без аккаунта - продолжаем выполнение
       
       try {
         // КРИТИЧНО: Проверяем кэш перед запросом

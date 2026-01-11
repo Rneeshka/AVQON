@@ -592,6 +592,46 @@
       ::-webkit-scrollbar-thumb:hover {
         background: var(--text-dim);
       }
+      
+      /* КРИТИЧНО: Форма регистрации всегда скрыта (бесплатный режим) */
+      /* Старый код закомментирован (можно вернуть): */
+      #register-form {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      #show-register-btn {
+        display: none !important;
+      }
+      
+      /* КРИТИЧНО: Полностью скрываем все элементы аккаунта (бесплатный режим) */
+      .section-title:has(+ * #login-form),
+      .section-title:has(+ * #account-info),
+      #account-status,
+      #login-form,
+      #register-form,
+      #forgot-form,
+      #account-info,
+      #account-username,
+      #account-email,
+      #account-api-key-sidepanel,
+      #account-save-api-key-sidepanel-btn,
+      #login-btn,
+      #logout-btn,
+      #forgot-password-btn,
+      #show-register-btn,
+      #show-login-btn,
+      #back-to-login-btn {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
     </style>
   </head>
   <body>
@@ -684,9 +724,10 @@
             </div>
           </div>
 
-          <div class="section-title">Аккаунт</div>
-          <div class="card">
-            <p class="muted" id="account-status" style="font-size: 10px; margin-bottom: 8px;">Вход в аккаунт</p>
+          <!-- КРИТИЧНО: Секция аккаунта полностью скрыта (бесплатный режим) -->
+          <!-- <div class="section-title">Аккаунт</div> -->
+          <div class="card" style="display:none !important;">
+            <p class="muted" id="account-status" style="font-size: 10px; margin-bottom: 8px; display:none !important;">Вход в аккаунт</p>
             
             <div id="account-info" style="display:none;">
               <p style="font-size: 11px; margin-bottom: 4px;"><strong id="account-username">AdminCEO</strong></p>
@@ -712,12 +753,14 @@
               </div>
               <div class="actions">
                 <button type="button" class="btn primary" id="login-btn">Войти</button>
-                <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button>
+                <!-- Регистрация временно скрыта (можно вернуть) -->
+                <!-- <button type="button" class="btn secondary" id="show-register-btn">Регистрация</button> -->
                 <button type="button" class="btn secondary" id="forgot-password-btn">Забыли?</button>
               </div>
             </form>
 
-            <form id="register-form" style="display:none;">
+            <!-- Форма регистрации временно скрыта (можно вернуть) -->
+            <form id="register-form" style="display:none !important;">
               <div class="form-field">
                 <label for="register-username">Логин</label>
                 <input type="text" id="register-username" placeholder="Придумайте логин" />
