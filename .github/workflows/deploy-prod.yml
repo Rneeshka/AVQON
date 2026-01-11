@@ -1,3 +1,11 @@
+name: Deploy PROD
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
