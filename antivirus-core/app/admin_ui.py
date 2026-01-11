@@ -11,7 +11,6 @@ from app.services import analysis_service
 
 router = APIRouter(prefix="/admin/ui", tags=["Админ UI"])
 
-
 def _layout(request: Request, title: str, body: str) -> str:
     root_path = request.scope.get("root_path", "")
     # Гарантируем, что суффиксы не дублируют слеши
@@ -126,7 +125,7 @@ async def _refresh_cache_entries(target: str, limit: int):
     return summary
 
 
-@router.get("", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     stats = db_manager.get_database_stats()
     cache_stats = db_manager.get_cache_stats()
