@@ -218,6 +218,23 @@ CREATE TABLE IF NOT EXISTS yookassa_payments (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- 16. Таблица отзывов пользователей
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER DEFAULT NULL,
+    device_id TEXT DEFAULT NULL,
+    rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+    text TEXT,
+    extension_version TEXT,
+    user_agent TEXT,
+    ip_address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating);
+
 CREATE INDEX IF NOT EXISTS idx_yookassa_payments_user_id ON yookassa_payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_yookassa_payments_status ON yookassa_payments(status);
 CREATE INDEX IF NOT EXISTS idx_yookassa_payments_payment_id ON yookassa_payments(payment_id);

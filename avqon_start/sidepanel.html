@@ -575,6 +575,34 @@
         color: var(--text-muted);
       }
 
+      /* Отзывы - звезды */
+      .star-rating {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .star {
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-dim);
+        transition: transform 0.1s, color 0.2s;
+        user-select: none;
+      }
+
+      .star:hover {
+        transform: scale(1.15);
+      }
+
+      .star.active,
+      .star.filled {
+        color: #fbbf24;
+      }
+
+      .star:hover ~ .star {
+        color: var(--text-dim);
+      }
+
       /* Скроллбар */
       ::-webkit-scrollbar {
         width: 6px;
@@ -649,6 +677,7 @@
         <button class="tab-btn primary" id="tab-home">Главная</button>
         <button class="tab-btn" id="tab-settings">Настройки</button>
         <button class="tab-btn" id="tab-customize">Тема</button>
+        <button class="tab-btn" id="tab-feedback">Отзыв</button>
         <button class="tab-btn" id="tab-about">О нас</button>
       </nav>
 
@@ -824,6 +853,44 @@
               <input type="radio" name="hover-theme" value="linkcolor" />
               <span>Изменение цвета ссылки</span>
             </label>
+          </div>
+        </section>
+
+        <section id="view-feedback" class="section">
+          <div class="section-title">Оставить отзыв</div>
+          <div class="card">
+            <p style="font-size: 11px; line-height: 1.5; margin-bottom: 12px; color: var(--text-muted);">
+              Поделитесь своим мнением о расширении AVQON. Ваши отзывы помогают нам становиться лучше!
+            </p>
+            
+            <div class="form-field">
+              <label style="font-size: 11px; margin-bottom: 8px; display: block;">Оценка</label>
+              <div class="star-rating" id="star-rating">
+                <span class="star" data-rating="1">☆</span>
+                <span class="star" data-rating="2">☆</span>
+                <span class="star" data-rating="3">☆</span>
+                <span class="star" data-rating="4">☆</span>
+                <span class="star" data-rating="5">☆</span>
+              </div>
+              <input type="hidden" id="rating-value" value="0" />
+            </div>
+            
+            <div class="form-field">
+              <label for="review-text" style="font-size: 11px; margin-bottom: 4px; display: block;">Текст отзыва (необязательно)</label>
+              <textarea 
+                id="review-text" 
+                placeholder="Расскажите, что вам нравится или что можно улучшить..."
+                style="width: 100%; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-alt); color: var(--text); font-size: 11px; min-height: 80px; resize: vertical; font-family: inherit;"
+              ></textarea>
+            </div>
+            
+            <div class="actions">
+              <button class="btn primary" id="submit-review-btn" style="width: 100%;">Отправить отзыв</button>
+            </div>
+            
+            <div id="review-success" class="hidden" style="margin-top: 8px; padding: 8px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-sm); color: var(--success); font-size: 11px;">
+              ✅ Спасибо за ваш отзыв!
+            </div>
           </div>
         </section>
 

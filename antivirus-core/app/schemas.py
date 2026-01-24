@@ -138,3 +138,14 @@ class LocalCacheStatsResponse(BaseModel):
     blacklist_hits: int
     bytes_estimated: int
     total_entries: int
+
+# Модель для создания отзыва
+class CreateReviewRequest(BaseModel):
+    rating: int = Field(..., ge=1, le=5, description="Оценка от 1 до 5 звезд")
+    text: Optional[str] = Field(None, max_length=1000, description="Текст отзыва (опционально)")
+
+# Модель для ответа при создании отзыва
+class CreateReviewResponse(BaseModel):
+    status: str
+    review_id: Optional[int] = None
+    message: Optional[str] = None

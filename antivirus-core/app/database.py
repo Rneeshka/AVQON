@@ -275,6 +275,24 @@ class DatabaseManager:
                     )
                 """)
                 
+                # 11.5. Таблица отзывов пользователей
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS reviews (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER DEFAULT NULL,
+                        device_id TEXT DEFAULT NULL,
+                        rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+                        text TEXT,
+                        extension_version TEXT,
+                        user_agent TEXT,
+                        ip_address TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating)")
+                
                 # 12. Таблица пользователей Telegram бота
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS users (
@@ -1257,6 +1275,88 @@ class DatabaseManager:
         except (psycopg2.Error, Exception) as e:
             logger.error(f"Get all logs error: {e}")
             return []
+    
+    # ===== REVIEWS MANAGEMENT =====
+    
+    def create_review(
+        self,
+        rating: int,
+        text: Optional[str] = None,
+        user_id: Optional[int] = None,
+        device_id: Optional[str] = None,
+        extension_version: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        ip_address: Optional[str] = None
+    ) -> Optional[int]:
+        """Создает новый отзыв и возвращает его ID"""
+        if rating < 1 or rating > 5:
+            logger.error(f"Invalid rating: {rating} (must be 1-5)")
+            return None
+        
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                query = """
+                    INSERT INTO reviews (rating, text, user_id, device_id, extension_version, user_agent, ip_address)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """
+                cursor.execute(
+                    self._adapt_query(query),
+                    (rating, text, user_id, device_id, extension_version, user_agent, ip_address)
+                )
+                self._commit_if_needed(conn)
+                result = cursor.fetchone()
+                return result["id"] if result else None
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Create review error: {e}")
+            return None
+    
+    def get_all_reviews(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Получает все отзывы"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT r.id, r.rating, r.text, r.extension_version, r.created_at,
+                           r.user_id, a.username, a.email, r.device_id
+                    FROM reviews r
+                    LEFT JOIN accounts a ON r.user_id = a.id
+                    ORDER BY r.created_at DESC
+                    LIMIT %s
+                """, (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get all reviews error: {e}")
+            return []
+    
+    def get_review_stats(self) -> Dict[str, Any]:
+        """Получает статистику отзывов"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as total FROM reviews")
+                total = cursor.fetchone()["total"] or 0
+                
+                cursor.execute("""
+                    SELECT rating, COUNT(*) as count
+                    FROM reviews
+                    GROUP BY rating
+                    ORDER BY rating DESC
+                """)
+                rating_distribution = {str(row["rating"]): row["count"] for row in cursor.fetchall()}
+                
+                cursor.execute("SELECT AVG(rating) as avg_rating FROM reviews")
+                avg_rating = cursor.fetchone()["avg_rating"] or 0
+                
+                return {
+                    "total": total,
+                    "average_rating": float(avg_rating) if avg_rating else 0.0,
+                    "rating_distribution": rating_distribution
+                }
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get review stats error: {e}")
+            return {"total": 0, "average_rating": 0.0, "rating_distribution": {}}
     
     # ===== ACCOUNT MANAGEMENT =====
     

@@ -48,6 +48,8 @@ import psycopg2
 from app.security import jwt_auth
 from app.websocket_manager import WebSocketManager, ClientConnection
 from app.schemas import (
+    CreateReviewRequest,
+    CreateReviewResponse,
     CheckResponse,
     UrlCheckRequest,
     FileCheckRequest,
@@ -580,10 +582,8 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/payments/status/",
         "/payments/license/",
         "/payments/process/",
-<<<<<<< HEAD
         "/admin/api-keys/create",  # Использует ADMIN_API_TOKEN, не JWT
-=======
->>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
+        "/reviews/stats",  # Публичный endpoint для статистики отзывов
     )
             
     # Проверяем точное совпадение или начало пути
@@ -1227,6 +1227,70 @@ async def delete_api_key(api_key: str, request: Request):
         return {"status": "success", "message": "API key deleted successfully"}
     except HTTPException:
         raise
+
+@app.post("/reviews", response_model=CreateReviewResponse)
+async def create_review(
+    review_data: CreateReviewRequest,
+    request: Request
+):
+    """Создание нового отзыва от пользователя"""
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    
+    try:
+        # Получаем user_id из JWT токена (если есть)
+        user_info = getattr(request.state, 'user_info', None)
+        user_id = user_info.get('user_id') if user_info else None
+        
+        # Получаем device_id из заголовков или генерируем
+        device_id = request.headers.get('X-Device-ID')
+        
+        # Получаем информацию о клиенте
+        user_agent = request.headers.get('User-Agent')
+        client_ip = None
+        try:
+            if request.client:
+                client_ip = request.client.host
+        except Exception:
+            pass
+        
+        # Получаем версию расширения из заголовков (если есть)
+        extension_version = request.headers.get('X-Extension-Version')
+        
+        review_id = db_manager.create_review(
+            rating=review_data.rating,
+            text=review_data.text,
+            user_id=user_id,
+            device_id=device_id,
+            extension_version=extension_version,
+            user_agent=user_agent,
+            ip_address=client_ip
+        )
+        
+        if review_id:
+            return {
+                "status": "success",
+                "review_id": review_id,
+                "message": "Отзыв успешно сохранен"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create review")
+    except Exception as e:
+        logger.error(f"Create review error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create review")
+
+@app.get("/reviews/stats")
+async def get_review_stats():
+    """Получение статистики отзывов (публичный endpoint)"""
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    
+    try:
+        stats = db_manager.get_review_stats()
+        return {"status": "success", "stats": stats}
+    except Exception as e:
+        logger.error(f"Get review stats error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get review stats")
     except Exception as e:
         logger.error(f"Delete API key error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to delete API key")
@@ -1947,15 +2011,7 @@ async def startup_event():
         app.state.yookassa_session = None
         logger.error(f"❌ Failed to initialize YooKassa session: {e}", exc_info=True)
     
-<<<<<<< HEAD
-<<<<<<< HEAD
     logger.info("✅ AVQON Server startup complete")
-=======
-    logger.info("✅ AEGIS Server startup complete")
->>>>>>> f6326b6 (WIP: emergency save of server changes after dev/prod desync)
-=======
-    logger.info("✅ AVQON Server startup complete")
->>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
 
 @app.on_event("shutdown")
 async def shutdown_event():

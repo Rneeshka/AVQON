@@ -934,9 +934,40 @@ function setupHoverListeners() {
   hoverMouseMoveHandler = (e) => {
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
+    
+    // Check if cursor is still over a link
+    const linkUnderCursor = e.target.closest && e.target.closest('a');
+    const isOverLink = linkUnderCursor && linkUnderCursor.href && /^https?:/i.test(linkUnderCursor.href);
+    
+    // If tooltip is visible, check if we need to hide it
     if (tooltip && tooltip.style.opacity === '1') {
-      tooltip.style.left = lastMouseX + 10 + 'px';
-      tooltip.style.top = lastMouseY - 30 + 'px';
+      if (!isOverLink) {
+        // Cursor moved away from any link - hide tooltip and cleanup
+        hideTooltip(tooltip);
+        if (currentHoveredLink) {
+          cleanupHoverTheme(currentHoveredLink);
+          currentHoveredLink = null;
+          currentHoveredLinkNormalized = null;
+          lastHoverResult = null;
+        }
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = null;
+        }
+      } else if (currentHoveredLink && linkUnderCursor !== currentHoveredLink) {
+        // Cursor moved to a different link - the mouseout handler should handle this,
+        // but we'll also hide the tooltip here as a safety measure
+        // The mouseover handler will show the tooltip for the new link
+        hideTooltip(tooltip);
+        if (currentHoveredLink) {
+          cleanupHoverTheme(currentHoveredLink);
+        }
+        // Don't clear currentHoveredLink here - let mouseout/mouseover handlers manage it
+      } else {
+        // Still over the same link - update tooltip position
+        tooltip.style.left = lastMouseX + 10 + 'px';
+        tooltip.style.top = lastMouseY - 30 + 'px';
+      }
     }
   };
   document.addEventListener('mousemove', hoverMouseMoveHandler);
