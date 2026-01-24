@@ -2,63 +2,265 @@
 
 {% block title %}Админ панель – обзор{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
-<div class="card">
+<div class="dashboard-header">
     <h1>Панель администратора</h1>
-    <p class="muted">Краткая сводка состояния системы</p>
+    <p class="muted">Обзор системы и статистика</p>
 </div>
+
+<!-- Статистические карточки -->
+<div class="stats-grid">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-content">
+            <div class="stat-label">Всего угроз</div>
+            <div class="stat-value">{{ stats.get('total_threats', 0) }}</div>
+            <div class="stat-sublabel">
+                <span>Хэши: {{ stats.get('malicious_hashes', 0) }}</span>
+                <span>URL: {{ stats.get('malicious_urls', 0) }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-success">
+        <div class="stat-icon">🔑</div>
+        <div class="stat-content">
+            <div class="stat-label">API ключи</div>
+            <div class="stat-value">{{ stats.get('active_api_keys', 0) }}</div>
+            <div class="stat-sublabel">Запросов: {{ stats.get('total_requests', 0) or 0 }}</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-info">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+            <div class="stat-label">Белый список</div>
+            <div class="stat-value">{{ stats.get('whitelist_entries', 0) }}</div>
+            <div class="stat-sublabel">Хитов: {{ stats.get('whitelist_hits', 0) | default(0) }}</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-warning">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+            <div class="stat-label">Чёрный список</div>
+            <div class="stat-value">{{ stats.get('blacklist_entries', 0) }}</div>
+            <div class="stat-sublabel">Хитов: {{ stats.get('blacklist_hits', 0) | default(0) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <h2>Запросы по времени</h2>
+        <canvas id="requestsChart"></canvas>
+    </div>
+    
+    <div class="chart-card">
+        <h2>Статус коды</h2>
+        <canvas id="statusCodesChart"></canvas>
+    </div>
+    
+    <div class="chart-card">
+        <h2>Типы угроз</h2>
+        <canvas id="threatTypesChart"></canvas>
+    </div>
+    
+    <div class="chart-card">
+        <h2>Кэш (хиты/записи)</h2>
+        <canvas id="cacheChart"></canvas>
+    </div>
+</div>
+
+<!-- Кэш и действия -->
 <div class="row">
-    <div class="card col">
-        <h2>Угрозы</h2>
-        <div>Хэши: <b>{{ stats.get('malicious_hashes', 0) }}</b></div>
-        <div>URL: <b>{{ stats.get('malicious_urls', 0) }}</b></div>
-        <div>Всего угроз: <b>{{ stats.get('total_threats', 0) }}</b></div>
-    </div>
-    <div class="card col">
-        <h2>API ключи</h2>
-        <div>Активных ключей: <b>{{ stats.get('active_api_keys', 0) }}</b></div>
-        <div>Всего запросов: <b>{{ stats.get('total_requests', 0) }}</b></div>
-    </div>
-</div>
-<div class="card">
-    <h2>Локальная база (hover-cache)</h2>
-    <div class="row">
-        <div class="col">
-            <div>Белый список: <b>{{ stats.get('whitelist_entries', 0) }}</b></div>
+    <div class="card col-large">
+        <h2>Локальная база (hover-cache)</h2>
+        <div class="cache-stats">
+            <div class="cache-stat-item">
+                <div class="cache-stat-label">Всего записей</div>
+                <div class="cache-stat-value">{{ stats.get('total_cache_entries', 0) }}</div>
+            </div>
+            <div class="cache-stat-item">
+                <div class="cache-stat-label">Всего хитов</div>
+                <div class="cache-stat-value">{{ stats.get('total_cache_hits', 0) }}</div>
+            </div>
+            <div class="cache-stat-item">
+                <div class="cache-stat-label">Размер (приблизительно)</div>
+                <div class="cache-stat-value">{% set mb = ((stats.get('bytes_estimated', 0) or 0) / 1024 / 1024) %}{{ "%.2f"|format(mb) }} MB</div>
+            </div>
         </div>
-        <div class="col">
-            <div>Чёрный список: <b>{{ stats.get('blacklist_entries', 0) }}</b></div>
-        </div>
-        <div class="col">
-            <div>Хитов кэша: <b>{{ stats.get('total_cache_hits', 0) }}</b></div>
-        </div>
+        <form method="post" action="/cache/refresh" class="cache-form">
+            <label>Что обновить</label>
+            <select name="target">
+                <option value="all" selected>Белый и чёрный списки</option>
+                <option value="whitelist">Только белый список</option>
+                <option value="blacklist">Только чёрный список</option>
+            </select>
+            <label>Сколько записей пересканировать (старейшие)</label>
+            <input type="number" name="limit" min="1" max="50" value="10" />
+            <button type="submit">Обновить локальную базу</button>
+            <p class="muted">Обновление вручную: мы пересканируем N самых старых записей через VirusTotal и перезапишем их в базе.</p>
+        </form>
     </div>
-    <form method="post" action="/cache/refresh" style="margin-top:12px; display:grid; gap:8px; max-width:400px;">
-        <label>Что обновить</label>
-        <select name="target">
-            <option value="all" selected>Белый и чёрный списки</option>
-            <option value="whitelist">Только белый список</option>
-            <option value="blacklist">Только чёрный список</option>
-        </select>
-        <label>Сколько записей пересканировать (старейшие)</label>
-        <input type="number" name="limit" min="1" max="50" value="10" />
-        <button type="submit">Обновить локальную базу</button>
-        <p class="muted" style="font-size:12px;">Обновление вручную: мы пересканируем N самых старых записей через VirusTotal и перезапишем их в базе.</p>
-    </form>
-</div>
-<div class="row">
-    <div class="card col">
+    
+    <div class="card col-small">
         <h2>Быстрые действия</h2>
-        <div style="display:grid;gap:8px">
-            <button onclick="window.location.href='/keys'">Создать API ключ</button>
-            <button onclick="window.location.href='/threats'">Добавить угрозу</button>
+        <div class="action-buttons">
+            <button class="action-btn" onclick="window.location.href='/keys'">
+                <span class="action-icon">🔑</span>
+                <span>Создать API ключ</span>
+            </button>
+            <button class="action-btn" onclick="window.location.href='/threats'">
+                <span class="action-icon">⚠️</span>
+                <span>Добавить угрозу</span>
+            </button>
+            <button class="action-btn action-btn-danger" onclick="window.location.href='/danger'">
+                <span class="action-icon">🗑️</span>
+                <span>Опасная зона</span>
+            </button>
         </div>
-    </div>
-    <div class="card col" style="border: 2px solid #dc2626;">
-        <h2 style="color: #dc2626;">⚠️ Опасная зона</h2>
-        <p class="muted" style="color: #dc2626;">Полная очистка базы данных</p>
-        <button onclick="window.location.href='/danger'" style="background: #dc2626; margin-top: 8px;">Открыть опасную зону</button>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Загружаем данные графиков
+    fetch('/api/dashboard/chart-data')
+        .then(response => response.json())
+        .then(data => {
+            // График запросов по времени
+            const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+            const requestsData = data.requests_over_time || [];
+            new Chart(requestsCtx, {
+                type: 'line',
+                data: {
+                    labels: requestsData.map(item => item.date),
+                    datasets: [{
+                        label: 'Запросов',
+                        data: requestsData.map(item => item.count),
+                        borderColor: 'rgb(37, 99, 235)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График статус кодов
+            const statusCtx = document.getElementById('statusCodesChart').getContext('2d');
+            const statusData = data.status_codes || {};
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // График типов угроз
+            const threatCtx = document.getElementById('threatTypesChart').getContext('2d');
+            const threatData = data.threat_types || {};
+            new Chart(threatCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(threatData),
+                    datasets: [{
+                        label: 'Количество',
+                        data: Object.values(threatData),
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // График кэша
+            const cacheCtx = document.getElementById('cacheChart').getContext('2d');
+            const cacheData = data.cache_ratio || {};
+            new Chart(cacheCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Хиты', 'Записи'],
+                    datasets: [{
+                        data: [cacheData.hits || 0, cacheData.entries || 0],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+        });
+});
+</script>
+{% endblock %}

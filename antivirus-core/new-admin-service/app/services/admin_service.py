@@ -187,4 +187,10 @@ class AdminService:
                 result[threat_type].append(threat)
         
         return result
+    
+    def get_chart_data(self) -> Dict[str, Any]:
+        """
+        Получает данные для графиков на дашборде
+        """
+        return self.repository.get_chart_data()
 

@@ -2,7 +2,7 @@
 Роутер для дашборда
 """
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from typing import Dict, Any
 
@@ -36,4 +36,25 @@ async def dashboard(
             "user": current_user
         }
     )
+
+
+@router.get("/api/dashboard/chart-data", response_class=JSONResponse)
+async def get_chart_data(
+    current_user: dict = Depends(RequireViewer),
+    repository: AdminRepository = Depends(get_db_repository)
+):
+    """
+    API endpoint для получения данных графиков
+    """
+    service = AdminService(repository)
+    chart_data = service.get_chart_data()
+    
+    # Добавляем данные о кэше
+    cache_stats = repository.get_cache_stats()
+    chart_data["cache_ratio"] = {
+        "hits": cache_stats.get("whitelist_hits", 0) + cache_stats.get("blacklist_hits", 0),
+        "entries": cache_stats.get("whitelist_entries", 0) + cache_stats.get("blacklist_entries", 0)
+    }
+    
+    return chart_data
 

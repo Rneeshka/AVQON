@@ -7,7 +7,7 @@
     hoverTheme: 'classic'
   };
 
-  const views = ['home', 'settings', 'customize', 'about'];
+  const views = ['home', 'settings', 'customize', 'feedback', 'about'];
   const BADGE_TEXT = {
     ready: 'READY',
     safe: 'SAFE',
@@ -1349,6 +1349,175 @@
           'https://avqon.com';
         chrome.tabs.create({ url: websiteUrl });
       });
+    }
+
+    // Инициализация формы отзывов
+    initReviewForm();
+  }
+
+  /**
+   * Инициализация формы отзывов
+   */
+  function initReviewForm() {
+    // Для popup
+    const starRatingPopup = document.getElementById('star-rating-popup');
+    const ratingInputPopup = document.getElementById('rating-value-popup');
+    const submitBtnPopup = document.getElementById('submit-review-btn-popup');
+    const successMsgPopup = document.getElementById('review-success-popup');
+
+    // Для sidepanel
+    const starRating = document.getElementById('star-rating');
+    const ratingInput = document.getElementById('rating-value');
+    const submitBtn = document.getElementById('submit-review-btn');
+    const successMsg = document.getElementById('review-success');
+
+    // Функция для инициализации звезд
+    function initStars(container, input) {
+      if (!container || !input) return;
+
+      const stars = container.querySelectorAll('.star');
+      let currentRating = 0;
+
+      stars.forEach((star, index) => {
+        const rating = index + 1;
+
+        star.addEventListener('click', () => {
+          currentRating = rating;
+          input.value = rating;
+          
+          stars.forEach((s, i) => {
+            if (i < rating) {
+              s.classList.add('filled');
+              s.textContent = '⭐';
+            } else {
+              s.classList.remove('filled');
+              s.textContent = '☆';
+            }
+          });
+        });
+
+        star.addEventListener('mouseenter', () => {
+          stars.forEach((s, i) => {
+            if (i < rating) {
+              s.classList.add('active');
+            } else {
+              s.classList.remove('active');
+            }
+          });
+        });
+
+        container.addEventListener('mouseleave', () => {
+          stars.forEach((s, i) => {
+            if (i < currentRating) {
+              s.classList.add('active');
+            } else {
+              s.classList.remove('active');
+            }
+          });
+        });
+      });
+    }
+
+    // Функция для отправки отзыва
+    async function submitReview(ratingInput, textarea, successMsg, submitBtn) {
+      if (!ratingInput || !textarea) return;
+
+      const rating = parseInt(ratingInput.value);
+      const text = textarea.value.trim();
+
+      if (!rating || rating < 1 || rating > 5) {
+        showInternalNotification('⚠️ Пожалуйста, выберите оценку', 'warning');
+        return;
+      }
+
+      try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Отправка...';
+        }
+
+        const apiBase = normalizeApiBase(state.settings.apiBase);
+        const deviceId = await getDeviceId();
+
+        // Получаем версию расширения
+        const manifest = chrome.runtime.getManifest();
+        const extensionVersion = manifest.version || '1.0.8';
+
+        const response = await fetch(`${apiBase}/reviews`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Device-ID': deviceId,
+            'X-Extension-Version': extensionVersion
+          },
+          body: JSON.stringify({
+            rating: rating,
+            text: text || null
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ detail: 'Ошибка отправки' }));
+          throw new Error(error?.detail || 'Ошибка отправки отзыва');
+        }
+
+        const data = await response.json();
+        
+        // Показываем сообщение об успехе
+        if (successMsg) {
+          successMsg.classList.remove('hidden');
+          setTimeout(() => {
+            successMsg.classList.add('hidden');
+          }, 5000);
+        }
+
+        showInternalNotification('✅ Спасибо за ваш отзыв!', 'success');
+
+        // Очищаем форму
+        ratingInput.value = '0';
+        textarea.value = '';
+        
+        // Сбрасываем звезды
+        const stars = (ratingInput.id === 'rating-value-popup' ? starRatingPopup : starRating)?.querySelectorAll('.star');
+        if (stars) {
+          stars.forEach(star => {
+            star.classList.remove('filled', 'active');
+            star.textContent = '☆';
+          });
+        }
+      } catch (error) {
+        console.error('[AVQON] Submit review error:', error);
+        showInternalNotification('❌ ' + (error.message || 'Ошибка отправки отзыва'), 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Отправить отзыв';
+        }
+      }
+    }
+
+    // Инициализация для popup
+    if (starRatingPopup && ratingInputPopup) {
+      initStars(starRatingPopup, ratingInputPopup);
+      
+      if (submitBtnPopup) {
+        const textareaPopup = document.getElementById('review-text-popup');
+        submitBtnPopup.addEventListener('click', () => {
+          submitReview(ratingInputPopup, textareaPopup, successMsgPopup, submitBtnPopup);
+        });
+      }
+    }
+
+    // Инициализация для sidepanel
+    if (starRating && ratingInput) {
+      initStars(starRating, ratingInput);
+      
+      if (submitBtn) {
+        const textarea = document.getElementById('review-text');
+        submitBtn.addEventListener('click', () => {
+          submitReview(ratingInput, textarea, successMsg, submitBtn);
+        });
+      }
     }
   }
 
