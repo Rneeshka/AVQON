@@ -584,6 +584,7 @@ async def jwt_auth_middleware(request: Request, call_next):
         "/payments/process/",
         "/admin/api-keys/create",  # Использует ADMIN_API_TOKEN, не JWT
         "/reviews/stats",  # Публичный endpoint для статистики отзывов
+        "/reviews",  # Публичный endpoint для создания отзывов (без API key)
     )
             
     # Проверяем точное совпадение или начало пути
