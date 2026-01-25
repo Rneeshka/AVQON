@@ -154,10 +154,12 @@ class AdminService:
         """
         db_stats = self.repository.get_database_stats()
         cache_stats = self.repository.get_cache_stats()
+        review_stats = self.repository.get_review_stats()
         
         return {
             **db_stats,
             **cache_stats,
+            **review_stats,
             "total_cache_entries": (
                 cache_stats.get("whitelist_entries", 0) +
                 cache_stats.get("blacklist_entries", 0)

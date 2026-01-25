@@ -246,7 +246,10 @@ class AdminRepository:
                 "status_codes": {},
                 "threat_types": {},
                 "cache_ratio": {"hits": 0, "misses": 0},
-                "api_key_usage": []
+                "api_key_usage": [],
+                "reviews_over_time": [],
+                "reviews_stats": {"total": 0, "average_rating": 0.0, "rating_distribution": {}},
+                "reviews_by_version": {}
             }
         
         try:
@@ -310,12 +313,54 @@ class AdminRepository:
                         status_codes = {}
                         api_key_usage = []
                 
+                # Данные об отзывах
+                review_stats = self.get_review_stats()
+                reviews_over_time = []
+                try:
+                    cursor.execute("""
+                        SELECT DATE(created_at) as date, COUNT(*) as count, AVG(rating) as avg_rating
+                        FROM reviews
+                        WHERE created_at >= NOW() - INTERVAL '30 days'
+                        GROUP BY DATE(created_at)
+                        ORDER BY date ASC
+                    """)
+                    reviews_over_time = [
+                        {
+                            "date": str(row["date"]), 
+                            "count": row["count"],
+                            "avg_rating": float(row["avg_rating"]) if row["avg_rating"] else 0.0
+                        } 
+                        for row in cursor.fetchall()
+                    ]
+                except Exception as e:
+                    logger.warning(f"Error querying reviews: {e}")
+                    reviews_over_time = []
+                
+                # Распределение отзывов по версиям расширения
+                reviews_by_version = {}
+                try:
+                    cursor.execute("""
+                        SELECT extension_version, COUNT(*) as count
+                        FROM reviews
+                        WHERE extension_version IS NOT NULL
+                        GROUP BY extension_version
+                        ORDER BY count DESC
+                        LIMIT 10
+                    """)
+                    reviews_by_version = {row["extension_version"]: row["count"] for row in cursor.fetchall()}
+                except Exception as e:
+                    logger.warning(f"Error querying reviews by version: {e}")
+                    reviews_by_version = {}
+                
                 return {
                     "requests_over_time": requests_over_time,
                     "status_codes": status_codes,
                     "threat_types": threat_types,
                     "cache_ratio": {},  # Будет заполнено из cache_stats
-                    "api_key_usage": api_key_usage
+                    "api_key_usage": api_key_usage,
+                    "reviews_over_time": reviews_over_time,
+                    "reviews_stats": review_stats,
+                    "reviews_by_version": reviews_by_version
                 }
         except Exception as e:
             logger.error(f"Error getting chart data: {e}")
@@ -324,6 +369,9 @@ class AdminRepository:
                 "status_codes": {},
                 "threat_types": {},
                 "cache_ratio": {"hits": 0, "misses": 0},
-                "api_key_usage": []
+                "api_key_usage": [],
+                "reviews_over_time": [],
+                "reviews_stats": {"total": 0, "average_rating": 0.0, "rating_distribution": {}},
+                "reviews_by_version": {}
             }
 
