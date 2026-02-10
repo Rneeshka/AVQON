@@ -9,19 +9,24 @@
     "notifications",
     "alarms",
     "downloads",
-    "sidePanel"
+    "sidePanel",
+    "contextMenus"
   ],
   "host_permissions": [
-  "https://prod.avqon.com/*",
-  "wss://prod.avqon.com/*",
-  "https://dev.avqon.com/*",
-  "wss://dev.avqon.com/*"
-],
+    "https://prod.avqon.com/*",
+    "wss://prod.avqon.com/*",
+    "https://dev.avqon.com/*",
+    "wss://dev.avqon.com/*",
+    "https://data.phishtank.com/*",
+    "https://openphish.com/*",
+    "https://api.abuseipdb.com/*",
+    "https://cloudflare-dns.com/*"
+  ],
   
   "content_security_policy": {
-  "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com https://dev.avqon.com wss://dev.avqon.com;",
-  "sandbox": "sandbox allow-scripts; script-src 'self'; connect-src https://prod.avqon.com wss://prod.avqon.com;",
-  "content_scripts": "script-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com;"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com https://dev.avqon.com wss://dev.avqon.com https://data.phishtank.com https://openphish.com https://api.abuseipdb.com https://cloudflare-dns.com;",
+    "sandbox": "sandbox allow-scripts; script-src 'self'; connect-src https://prod.avqon.com wss://prod.avqon.com;",
+    "content_scripts": "script-src 'self'; connect-src 'self' https://prod.avqon.com wss://prod.avqon.com;"
   },
   "background": {
     "service_worker": "background.js"

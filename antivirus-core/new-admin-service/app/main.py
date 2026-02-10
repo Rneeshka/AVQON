@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
-from app.api import auth, dashboard, keys, threats, cache, logs, ip, danger, reviews
+from app.api import auth, dashboard, keys, threats, cache, logs, ip, danger, reviews, crowd
 
 # Настройка логирования
 logging.basicConfig(
@@ -92,6 +92,7 @@ app.include_router(logs.router)
 app.include_router(ip.router)
 app.include_router(danger.router)
 app.include_router(reviews.router)
+app.include_router(crowd.router)
 
 
 @app.get("/health")

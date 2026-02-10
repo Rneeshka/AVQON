@@ -1170,6 +1170,487 @@ class DatabaseManager:
         except (psycopg2.Error, Exception) as e:
             logger.error(f"List IP reputation error: {e}")
             return []
+
+    # ===== CROWD REPORTS (краудсорсинг URL) =====
+
+    def _ensure_crowd_tables(self) -> None:
+        """
+        Инициализирует таблицы для краудсорсинговых отчётов, если они ещё не созданы.
+        Использует PostgreSQL синтаксис (SERIAL, ON CONFLICT).
+        """
+        if getattr(self, "_crowd_tables_initialized", False):
+            return
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS crowd_reports (
+                        id SERIAL PRIMARY KEY,
+                        url TEXT NOT NULL,
+                        domain TEXT NOT NULL,
+                        verdict TEXT NOT NULL CHECK (verdict IN ('suspicious', 'malicious')),
+                        comment TEXT,
+                        device_id TEXT,
+                        client_ip_truncated TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        confirmed BOOLEAN DEFAULT FALSE,
+                        rejected BOOLEAN DEFAULT FALSE
+                    )
+                    """
+                )
+                cursor.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_crowd_reports_domain_created ON crowd_reports(domain, created_at)"
+                )
+                cursor.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_crowd_reports_device_created ON crowd_reports(device_id, created_at)"
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS crowd_aggregates (
+                        domain TEXT PRIMARY KEY,
+                        reports_total INTEGER NOT NULL DEFAULT 0,
+                        score DOUBLE PRECISION NOT NULL DEFAULT 0,
+                        last_report_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        recent_reports_24h INTEGER NOT NULL DEFAULT 0
+                    )
+                    """
+                )
+                self._commit_if_needed(conn)
+            self._crowd_tables_initialized = True
+            logger.info("Crowd tables initialized (crowd_reports, crowd_aggregates)")
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Init crowd tables error: {e}")
+            # Не поднимаем исключение, чтобы не ломать основной функционал
+
+    def add_crowd_report(
+        self,
+        url: str,
+        domain: str,
+        verdict: str,
+        device_id: Optional[str],
+        client_ip_truncated: Optional[str],
+        comment: Optional[str] = None,
+        dedupe_hours: int = 6,
+        rate_limit_window_minutes: int = 60,
+        max_reports_per_window: int = 50,
+    ) -> Dict[str, Any]:
+        """
+        Добавляет крауд‑репорт с защитой от спама и дедупликацией.
+
+        Возвращает dict с полями:
+        { "accepted": bool, "reason": str, "aggregate": Optional[dict] }
+        """
+        self._ensure_crowd_tables()
+        result = {"accepted": False, "reason": "", "aggregate": None}
+
+        if not url or not domain:
+            result["reason"] = "invalid_url"
+            return result
+
+        domain = domain.lower().strip()
+
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                now = datetime.utcnow()
+
+                # Rate‑limit по device_id
+                if device_id:
+                    cursor.execute(
+                        self._adapt_query(
+                            """
+                            SELECT COUNT(*) AS c
+                            FROM crowd_reports
+                            WHERE device_id = %s AND created_at > %s
+                            """
+                        ),
+                        (device_id, now - timedelta(minutes=rate_limit_window_minutes)),
+                    )
+                    row = cursor.fetchone()
+                    if row and (row.get("c") or 0) >= max_reports_per_window:
+                        result["reason"] = "rate_limited_device"
+                        return result
+
+                # Rate‑limit по IP (усечённому)
+                if client_ip_truncated:
+                    cursor.execute(
+                        self._adapt_query(
+                            """
+                            SELECT COUNT(*) AS c
+                            FROM crowd_reports
+                            WHERE client_ip_truncated = %s AND created_at > %s
+                            """
+                        ),
+                        (client_ip_truncated, now - timedelta(minutes=rate_limit_window_minutes)),
+                    )
+                    row = cursor.fetchone()
+                    if row and (row.get("c") or 0) >= max_reports_per_window:
+                        result["reason"] = "rate_limited_ip"
+                        return result
+
+                # Дедупликация: один юзер → один репорт по домену в окно времени
+                if device_id:
+                    cursor.execute(
+                        self._adapt_query(
+                            """
+                            SELECT 1
+                            FROM crowd_reports
+                            WHERE device_id = %s AND domain = %s AND created_at > %s
+                            LIMIT 1
+                            """
+                        ),
+                        (device_id, domain, now - timedelta(hours=dedupe_hours)),
+                    )
+                    if cursor.fetchone():
+                        result["reason"] = "duplicate_device_domain"
+                        return result
+
+                # Вставка нового репорта
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        INSERT INTO crowd_reports (url, domain, verdict, comment, device_id, client_ip_truncated, created_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """
+                    ),
+                    (url, domain, verdict, comment, device_id, client_ip_truncated, now),
+                )
+
+                # Обновление агрегатов по домену
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        SELECT 
+                            COUNT(*) AS total,
+                            SUM(CASE WHEN created_at > %s THEN 1 ELSE 0 END) AS recent_24h
+                        FROM crowd_reports
+                        WHERE domain = %s AND (rejected IS FALSE OR rejected IS NULL)
+                        """
+                    ),
+                    (now - timedelta(hours=24), domain),
+                )
+                row = cursor.fetchone() or {}
+                total_reports = int(row.get("total") or 0)
+                recent_24h = int(row.get("recent_24h") or 0)
+
+                # Простая функция скoringa: чем больше свежих репортов, тем ближе score к 1.0
+                score = min(1.0, recent_24h / 3.0) if recent_24h > 0 else 0.0
+
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        INSERT INTO crowd_aggregates (domain, reports_total, score, last_report_at, recent_reports_24h)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT (domain) DO UPDATE SET
+                            reports_total = EXCLUDED.reports_total,
+                            score = EXCLUDED.score,
+                            last_report_at = EXCLUDED.last_report_at,
+                            recent_reports_24h = EXCLUDED.recent_reports_24h
+                        """
+                    ),
+                    (domain, total_reports, score, now, recent_24h),
+                )
+
+                self._commit_if_needed(conn)
+
+                result["accepted"] = True
+                result["reason"] = "ok"
+                result["aggregate"] = {
+                    "hostname": domain,
+                    "reports": total_reports,
+                    "recent_reports_24h": recent_24h,
+                    "score": float(score),
+                    "last_report_at": now.isoformat(),
+                }
+                return result
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Add crowd report error: {e}")
+            result["reason"] = "db_error"
+            return result
+
+    def get_crowd_summary(
+        self,
+        limit: int = 100,
+        domain_substring: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Возвращает агрегированную сводку по доменам для крауд‑кэша.
+        domain_substring: фильтр по домену (ILIKE).
+        date_from / date_to: ISO даты для last_report_at.
+        """
+        self._ensure_crowd_tables()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                q = """
+                    SELECT domain, reports_total, score, last_report_at, recent_reports_24h
+                    FROM crowd_aggregates
+                    WHERE 1=1
+                """
+                params = []
+                if domain_substring and domain_substring.strip():
+                    q += " AND domain ILIKE %s"
+                    params.append(f"%{domain_substring.strip()}%")
+                if date_from:
+                    q += " AND last_report_at >= %s"
+                    params.append(date_from)
+                if date_to:
+                    q += " AND last_report_at <= %s"
+                    params.append(date_to)
+                q += " ORDER BY score DESC, recent_reports_24h DESC, last_report_at DESC LIMIT %s"
+                params.append(limit)
+                cursor.execute(self._adapt_query(q), tuple(params))
+                rows = cursor.fetchall() or []
+                items = []
+                for row in rows:
+                    d = dict(row)
+                    items.append(
+                        {
+                            "hostname": d.get("domain"),
+                            "reports": int(d.get("reports_total") or 0),
+                            "score": float(d.get("score") or 0),
+                            "recent_reports_24h": int(d.get("recent_reports_24h") or 0),
+                            "lastReportAt": (d.get("last_report_at") or datetime.utcnow()).isoformat(),
+                        }
+                    )
+                return {"items": items, "count": len(items)}
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get crowd summary error: {e}")
+            return {"items": [], "count": 0}
+
+    def get_crowd_reports_by_domain(self, domain: str, limit: int = 200) -> List[Dict[str, Any]]:
+        """Список отдельных репортов по домену."""
+        self._ensure_crowd_tables()
+        if not domain:
+            return []
+        domain = domain.lower().strip()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        SELECT id, url, domain, verdict, comment, device_id, client_ip_truncated, created_at
+                        FROM crowd_reports
+                        WHERE domain = %s
+                        ORDER BY created_at DESC
+                        LIMIT %s
+                        """
+                    ),
+                    (domain, limit),
+                )
+                rows = cursor.fetchall() or []
+                return [
+                    {
+                        "id": r.get("id"),
+                        "url": r.get("url"),
+                        "domain": r.get("domain"),
+                        "verdict": r.get("verdict"),
+                        "comment": r.get("comment") or "",
+                        "created_at": (r.get("created_at") or datetime.utcnow()).isoformat(),
+                    }
+                    for r in rows
+                ]
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get crowd reports by domain error: {e}")
+            return []
+
+    def get_crowd_for_domain(self, domain: str) -> Optional[Dict[str, Any]]:
+        """
+        Возвращает агрегированную информацию по одному домену.
+        """
+        self._ensure_crowd_tables()
+        if not domain:
+            return None
+        domain = domain.lower().strip()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        SELECT domain, reports_total, score, last_report_at, recent_reports_24h
+                        FROM crowd_aggregates
+                        WHERE domain = %s
+                        """
+                    ),
+                    (domain,),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                d = dict(row)
+                return {
+                    "hostname": d.get("domain"),
+                    "reports": int(d.get("reports_total") or 0),
+                    "score": float(d.get("score") or 0),
+                    "recent_reports_24h": int(d.get("recent_reports_24h") or 0),
+                    "lastReportAt": (d.get("last_report_at") or datetime.utcnow()).isoformat(),
+                }
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get crowd for domain error: {e}")
+            return None
+
+    # ===== КЭШ ДОМЕННЫХ МЕТАДАННЫХ (WHOIS / SSL) =====
+
+    def _ensure_domain_metadata_cache_table(self):
+        """
+        Создаёт таблицу domain_metadata_cache при необходимости.
+        Хранит результаты WHOIS/SSL с TTL, чтобы не дергать внешние сервисы при каждом запросе.
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS domain_metadata_cache (
+                        domain TEXT PRIMARY KEY,
+                        domain_age_days INTEGER,
+                        ssl_issuer TEXT,
+                        ssl_valid_from TIMESTAMP,
+                        ssl_valid_to TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                )
+                cursor.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_domain_metadata_cache_updated ON domain_metadata_cache(updated_at DESC)"
+                )
+                self._commit_if_needed(conn)
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Init domain_metadata_cache table error: {e}")
+
+    def upsert_domain_metadata_cache(
+        self,
+        domain: str,
+        domain_age_days: Optional[int],
+        ssl_issuer: Optional[str],
+        ssl_valid_from: Optional[datetime],
+        ssl_valid_to: Optional[datetime],
+    ) -> bool:
+        """
+        Сохраняет или обновляет запись в кэше доменных метаданных.
+        """
+        if not domain:
+            return False
+        domain = domain.lower().strip()
+        self._ensure_domain_metadata_cache_table()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        INSERT INTO domain_metadata_cache (domain, domain_age_days, ssl_issuer, ssl_valid_from, ssl_valid_to, updated_at)
+                        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                        ON CONFLICT (domain) DO UPDATE SET
+                            domain_age_days = EXCLUDED.domain_age_days,
+                            ssl_issuer = EXCLUDED.ssl_issuer,
+                            ssl_valid_from = EXCLUDED.ssl_valid_from,
+                            ssl_valid_to = EXCLUDED.ssl_valid_to,
+                            updated_at = CURRENT_TIMESTAMP
+                        """
+                    ),
+                    (domain, domain_age_days, ssl_issuer, ssl_valid_from, ssl_valid_to),
+                )
+                self._commit_if_needed(conn)
+            return True
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Upsert domain_metadata_cache error: {e}")
+            return False
+
+    def get_domain_metadata_cache(
+        self,
+        domain: str,
+        max_age_hours: int = 72,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Возвращает кэшированную запись WHOIS/SSL для домена, если она не старше max_age_hours.
+        Иначе возвращает None.
+        """
+        if not domain:
+            return None
+        domain = domain.lower().strip()
+        self._ensure_domain_metadata_cache_table()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        SELECT domain, domain_age_days, ssl_issuer, ssl_valid_from, ssl_valid_to, updated_at
+                        FROM domain_metadata_cache
+                        WHERE domain = %s
+                        """
+                    ),
+                    (domain,),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                d = dict(row)
+                updated_at = d.get("updated_at") or datetime.utcnow()
+                if datetime.utcnow() - updated_at > timedelta(hours=max_age_hours):
+                    return None
+                return {
+                    "domain": d.get("domain"),
+                    "domain_age_days": d.get("domain_age_days"),
+                    "ssl_issuer": d.get("ssl_issuer"),
+                    "ssl_valid_from": (d.get("ssl_valid_from") or datetime.utcnow()).isoformat()
+                    if d.get("ssl_valid_from")
+                    else None,
+                    "ssl_valid_to": (d.get("ssl_valid_to") or datetime.utcnow()).isoformat()
+                    if d.get("ssl_valid_to")
+                    else None,
+                    "updated_at": updated_at.isoformat(),
+                }
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Get domain_metadata_cache error: {e}")
+            return None
+
+    def clear_crowd_for_domain(self, domain: str) -> bool:
+        """
+        Удаляет все крауд‑репорты и агрегаты для указанного домена.
+        """
+        self._ensure_crowd_tables()
+        if not domain:
+            return False
+        domain = domain.lower().strip()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query("DELETE FROM crowd_reports WHERE domain = %s"),
+                    (domain,),
+                )
+                cursor.execute(
+                    self._adapt_query("DELETE FROM crowd_aggregates WHERE domain = %s"),
+                    (domain,),
+                )
+                self._commit_if_needed(conn)
+            return True
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Clear crowd for domain error: {e}")
+            return False
+
+    def clear_all_crowd(self) -> bool:
+        """
+        Полностью очищает все крауд‑репорты и агрегаты.
+        """
+        self._ensure_crowd_tables()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("TRUNCATE crowd_reports")
+                cursor.execute("TRUNCATE crowd_aggregates")
+                self._commit_if_needed(conn)
+            return True
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Clear all crowd error: {e}")
+            return False
     def get_api_key_stats(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Возвращает статистику использования API ключа."""
         try:

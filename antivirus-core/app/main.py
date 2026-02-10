@@ -60,7 +60,6 @@ from app.schemas import (
 )
 from app.validators import security_validator
 from app.external_apis.manager import external_api_manager
-from app.admin_ui import router as admin_ui_router
 from app.background_jobs import background_job_manager
 from app.auth import auth_manager
 from app.routes.payments import router as payments_router
@@ -277,6 +276,13 @@ class LoginRequest(BaseModel):
     username: str  # username или email
     password: str
 
+
+class CrowdReportRequest(BaseModel):
+    url: str
+    verdict: str  # 'suspicious' или 'malicious'
+    comment: Optional[str] = None
+    device_id: Optional[str] = None
+
 app = FastAPI(
     title="Antivirus Core API",
     description="API ядра для антивирусного расширения браузера", 
@@ -396,9 +402,6 @@ app.add_middleware(
     expose_headers=["*"],
     max_age=3600,
 )
-
-# Include admin ui router to serve /admin/ui -> index.html
-app.include_router(admin_ui_router)
 
 app.include_router(payments_router, prefix="/payments")
 
@@ -856,33 +859,75 @@ async def validate_key(request: Request):
 async def root():
     return {"status": "success", "safe": True, "details": "DEV VERSION TEST"}
 
-@app.get("/admin/ui")
-async def admin_ui():
-    """Admin UI для управления ключами"""
-    import os
-    # Путь к admin.html относительно app/main.py
-    admin_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "admin.html")
-    if not os.path.exists(admin_path):
-        raise HTTPException(status_code=404, detail="Admin UI not found")
-    return FileResponse(admin_path, headers={
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0"
-    })
+@app.post("/crowd/report")
+async def crowd_report_endpoint(payload: CrowdReportRequest, request: Request):
+    """
+    Принимает крауд‑репорт от расширения:
+    - защищено от спама (rate‑limit по device_id и IP)
+    - дедупликация (один device_id → один репорт по домену в окно времени)
+    - обновляет агрегаты для последующей раздачи расширению
+    """
+    if db_manager is None:
+        raise HTTPException(status_code=503, detail="Database is not configured")
 
-@app.get("/admin/ui/refresh")
-async def admin_ui_refresh():
-    """Admin UI с принудительным обновлением"""
-    import os
-    admin_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "admin.html")
-    if not os.path.exists(admin_path):
-        raise HTTPException(status_code=404, detail="Admin UI not found")
-    return FileResponse(admin_path, headers={
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-        "Last-Modified": "Thu, 01 Jan 1970 00:00:00 GMT"
-    })
+    url = (payload.url or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url is required")
+
+    verdict = (payload.verdict or "").strip().lower()
+    if verdict not in ("suspicious", "malicious"):
+        raise HTTPException(status_code=400, detail="verdict must be 'suspicious' or 'malicious'")
+
+    # Определяем домен
+    try:
+        parsed = urlparse(url)
+        domain = (parsed.hostname or parsed.netloc or "").lower()
+    except Exception:
+        domain = ""
+    if not domain:
+        raise HTTPException(status_code=400, detail="invalid url")
+
+    # Усечённый IP для агрегации (а не полный)
+    client_ip = request.headers.get("X-Forwarded-For") or (request.client.host if request.client else None)
+    truncated_ip = None
+    if client_ip and ":" not in client_ip:
+        parts = client_ip.split(".")
+        if len(parts) == 4:
+            truncated_ip = ".".join(parts[:3]) + ".0"
+
+    device_id = (payload.device_id or "").strip() or None
+    comment = (payload.comment or "").strip() or None
+
+    result = db_manager.add_crowd_report(
+        url=url,
+        domain=domain,
+        verdict=verdict,
+        device_id=device_id,
+        client_ip_truncated=truncated_ip,
+        comment=comment,
+    )
+
+    status = 200 if result.get("accepted") else 429 if result.get("reason", "").startswith("rate_limited") else 400
+    return JSONResponse(
+        status_code=status,
+        content={
+            "ok": result.get("accepted", False),
+            "reason": result.get("reason", "unknown"),
+            "aggregate": result.get("aggregate"),
+        },
+    )
+
+
+@app.get("/crowd/summary")
+async def crowd_summary(limit: int = 100):
+    """
+    Агрегированная сводка по крауд‑репортам.
+    Предназначено для использования расширением (загрузка ti_crowd_cache).
+    """
+    if db_manager is None:
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    summary = db_manager.get_crowd_summary(limit=limit)
+    return summary
 
 @app.post("/check/url", response_model=CheckResponse)
 async def check_url_secure(

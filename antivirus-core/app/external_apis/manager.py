@@ -6,6 +6,7 @@ from app.config import config, ENV_FILE_LOADED, ENV_FILE_PATH
 from .virustotal import VirusTotalClient
 from .google_safe_browsing import GoogleSafeBrowsingClient
 from .abuseipdb import AbuseIPDBClient
+from .urlscan import URLScanClient
 
 class ExternalAPIManager:
     """Менеджер для координации проверок через внешние API"""
@@ -14,11 +15,13 @@ class ExternalAPIManager:
         self.virustotal = VirusTotalClient()
         self.google_safe_browsing = GoogleSafeBrowsingClient()
         self.abuseipdb = AbuseIPDBClient()
+        self.urlscan = URLScanClient()
         # Автовключение клиентов по наличию ключей окружения
         self.enabled_apis = {
             'virustotal': bool(config.VIRUSTOTAL_API_KEY and 'your_virustotal_key_here' not in config.VIRUSTOTAL_API_KEY),
-            'google_safe_browsing': bool(config.GOOGLE_SAFE_BROWSING_KEY and 'your_google_key_here' not in config.GOOGLE_SAFE_BROWSING_KEY), 
-            'abuseipdb': bool(config.ABUSEIPDB_API_KEY and 'your_abuseipdb_key_here' not in config.ABUSEIPDB_API_KEY)
+            'google_safe_browsing': bool(config.GOOGLE_SAFE_BROWSING_KEY and 'your_google_key_here' not in config.GOOGLE_SAFE_BROWSING_KEY),
+            'abuseipdb': bool(config.ABUSEIPDB_API_KEY and 'your_abuseipdb_key_here' not in config.ABUSEIPDB_API_KEY),
+            'urlscan': bool(getattr(config, 'URLSCAN_API_KEY', None) and 'your_' not in (getattr(config, 'URLSCAN_API_KEY', '') or '').lower()),
         }
         
         self._log_configuration()
@@ -58,6 +61,10 @@ class ExternalAPIManager:
         if self.enabled_apis['google_safe_browsing']:
             tasks.append(self._safe_api_call_with_context(self.google_safe_browsing, 'check_urls', [url], api_name='google_safe_browsing'))
             api_names.append('google_safe_browsing')
+        
+        if self.enabled_apis['urlscan']:
+            tasks.append(self._safe_api_call_with_context(self.urlscan, 'check_url', url, api_name='urlscan'))
+            api_names.append('urlscan')
         
         if self.enabled_apis['abuseipdb']:
             # AbuseIPDB не поддерживает URL проверки, пропускаем
@@ -210,6 +217,10 @@ class ExternalAPIManager:
                 logger.info(f"🔍 Google Safe Browsing parsed result: {parsed_results['google']}")
             except Exception as gsb_error:
                 logger.error(f"Google Safe Browsing parsing failed: {gsb_error}", exc_info=True)
+        
+        if 'urlscan' in results and results['urlscan'] and isinstance(results['urlscan'], dict):
+            parsed_results['urlscan'] = results['urlscan']
+            logger.info(f"🔍 URLScan result: {parsed_results['urlscan'].get('safe')}")
         
         # Определяем общий вердикт
         safe_count = 0

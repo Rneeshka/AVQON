@@ -1,0 +1,323 @@
+2025-12-16 01:54:49,484 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:54:49,487 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:54:49,490 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:54:49,613 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:54:49,613 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:54:49,613 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:54:49,716 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:54:49,718 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:54:49,719 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:54:49,719 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:54:49,720 - app.logger - INFO - Rate limits reset
+2025-12-16 01:54:49,720 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:49,720 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:49,720 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:54:49,720 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:54:49,725 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:54:49,725 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:54:53,656 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:54:53,658 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:54:53,661 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:54:53,766 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:54:53,767 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:54:53,767 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:54:53,845 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:54:53,846 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:54:53,847 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:54:53,848 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:54:53,848 - app.logger - INFO - Rate limits reset
+2025-12-16 01:54:53,848 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:53,848 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:53,848 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:54:53,848 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:54:53,852 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:54:53,852 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:54:57,644 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:54:57,646 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:54:57,649 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:54:57,760 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:54:57,761 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:54:57,761 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:54:57,845 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:54:57,847 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:54:57,848 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:54:57,848 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:54:57,849 - app.logger - INFO - Rate limits reset
+2025-12-16 01:54:57,849 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:57,849 - app.logger - INFO - Background job manager started
+2025-12-16 01:54:57,849 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:54:57,849 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:54:57,852 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:54:57,853 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:01,697 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:01,700 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:01,705 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:01,845 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:01,845 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:01,846 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:01,947 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:01,949 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:01,950 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:01,951 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:01,951 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:01,951 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:01,951 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:01,951 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:01,951 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:01,956 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:01,956 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:06,052 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:06,055 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:06,058 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:06,196 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:06,196 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:06,197 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:06,291 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:06,293 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:06,294 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:06,294 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:06,295 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:06,295 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:06,295 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:06,295 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:06,295 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:06,300 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:06,300 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:10,183 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:10,185 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:10,188 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:10,311 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:10,311 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:10,312 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:10,407 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:10,409 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:10,410 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:10,411 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:10,411 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:10,411 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:10,411 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:10,412 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:10,412 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:10,415 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:10,416 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:14,459 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:14,461 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:14,464 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:14,573 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:14,574 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:14,574 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:14,657 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:14,658 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:14,659 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:14,660 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:14,660 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:14,660 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:14,660 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:14,660 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:14,660 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:14,664 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:14,664 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:18,689 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:18,691 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:18,694 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:18,797 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:18,797 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:18,798 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:18,875 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:18,876 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:18,878 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:18,879 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:18,879 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:18,879 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:18,879 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:18,880 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:18,880 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:18,884 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:18,884 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:22,693 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:22,695 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:22,698 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:22,805 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:22,805 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:22,805 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:22,888 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:22,889 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:22,890 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:22,891 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:22,891 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:22,891 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:22,891 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:22,892 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:22,892 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:22,896 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:22,896 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:26,877 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:26,879 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:26,882 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:26,987 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:26,988 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:26,988 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:27,061 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:27,062 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:27,063 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:27,064 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:27,064 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:27,064 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:27,064 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:27,065 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:27,065 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:27,068 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:27,068 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:30,966 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:30,968 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:30,971 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:31,077 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:31,077 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:31,077 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:31,155 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:31,156 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:31,157 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:31,158 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:31,158 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:31,158 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:31,159 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:31,159 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:31,159 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:31,162 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:31,163 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:35,163 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:35,166 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:35,169 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:35,273 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:35,273 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:35,273 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:35,350 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:35,351 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:35,352 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:35,353 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:35,353 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:35,353 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:35,353 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:35,353 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:35,354 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:35,357 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:35,358 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:39,122 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:39,124 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:39,127 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:39,237 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:39,237 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:39,237 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:39,317 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:39,318 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:39,319 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:39,320 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:39,320 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:39,321 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:39,321 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:39,321 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:39,321 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:39,325 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:39,325 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:43,122 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:43,124 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:43,127 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:43,232 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:43,232 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:43,232 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:43,305 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:43,307 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:43,308 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:43,308 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:43,309 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:43,309 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:43,309 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:43,309 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:43,309 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:43,313 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:43,313 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:47,131 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:47,133 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:47,136 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:47,238 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:47,238 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:47,238 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:47,310 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:47,312 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:47,312 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:47,313 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:47,313 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:47,314 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:47,314 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:47,314 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:47,314 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:47,317 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:47,317 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:51,173 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:51,175 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:51,177 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:51,286 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:51,286 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:51,287 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:51,366 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:51,368 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:51,369 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:51,369 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:51,370 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:51,370 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:51,370 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:51,370 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:51,370 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:51,374 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:51,374 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:55,151 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:55,153 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:55,156 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:55,257 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:55,257 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:55,257 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:55,332 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:55,334 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:55,334 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:55,335 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:55,335 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:55,336 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:55,336 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:55,336 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:55,336 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:55,340 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:55,340 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:59,190 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:55:59,192 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:55:59,194 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:55:59,293 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:55:59,294 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:55:59,294 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:55:59,375 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:55:59,376 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:55:59,378 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:55:59,378 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:55:59,379 - app.logger - INFO - Rate limits reset
+2025-12-16 01:55:59,379 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:59,379 - app.logger - INFO - Background job manager started
+2025-12-16 01:55:59,379 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:55:59,379 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:55:59,382 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:55:59,383 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:56:03,159 - app.logger - INFO - Logging system initialized with rotation
+2025-12-16 01:56:03,161 - app.database - INFO - Initializing database at: /opt/aegis/data/aegis.db
+2025-12-16 01:56:03,164 - app.database - INFO - Database initialized successfully with all tables
+2025-12-16 01:56:03,274 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/aegis/antivirus-core/app/env.env)
+2025-12-16 01:56:03,274 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2025-12-16 01:56:03,275 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True}
+2025-12-16 01:56:03,356 - app.logger - INFO - 🚀 AEGIS Server starting up...
+2025-12-16 01:56:03,357 - app.logger - INFO - ✅ Database tables verified
+2025-12-16 01:56:03,358 - app.logger - INFO - Database connection established successfully
+2025-12-16 01:56:03,359 - app.database - INFO - Rate limits reset successfully
+2025-12-16 01:56:03,359 - app.logger - INFO - Rate limits reset
+2025-12-16 01:56:03,359 - app.logger - INFO - Background job manager started
+2025-12-16 01:56:03,359 - app.logger - INFO - Background job manager started
+2025-12-16 01:56:03,360 - app.logger - INFO - WebSocket cleanup task started
+2025-12-16 01:56:03,360 - app.logger - INFO - ✅ AEGIS Server startup complete
+2025-12-16 01:56:03,363 - app.logger - INFO - Background job manager stopped
+2025-12-16 01:56:03,363 - app.logger - INFO - Background job manager stopped

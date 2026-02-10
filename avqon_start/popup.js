@@ -4,10 +4,11 @@
     hoverScan: true,
     notify: true,
     apiBase: window.AVQON_CONFIG?.API_BASE || 'https://prod.avqon.com',
-    hoverTheme: 'classic'
+    hoverTheme: 'classic',
+    sensitivityMode: 'balanced'  // conservative | balanced | aggressive
   };
 
-  const views = ['home', 'settings', 'customize', 'feedback', 'about'];
+  const views = ['home', 'settings', 'customize', 'feedback', 'about', 'why'];
   const BADGE_TEXT = {
     ready: 'READY',
     safe: 'SAFE',
@@ -401,11 +402,12 @@
       elements.resultEl.classList.add('result-section');
     }
     
-    // Простой вывод в одну строку: URL - Вердикт
+    // Расширенный вывод с деталями анализа
     elements.resultEl.innerHTML = '';
     if (domain) {
+      // Основная строка: URL - Вердикт
       const resultLine = document.createElement('div');
-      resultLine.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+      resultLine.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 10px;';
       
       const urlSpan = document.createElement('span');
       urlSpan.style.cssText = 'color: var(--muted); flex-shrink: 0;';
@@ -428,11 +430,120 @@
       resultLine.appendChild(separator);
       resultLine.appendChild(verdictSpan);
       elements.resultEl.appendChild(resultLine);
+
+      // Детали эвристического анализа (если доступны)
+      const heuristics = res.meta && res.meta.heuristics;
+      if (heuristics && typeof heuristics === 'object') {
+        const riskScore = Number(heuristics.riskScore || 0);
+        const riskLevel = heuristics.riskLevel || 'SAFE';
+        const factors = Array.isArray(heuristics.factors) ? heuristics.factors : [];
+
+        if (riskScore > 0 || factors.length > 0) {
+          const detailsCard = document.createElement('div');
+          detailsCard.style.cssText = 'margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px; border: 1px solid var(--border);';
+          
+          // Risk Score и Level
+          const riskRow = document.createElement('div');
+          riskRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 11px;';
+          
+          const riskLabel = document.createElement('span');
+          riskLabel.style.cssText = 'color: var(--muted); font-weight: 600;';
+          riskLabel.textContent = 'Оценка риска:';
+          
+          const riskValue = document.createElement('span');
+          let riskColor = 'var(--success)';
+          if (riskLevel === 'CRITICAL') riskColor = 'var(--danger)';
+          else if (riskLevel === 'HIGH_RISK') riskColor = 'var(--danger)';
+          else if (riskLevel === 'LOW_RISK') riskColor = 'var(--warning)';
+          riskValue.style.cssText = `color: ${riskColor}; font-weight: 700;`;
+          riskValue.textContent = `${riskScore} (${riskLevel})`;
+          
+          riskRow.appendChild(riskLabel);
+          riskRow.appendChild(riskValue);
+          detailsCard.appendChild(riskRow);
+
+          // Факторы риска
+          if (factors.length > 0) {
+            const factorsTitle = document.createElement('div');
+            factorsTitle.style.cssText = 'font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px;';
+            factorsTitle.textContent = 'Факторы риска:';
+            detailsCard.appendChild(factorsTitle);
+
+            const factorsList = document.createElement('ul');
+            factorsList.style.cssText = 'margin: 0; padding-left: 18px; font-size: 10px; color: var(--text); line-height: 1.5;';
+            
+            factors.slice(0, 5).forEach((factor) => {
+              const li = document.createElement('li');
+              li.textContent = factor;
+              factorsList.appendChild(li);
+            });
+            
+            if (factors.length > 5) {
+              const moreLi = document.createElement('li');
+              moreLi.style.cssText = 'color: var(--muted); font-style: italic;';
+              moreLi.textContent = `... и ещё ${factors.length - 5} факторов`;
+              factorsList.appendChild(moreLi);
+            }
+            
+            detailsCard.appendChild(factorsList);
+          }
+
+          elements.resultEl.appendChild(detailsCard);
+        }
+      }
+
+      // Информация о Threat Intelligence (если доступна)
+      const ti = res.meta && res.meta.threat_intel;
+      if (ti && typeof ti === 'object') {
+        const tiInfo = [];
+        
+        if (ti.blacklistHit === true && Array.isArray(ti.hits) && ti.hits.length > 0) {
+          ti.hits.forEach((hit) => {
+            if (hit && hit.source) {
+              tiInfo.push(`${hit.source}: обнаружен в списке угроз`);
+            }
+          });
+        }
+        
+        if (ti.ipReputation && ti.ipReputation.abuseConfidenceScore) {
+          const score = Number(ti.ipReputation.abuseConfidenceScore);
+          if (score > 0) {
+            tiInfo.push(`IP репутация: ${score}% (AbuseIPDB)`);
+          }
+        }
+        
+        if (ti.crowd && ti.crowd.reports) {
+          const reports = Number(ti.crowd.reports);
+          if (reports > 0) {
+            tiInfo.push(`Краудсорсинг: ${reports} репортов от пользователей`);
+          }
+        }
+
+        if (tiInfo.length > 0) {
+          const tiCard = document.createElement('div');
+          tiCard.style.cssText = 'margin-top: 8px; padding: 8px; background: rgba(37,99,235,0.05); border-radius: 6px; border: 1px solid rgba(37,99,235,0.2);';
+          
+          const tiTitle = document.createElement('div');
+          tiTitle.style.cssText = 'font-size: 10px; font-weight: 600; color: var(--primary); margin-bottom: 4px;';
+          tiTitle.textContent = 'Threat Intelligence:';
+          tiCard.appendChild(tiTitle);
+
+          const tiList = document.createElement('div');
+          tiList.style.cssText = 'font-size: 10px; color: var(--text); line-height: 1.4;';
+          tiList.textContent = tiInfo.join(' • ');
+          tiCard.appendChild(tiList);
+
+          elements.resultEl.appendChild(tiCard);
+        }
+      }
     } else {
       elements.resultEl.innerHTML = '<p class="muted">Нет данных по текущему URL.</p>';
     }
 
     toggleWarning(verdict === 'malicious', res.details);
+
+    // Обновляем вкладку «Почему сайт опасен?»
+    renderWhyExplanation(url, res);
   }
 
   function resolveVerdict(res) {
@@ -444,13 +555,130 @@
   }
 
   /**
+   * Генерация объяснения «почему сайт опасен»
+   */
+  function renderWhyExplanation(url, res) {
+    const container = document.getElementById('why-content');
+    if (!container) return;
+
+    const data = res || {};
+    const verdict = resolveVerdict(data);
+    const meta = data.meta || {};
+    const heur = meta.heuristics || {};
+    const ti = meta.threat_intel || {};
+    const domainMeta = data.domain_metadata || {};
+
+    const parts = [];
+
+    // 1. Общее резюме
+    const verdictMap = {
+      malicious: 'Сайт признан ОПАСНЫМ на основе совокупности сигналов.',
+      suspicious: 'Сайт выглядит ПОДОЗРИТЕЛЬНЫМ по ряду признаков.',
+      safe: 'Сайт выглядит БЕЗОПАСНЫМ на основе текущих сигналов.',
+      unknown: 'Недостаточно данных для однозначного вердикта.'
+    };
+    parts.push(`<p>${verdictMap[verdict] || verdictMap.unknown}</p>`);
+
+    // 2. Риск‑скор и ML
+    const riskScore = typeof heur.riskScore === 'number' ? heur.riskScore : null;
+    const riskLevel = heur.riskLevel || null;
+    const mlScore = typeof heur.ml_score === 'number' ? heur.ml_score : null;
+    const mlLabel = heur.ml_label || null;
+
+    if (riskScore !== null || mlScore !== null) {
+      let html = '<p><strong>Оценка риска:</strong><br />';
+      if (riskScore !== null) {
+        html += `— эвристический риск: <b>${Math.round(riskScore)}</b> баллов (${riskLevel || 'SAFE'})<br />`;
+      }
+      if (mlScore !== null) {
+        html += `— ML‑модель: <b>${Math.round(mlScore * 100)}%</b> (${mlLabel || 'unknown'})`;
+      }
+      html += '</p>';
+      parts.push(html);
+    }
+
+    // 3. Основные факторы риска
+    if (Array.isArray(heur.factors) && heur.factors.length > 0) {
+      const items = heur.factors.slice(0, 6).map((f) => `<li>${f}</li>`).join('');
+      parts.push(
+        `<p><strong>Факторы риска:</strong></p><ul>${items}${
+          heur.factors.length > 6
+            ? `<li>... и ещё ${heur.factors.length - 6} факторов</li>`
+            : ''
+        }</ul>`
+      );
+    }
+
+    // 4. Информация о домене
+    if (domainMeta && (domainMeta.domain || domainMeta.tld)) {
+      const lines = [];
+      if (domainMeta.domain) {
+        lines.push(`Домен: <b>${domainMeta.domain}</b>`);
+      }
+      if (typeof domainMeta.subdomain_depth === 'number') {
+        lines.push(`Глубина поддоменов: <b>${domainMeta.subdomain_depth}</b>`);
+      }
+      if (domainMeta.domain_age_days != null) {
+        lines.push(`Возраст домена: <b>${domainMeta.domain_age_days}</b> дней`);
+      } else {
+        lines.push('Возраст домена: нет данных (WHOIS пока не дал информации)');
+      }
+      if (domainMeta.ssl_issuer || domainMeta.ssl_valid_from || domainMeta.ssl_valid_to) {
+        const issuer = domainMeta.ssl_issuer ? `<b>${domainMeta.ssl_issuer}</b>` : 'неизвестен';
+        let period = '';
+        if (domainMeta.ssl_valid_from || domainMeta.ssl_valid_to) {
+          const from = domainMeta.ssl_valid_from ? new Date(domainMeta.ssl_valid_from).toLocaleDateString() : '?';
+          const to = domainMeta.ssl_valid_to ? new Date(domainMeta.ssl_valid_to).toLocaleDateString() : '?';
+          period = ` (действует с ${from} по ${to})`;
+        }
+        lines.push(`SSL‑сертификат: ${issuer}${period}`);
+      } else {
+        lines.push('SSL‑сертификат: нет данных о сертификате (хост может не использовать TLS)');
+      }
+      parts.push(`<p><strong>Доменная информация:</strong><br />${lines.join('<br />')}</p>`);
+    }
+
+    // 5. Threat Intelligence‑источники
+    const tiLines = [];
+    if (ti && ti.blacklistHit && Array.isArray(ti.hits)) {
+      ti.hits.forEach((hit) => {
+        if (!hit || !hit.source) return;
+        tiLines.push(`${hit.source}: обнаружен в списке угроз`);
+      });
+    }
+    if (ti && ti.crowd && ti.crowd.reports) {
+      tiLines.push(`Крауд‑репорты: ${ti.crowd.reports} отчётов от пользователей`);
+    }
+    if (ti && ti.ipReputation && typeof ti.ipReputation.abuseConfidenceScore === 'number') {
+      tiLines.push(`IP‑репутация: ${ti.ipReputation.abuseConfidenceScore}% (AbuseIPDB)`);
+    }
+    if (tiLines.length > 0) {
+      parts.push(
+        `<p><strong>Threat Intelligence:</strong><br />${tiLines.join('<br />')}</p>`
+      );
+    }
+
+    if (parts.length === 0) {
+      container.innerHTML =
+        'Подробное объяснение недоступно: пока нет данных от движка анализа. Попробуйте снова проверить URL.';
+    } else {
+      container.innerHTML = parts.join('');
+    }
+  }
+
+  /**
    * Event handlers
    */
   function initTabs() {
     views.forEach((view) => {
       const btn = document.getElementById(`tab-${view}`);
       if (btn) {
-        btn.addEventListener('click', () => switchView(view));
+        btn.addEventListener('click', () => {
+          switchView(view);
+        });
+      } else {
+        // Если вкладка отсутствует (например, в упрощённой разметке) – просто пропускаем
+        console.warn('[AVQON] Tab button not found (skipping):', `tab-${view}`);
       }
     });
     switchView('home');
@@ -496,6 +724,24 @@
         state.hoverTheme = radio.value;
         await saveSettings({ hoverTheme: state.hoverTheme });
         chrome.storage.sync.set({ hoverTheme: state.hoverTheme }, () => {});
+      });
+    });
+  }
+
+  function initSensitivityRadios() {
+    const radios = Array.from(document.querySelectorAll('input[name="sensitivity-mode"]'));
+    if (!radios.length) return;
+    const mode = state.settings.sensitivityMode || 'balanced';
+    radios.forEach((radio) => {
+      radio.checked = radio.value === mode;
+      radio.closest('.radio-option')?.classList.toggle('active', radio.value === mode);
+      radio.addEventListener('change', async () => {
+        if (!radio.checked) return;
+        document.querySelectorAll('#view-settings .radio-option').forEach((el) => el.classList.remove('active'));
+        radio.closest('.radio-option')?.classList.add('active');
+        state.settings.sensitivityMode = radio.value;
+        await saveSettings({ sensitivityMode: radio.value });
+        chrome.runtime.sendMessage({ type: 'settings_updated', settings: state.settings }, () => {});
       });
     });
   }
@@ -1280,16 +1526,226 @@
   }
 
   /**
+   * Гарантирует наличие карточки еженедельного отчёта на главной
+   */
+  function ensureWeeklyReportCard() {
+    let card = document.getElementById('weekly-report-card');
+    const homeSection = document.getElementById('view-home');
+    if (!homeSection) return;
+
+    if (!card) {
+      const warningCard = document.getElementById('warning-card');
+      const insertPoint = warningCard && warningCard.parentElement === homeSection
+        ? warningCard.nextSibling
+        : homeSection.lastChild;
+
+      card = document.createElement('div');
+      card.id = 'weekly-report-card';
+
+      if (insertPoint) {
+        homeSection.insertBefore(card, insertPoint);
+      } else {
+        homeSection.appendChild(card);
+      }
+    }
+
+    // Всегда приводим карточку к лаконичному, наглядному виду
+    card.className = 'card weekly-report-card';
+    card.innerHTML = `
+      <div class="weekly-report-card-inner">
+        <div class="weekly-header">
+          <div class="weekly-header-title">
+            <span class="weekly-header-eyebrow">Еженедельный отчет</span>
+            <span class="weekly-header-main">Ваша защита за 7 дней</span>
+          </div>
+        </div>
+        <div class="weekly-hero">
+          <div class="weekly-hero-number" id="weekly-unsafe-count">0</div>
+          <div class="weekly-hero-text">угроз заблокировано</div>
+        </div>
+        <div class="weekly-inline-stats">
+          <span id="weekly-inline-total">0 проверок</span>
+          <span class="dot-separator">•</span>
+          <span id="weekly-inline-risk">риск: —</span>
+        </div>
+        <div class="weekly-bottom-row">
+          <div class="weekly-bar-wrapper">
+            <div class="weekly-bar" title="Соотношение безопасных и опасных проверок">
+              <div class="weekly-bar-safe" id="weekly-bar-safe"></div>
+              <div class="weekly-bar-unsafe" id="weekly-bar-unsafe"></div>
+            </div>
+          </div>
+          <div class="weekly-mini-ring" id="weekly-mini-ring">
+            <span id="weekly-ring-percent">—</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Загрузка и отображение еженедельного отчета
+   */
+  async function loadWeeklyReport() {
+    // Сначала убеждаемся, что карточка есть в DOM
+    ensureWeeklyReportCard();
+    try {
+      const response = await sendRuntimeMessage({ type: 'get_weekly_stats' });
+      if (!response || !response.ok) {
+        throw new Error('Не удалось загрузить статистику');
+      }
+
+      const stats = response.stats || {};
+      const unsafeCount = stats.unsafe_count || 0;
+      const totalChecks = stats.total_checks || 0;
+      const safeCount = stats.safe_count || 0;
+
+      // Обновляем главную метрику - крупная цифра (на главной) с лёгкой анимацией
+      const unsafeCountEl = document.getElementById('weekly-unsafe-count');
+      if (unsafeCountEl) {
+        const target = Number(unsafeCount) || 0;
+        const startValue = Number(unsafeCountEl.textContent) || 0;
+        const duration = 600;
+
+        if (startValue !== target) {
+          const startTime = performance.now();
+
+          function animateNumber(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const value = Math.round(startValue + (target - startValue) * progress);
+            unsafeCountEl.textContent = value;
+            if (progress < 1) {
+              requestAnimationFrame(animateNumber);
+            }
+          }
+
+          requestAnimationFrame(animateNumber);
+        }
+
+        if (target > 0) {
+          unsafeCountEl.classList.add('has-data');
+        } else {
+          unsafeCountEl.classList.remove('has-data');
+        }
+      }
+
+      // Обновляем общее количество проверок
+      const totalChecksEl = document.getElementById('weekly-total-checks');
+      if (totalChecksEl) {
+        totalChecksEl.textContent = totalChecks;
+      }
+
+      // Обновляем количество безопасных
+      const safeCountEl = document.getElementById('weekly-safe-count');
+      if (safeCountEl) {
+        safeCountEl.textContent = safeCount;
+      }
+
+      // Обновляем прогресс-бар (safe / unsafe) и мини-диаграмму
+      const barSafe = document.getElementById('weekly-bar-safe');
+      const barUnsafe = document.getElementById('weekly-bar-unsafe');
+      const miniRing = document.getElementById('weekly-mini-ring');
+      const miniRingPercent = document.getElementById('weekly-ring-percent');
+      if (barSafe && barUnsafe && totalChecks > 0) {
+        const safePercent = (safeCount / totalChecks) * 100;
+        const unsafePercent = (unsafeCount / totalChecks) * 100;
+        barSafe.style.width = `${safePercent}%`;
+        barUnsafe.style.width = `${unsafePercent}%`;
+
+        // Компактные подписи под героем
+        const inlineTotalEl = document.getElementById('weekly-inline-total');
+        const inlineRiskEl = document.getElementById('weekly-inline-risk');
+        if (inlineTotalEl) {
+          inlineTotalEl.textContent = `${totalChecks} проверок`;
+        }
+        if (inlineRiskEl) {
+          let label = 'низкий';
+          if (unsafePercent >= 15) label = 'высокий';
+          else if (unsafePercent >= 5) label = 'средний';
+          inlineRiskEl.textContent = `риск: ${Math.round(unsafePercent)}% · ${label}`;
+        }
+
+        // Кольцевая мини‑диаграмма риска
+        if (miniRing && miniRingPercent) {
+          const deg = Math.max(0, Math.min(360, (unsafePercent / 100) * 360));
+          miniRing.style.setProperty('--weekly-risk-deg', `${deg}deg`);
+          miniRing.classList.add('has-data');
+          miniRingPercent.textContent = `${Math.round(unsafePercent)}%`;
+        }
+      } else if (barSafe && barUnsafe) {
+        barSafe.style.width = '0%';
+        barUnsafe.style.width = '0%';
+
+        const inlineTotalEl = document.getElementById('weekly-inline-total');
+        const inlineRiskEl = document.getElementById('weekly-inline-risk');
+        if (inlineTotalEl) inlineTotalEl.textContent = '0 проверок';
+        if (inlineRiskEl) inlineRiskEl.textContent = 'риск: —';
+
+        if (miniRing && miniRingPercent) {
+          miniRing.style.setProperty('--weekly-risk-deg', `0deg`);
+          miniRing.classList.remove('has-data');
+          miniRingPercent.textContent = '—';
+        }
+      }
+
+      // Показываем уведомление при первом открытии после воскресенья/понедельника
+      checkAndShowWeeklyNotification();
+    } catch (error) {
+      console.error('[AVQON] Failed to load weekly report:', error);
+      // Показываем ошибку в UI
+      const unsafeCountEl = document.getElementById('weekly-unsafe-count');
+      if (unsafeCountEl) {
+        unsafeCountEl.textContent = '—';
+      }
+    }
+  }
+
+  /**
+   * Проверяет и показывает уведомление о готовности отчета
+   */
+  async function checkAndShowWeeklyNotification() {
+    try {
+      const storage = await new Promise((resolve) => 
+        chrome.storage.local.get(['lastWeeklyReportNotification'], resolve)
+      );
+      
+      const lastNotification = storage.lastWeeklyReportNotification || 0;
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      
+      // Проверяем, прошла ли неделя с последнего уведомления
+      if (now - lastNotification > oneWeek) {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 = воскресенье, 1 = понедельник
+        
+        // Показываем уведомление в понедельник или воскресенье
+        if (dayOfWeek === 0 || dayOfWeek === 1) {
+          showInternalNotification('📊 Ваш еженедельный отчет готов!', 'success');
+          
+          // Сохраняем время последнего уведомления
+          await new Promise((resolve) => 
+            chrome.storage.local.set({ lastWeeklyReportNotification: now }, resolve)
+          );
+        }
+      }
+    } catch (error) {
+      console.error('[AVQON] Failed to check weekly notification:', error);
+    }
+  }
+
+  /**
    * Initialization
    */
   async function init() {
     state.settings = await loadSettings();
     state.settings.apiBase = normalizeApiBase(state.settings.apiBase);
     state.hoverTheme = state.settings.hoverTheme || 'classic';
+    state.settings.sensitivityMode = state.settings.sensitivityMode || DEFAULTS.sensitivityMode;
 
     initTabs();
     initToggles();
     initHoverThemeRadios();
+    initSensitivityRadios();
     initAccountForms();
 
     if (elements.antivirusToggle) {
@@ -1333,6 +1789,9 @@
     // 4. Запускаем сканирование активной вкладки
     await scanActiveTab();
 
+    // 5. Загружаем еженедельный отчёт для главной
+    await loadWeeklyReport();
+
     // Дополнительно обновляем результат при фокусе окна
     window.addEventListener('focus', () => {
       checkConnectionStatus();
@@ -1353,6 +1812,45 @@
 
     // Инициализация формы отзывов
     initReviewForm();
+
+    // Инициализация кнопок краудсорсинга
+    const crowdSuspiciousBtn = document.getElementById('crowd-report-suspicious-btn');
+    const crowdMaliciousBtn = document.getElementById('crowd-report-malicious-btn');
+
+    async function sendCrowdReport(verdict) {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tab = tabs && tabs[0];
+        if (!tab || !tab.url || tab.url.startsWith('chrome')) {
+          showInternalNotification('Нет доступного URL для репорта', 'warning');
+          return;
+        }
+        const resp = await sendRuntimeMessage({
+          type: 'crowd_report_url',
+          url: tab.url,
+          verdict
+        });
+        if (resp && resp.ok) {
+          showInternalNotification('Спасибо! Ваш репорт отправлен.', 'success');
+        } else {
+          showInternalNotification('Не удалось отправить репорт. Повторите позже.', 'error');
+        }
+      } catch (e) {
+        console.error('[AVQON] Crowd report from popup failed:', e);
+        showInternalNotification('Ошибка при отправке репорта', 'error');
+      }
+    }
+
+    if (crowdSuspiciousBtn) {
+      crowdSuspiciousBtn.addEventListener('click', () => {
+        sendCrowdReport('suspicious');
+      });
+    }
+    if (crowdMaliciousBtn) {
+      crowdMaliciousBtn.addEventListener('click', () => {
+        sendCrowdReport('malicious');
+      });
+    }
   }
 
   /**

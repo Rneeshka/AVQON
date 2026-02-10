@@ -11,6 +11,9 @@ from urllib.parse import urlparse, urlsplit, urlunsplit, parse_qsl, urlencode
 
 from app.database import db_manager
 from app.external_apis.manager import external_api_manager
+from app.external_apis.whoisxml import WhoisXMLClient
+from app.ssl_info import get_ssl_info
+from app.ml_url_model import UrlRiskMlModel
 from app.logger import logger
 from app.validators import security_validator
 from app.cache import disk_cache
@@ -26,7 +29,8 @@ class AnalysisService:
         'apple.com', 'mozilla.org', 'wikipedia.org', 'stackoverflow.com',
         'amazon.com', 'facebook.com', 'twitter.com', 'linkedin.com',
         'reddit.com', 'netflix.com', 'spotify.com', 'discord.com',
-        'cloudflare.com', 'akamai.com', 'fastly.com'
+        'cloudflare.com', 'akamai.com', 'fastly.com',
+        'twitch.tv', 'steamcommunity.com', 'steampowered.com', 'animego.me'
     }
     
     # Доверенные поддомены (любой поддомен этих доменов также доверенный)
@@ -34,7 +38,8 @@ class AnalysisService:
         '.google.com', '.youtube.com', '.github.com', '.microsoft.com',
         '.apple.com', '.mozilla.org', '.wikipedia.org', '.stackoverflow.com',
         '.amazon.com', '.facebook.com', '.twitter.com', '.linkedin.com',
-        '.cloudflare.com', '.akamai.com', '.fastly.com'
+        '.cloudflare.com', '.akamai.com', '.fastly.com',
+        '.twitch.tv', '.steamcommunity.com', '.steampowered.com', '.animego.me'
     ]
     
     def __init__(self, use_external_apis: bool = True):
@@ -49,6 +54,8 @@ class AnalysisService:
             logger.warning(f"Failed to clean old cache entries: {e}")
         # YARA правила (простые сигнатуры)
         self._yara_rules = self._load_yara_rules()
+        # ML‑модель для предиктивного анализа URL (легковесная, без внешних зависимостей)
+        self._ml_model = UrlRiskMlModel()
     
     def clear_cache(self):
         """Очищает in-memory кэш анализа URL"""
@@ -65,9 +72,16 @@ class AnalysisService:
             logger.debug(f"Trusted domain match (exact): {domain_lower}")
             return True
         # Проверка поддоменов (например, www.google.com, mail.google.com)
+        # Проверяем, заканчивается ли домен на один из доверенных суффиксов
         for suffix in self.TRUSTED_DOMAIN_SUFFIXES:
             if domain_lower.endswith(suffix):
                 logger.debug(f"Trusted domain match (suffix): {domain_lower} ends with {suffix}")
+                return True
+        # Также проверяем, является ли домен поддоменом доверенного домена
+        # Например, www.twitch.tv должен быть распознан как поддомен twitch.tv
+        for trusted_domain in self.TRUSTED_DOMAINS:
+            if domain_lower == trusted_domain or domain_lower.endswith('.' + trusted_domain):
+                logger.debug(f"Trusted domain match (subdomain): {domain_lower} is subdomain of {trusted_domain}")
                 return True
         return False
 
@@ -257,6 +271,62 @@ class AnalysisService:
             "total_threat_score": total_threat_score,
             "is_suspicious": total_threat_score > 50
         }
+
+    def _build_domain_metadata(
+        self,
+        url: str,
+        domain: str,
+        external_result: Dict[str, Any] | None,
+        heuristic_result: Dict[str, Any] | None,
+        domain_age_days: Optional[int] = None,
+        ssl_info: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Структура для доменных метаданных (WHOIS возраст, TLS сертификат, ML).
+        domain_age_days и ssl_info подставляются из асинхронной подгрузки при анализе.
+        """
+        try:
+            parsed = urlparse(url)
+        except Exception:
+            parsed = None
+
+        hostname = domain or (parsed.hostname if parsed else None) or ""
+        hostname = hostname.lower()
+
+        tld = ""
+        if "." in hostname:
+            tld = hostname.split(".")[-1]
+
+        subdomain_depth = hostname.count(".")
+
+        ml_score = None
+        ml_label = None
+        if heuristic_result:
+            ml_score = heuristic_result.get("ml_score")
+            ml_label = heuristic_result.get("ml_label")
+
+        ssl_issuer = None
+        ssl_valid_from = None
+        ssl_valid_to = None
+        if ssl_info:
+            ssl_issuer = ssl_info.get("ssl_issuer")
+            ssl_valid_from = ssl_info.get("ssl_valid_from")
+            ssl_valid_to = ssl_info.get("ssl_valid_to")
+
+        source = "whois_tls" if (domain_age_days is not None or ssl_issuer) else "stub_local"
+
+        return {
+            "domain": hostname or None,
+            "tld": tld or None,
+            "subdomain_depth": subdomain_depth,
+            "domain_age_days": domain_age_days,
+            "ssl_issuer": ssl_issuer,
+            "ssl_valid_from": ssl_valid_from,
+            "ssl_valid_to": ssl_valid_to,
+            "ml_score": ml_score,
+            "ml_label": ml_label,
+            "source": source,
+        }
     
     async def analyze_url(self, url: str, use_external_apis: bool = None, ignore_database: bool = False) -> Dict[str, Any]:
         """Улучшенный анализ URL с внешними API
@@ -331,6 +401,7 @@ class AnalysisService:
             domain = parsed_url.netloc.lower()
             
             # КРИТИЧНО: Проверка доверенных доменов - немедленное определение как безопасных
+            # Должна быть ПЕРЕД проверкой домена в базе данных
             if self._is_trusted_domain(domain):
                 logger.info(f"✅ Trusted domain detected: {domain} - marking as safe immediately")
                 result = {
@@ -343,24 +414,70 @@ class AnalysisService:
                 self._cache_set(cache_key, result)
                 return result
             
+            # КРИТИЧНО: Проверка домена в базе данных - но только если домен НЕ в whitelist
+            # Если домен в whitelist, мы уже вернули результат выше
+            # Проверяем домен только для предупреждения, но не блокируем весь домен
+            # если только конкретный URL не опасен (это уже проверено выше)
             try:
                 domain_threats = db_manager.check_domain(domain)
                 if domain_threats:
-                    return {
-                        "safe": False,
-                        "threat_type": domain_threats[0]["threat_type"],
-                        "details": f"Domain {domain} has {len(domain_threats)} known threats",
-                        "source": "local_db"
-                    }
+                    # КРИТИЧНО: Не блокируем весь домен, если только конкретный URL не опасен
+                    # Проверяем, есть ли этот конкретный URL в списке угроз
+                    url_in_threats = any(threat.get("url") == url for threat in domain_threats)
+                    if not url_in_threats:
+                        # Конкретный URL не опасен, но есть другие опасные URL на этом домене
+                        # Не блокируем весь домен, продолжаем анализ
+                        logger.info(f"⚠️ Domain {domain} has {len(domain_threats)} known threats, but this specific URL is not in the list - continuing analysis")
+                    else:
+                        # Конкретный URL найден в списке угроз - блокируем
+                        return {
+                            "safe": False,
+                            "threat_type": domain_threats[0]["threat_type"],
+                            "details": f"Domain {domain} has {len(domain_threats)} known threats, and this URL is one of them",
+                            "source": "local_db"
+                        }
             except Exception as db_error:
                 logger.warning(f"Database domain check failed: {db_error}")
+            
+            # 2.1. Подгрузка WHOIS (возраст домена) и TLS (сертификат) для domain_metadata
+            domain_age_days_val: Optional[int] = None
+            ssl_info_val: Dict[str, Any] = {}
+            if domain and "." in domain:
+                try:
+                    # Сначала пробуем взять из БД‑кэша
+                    cached_meta = db_manager.get_domain_metadata_cache(domain)
+                    if cached_meta:
+                        domain_age_days_val = cached_meta.get("domain_age_days")
+                        ssl_info_val = {
+                            "ssl_issuer": cached_meta.get("ssl_issuer"),
+                            "ssl_valid_from": cached_meta.get("ssl_valid_from"),
+                            "ssl_valid_to": cached_meta.get("ssl_valid_to"),
+                        }
+                    else:
+                        # Если кэша нет или устарел — дергаем внешние источники и сохраняем в кэш
+                        async with WhoisXMLClient() as whois_client:
+                            if whois_client.enabled:
+                                domain_age_days_val = await whois_client.get_domain_age_days(domain)
+                        ssl_info_val = await get_ssl_info(domain)
+                        try:
+                            db_manager.upsert_domain_metadata_cache(
+                                domain=domain,
+                                domain_age_days=domain_age_days_val,
+                                ssl_issuer=ssl_info_val.get("ssl_issuer"),
+                                ssl_valid_from=None,
+                                ssl_valid_to=None,
+                            )
+                        except Exception as cache_err:
+                            logger.debug("Domain metadata DB cache update failed: %s", cache_err)
+                except Exception as meta_err:
+                    logger.debug("Domain metadata (whois/ssl) fetch failed: %s", meta_err)
             
             # 3. Блокировка приватных/внутренних URL для внешних API (защита от утечек)
             if self._is_private_or_internal_url(url):
                 logger.warning(f"⚠️ Private/internal URL detected, skipping external APIs: {url}")
                 # Для внутренних URL используем эвристику с консервативным подходом
                 # КРИТИЧНО: domain уже определен выше
-                heuristic_result = self._url_heuristic_analysis(url, domain)
+                heuristic_result = self._url_heuristic_analysis(url, domain, domain_age_days_val)
                 heuristic_safe = heuristic_result.get("safe")
                 if heuristic_safe is False:
                     result = {
@@ -381,6 +498,10 @@ class AnalysisService:
                         "confidence": 70,
                         "external_scans": {}
                     }
+                result["domain_metadata"] = self._build_domain_metadata(
+                    url, domain, None, heuristic_result,
+                    domain_age_days=domain_age_days_val, ssl_info=ssl_info_val
+                )
                 self._cache_set(cache_key, result)
                 return result
 
@@ -427,7 +548,20 @@ class AnalysisService:
                     logger.error(f"External API check failed: {e}", exc_info=True)
             
             # 4. Локальная эвристика
-            heuristic_result = self._url_heuristic_analysis(url, domain)
+            heuristic_result = self._url_heuristic_analysis(url, domain, domain_age_days_val)
+
+            # 4.1. ML‑оценка риска на основе признаков URL/домена и уже посчитанной эвристики
+            try:
+                ml_res = self._ml_model.evaluate(
+                    url=url,
+                    domain=domain,
+                    external_result=external_result,
+                    heuristic_result=heuristic_result,
+                )
+                heuristic_result["ml_score"] = ml_res.ml_score
+                heuristic_result["ml_label"] = ml_res.label
+            except Exception as ml_error:
+                logger.warning(f"ML URL risk evaluation failed for {url}: {ml_error}")
             
             # 5. Объединяем результаты - ПРИОРИТЕТ ВНЕШНИМ API
             # КРИТИЧНО: Проверяем safe явно, не используя default True
@@ -445,6 +579,10 @@ class AnalysisService:
                         "external_scans": {},
                         "confidence": min(heuristic_result.get("confidence", 50), 70)
                     }
+                    result["domain_metadata"] = self._build_domain_metadata(
+                        url, domain, external_result, heuristic_result,
+                        domain_age_days=domain_age_days_val, ssl_info=ssl_info_val
+                    )
                     self._cache_set(cache_key, result)
                     return result
                 else:
@@ -457,6 +595,10 @@ class AnalysisService:
                         "confidence": 55,  # Низкая уверенность, но безопасно
                         "external_scans": {}
                     }
+                    result["domain_metadata"] = self._build_domain_metadata(
+                        url, domain, external_result, heuristic_result,
+                        domain_age_days=domain_age_days_val, ssl_info=ssl_info_val
+                    )
                     self._cache_set(cache_key, result)
                     return result
             
@@ -469,6 +611,10 @@ class AnalysisService:
                     "source": "external_apis",
                     "confidence": external_result.get("confidence", 80)
                 }
+                result["domain_metadata"] = self._build_domain_metadata(
+                    url, domain, external_result, heuristic_result,
+                    domain_age_days=domain_age_days_val, ssl_info=ssl_info_val
+                )
                 self._cache_set(cache_key, result)
                 return result
             
@@ -822,7 +968,12 @@ class AnalysisService:
                 "source": "error",
             }
 
-    def _url_heuristic_analysis(self, url: str, domain: str) -> Dict[str, Any]:
+    def _url_heuristic_analysis(
+        self,
+        url: str,
+        domain: str,
+        domain_age_days: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """Смягчённая эвристика анализа URL для снижения ложных срабатываний"""
         threat_score = 0
         details = []
@@ -866,6 +1017,18 @@ class AnalysisService:
                 details.append("Uses IP address instead of domain")
         except Exception:
             pass  # Игнорируем ошибки проверки IP
+
+        # Молодой домен по WHOIS (если данные уже есть из domain_metadata)
+        try:
+            if isinstance(domain_age_days, int):
+                if domain_age_days < 7:
+                    threat_score += 35
+                    details.append("Very young domain (<7 days)")
+                elif domain_age_days < 30:
+                    threat_score += 25
+                    details.append("Young domain (<30 days)")
+        except Exception:
+            pass
 
         # Очень длинные URL — учитываем только экстремальные случаи
         if len(url) > 300:
