@@ -97,11 +97,15 @@ class ExternalAPIConfig:
     VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
     GOOGLE_SAFE_BROWSING_KEY = os.getenv("GOOGLE_SAFE_BROWSING_KEY", "")
     ABUSEIPDB_API_KEY = os.getenv("ABUSEIPDB_API_KEY", "")
+    WHOISXML_API_KEY = os.getenv("WHOISXML_API_KEY", "")
+    URLSCAN_API_KEY = os.getenv("URLSCAN_API_KEY", "")
     
     # URL эндпоинтов
     VIRUSTOTAL_URL_API = "https://www.virustotal.com/api/v3"
     GOOGLE_SAFE_BROWSING_API = "https://safebrowsing.googleapis.com/v4"
     ABUSEIPDB_API = "https://api.abuseipdb.com/api/v2"
+    WHOISXML_WHOIS_API = "https://www.whoisxmlapi.com/whoisserver/WhoisService"
+    URLSCAN_API = "https://urlscan.io/api/v1"
     
     # Настройки таймаутов
     REQUEST_TIMEOUT = 30

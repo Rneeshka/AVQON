@@ -9,6 +9,15 @@
 const IS_DEV = false; // false = PROD, true = DEV
 // ===============================
 
+// Подключаем модуль агрегатора угроз и эвристик (если доступен)
+try {
+  if (typeof importScripts === 'function') {
+    importScripts('threat_intel.js');
+  }
+} catch (_) {
+  // ignore, модуль не обязателен для базовой работы
+}
+
 const CONFIG = {
   DEV: {
     API_BASE: 'https://dev.avqon.com',
@@ -35,6 +44,123 @@ const CACHE_TTL = 5 * 60 * 1000;
 const FILE_EXTENSIONS = ['.exe', '.msi', '.apk', '.bat', '.cmd', '.scr', '.ps1', '.js', '.jar', '.vbs', '.py', '.zip', '.rar', '.7z', '.gz', '.tar', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.rtf', '.iso', '.img'];
 const fileAnalysisCache = new Map();
 const ongoingFileAnalyses = new Map();
+
+// ===== МОДУЛЬ СТАТИСТИКИ ДЛЯ ЕЖЕНЕДЕЛЬНОГО ОТЧЕТА =====
+const STATS_STORAGE_KEY = 'weekly_stats';
+const STATS_RETENTION_DAYS = 7; // Храним данные за последние 7 дней
+
+/**
+ * Записывает результат проверки URL в статистику
+ * @param {string} url - URL который был проверен
+ * @param {object} result - Результат проверки { safe: true/false/null, ... }
+ * @param {string} source - Источник проверки ('hover', 'context_menu', 'popup', 'link_check')
+ */
+async function recordUrlCheck(url, result, source = 'unknown') {
+  try {
+    // Не сохраняем полный URL для приватности - только домен
+    let domain = '';
+    try {
+      const urlObj = new URL(url);
+      domain = urlObj.hostname;
+    } catch (_) {
+      domain = url.substring(0, 50); // Fallback если не валидный URL
+    }
+
+    const verdict = result.safe === false ? 'unsafe' : (result.safe === true ? 'safe' : 'unknown');
+    
+    const record = {
+      timestamp: Date.now(),
+      domain: domain, // Только домен, не полный URL
+      verdict: verdict,
+      source: source
+    };
+
+    // Загружаем существующую статистику
+    const stored = await new Promise((resolve) => 
+      chrome.storage.local.get([STATS_STORAGE_KEY], resolve)
+    );
+    
+    let stats = stored[STATS_STORAGE_KEY] || [];
+    
+    // Добавляем новую запись
+    stats.push(record);
+    
+    // Удаляем записи старше 7 дней
+    const cutoffTime = Date.now() - (STATS_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+    stats = stats.filter(entry => entry.timestamp >= cutoffTime);
+    
+    // Сохраняем обновленную статистику
+    await new Promise((resolve) => 
+      chrome.storage.local.set({ [STATS_STORAGE_KEY]: stats }, resolve)
+    );
+    
+    console.log('[AVQON Stats] Recorded check:', { domain, verdict, source });
+  } catch (error) {
+    console.error('[AVQON Stats] Failed to record check:', error);
+  }
+}
+
+/**
+ * Получает статистику за последние 7 дней
+ * @returns {Promise<object>} Статистика { total_checks, unsafe_count, safe_count, saved_clicks }
+ */
+async function getWeeklyStats() {
+  try {
+    const stored = await new Promise((resolve) => 
+      chrome.storage.local.get([STATS_STORAGE_KEY], resolve)
+    );
+    
+    const stats = stored[STATS_STORAGE_KEY] || [];
+    
+    // Фильтруем записи за последние 7 дней
+    const cutoffTime = Date.now() - (STATS_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+    const recentStats = stats.filter(entry => entry.timestamp >= cutoffTime);
+    
+    const total_checks = recentStats.length;
+    const unsafe_count = recentStats.filter(e => e.verdict === 'unsafe').length;
+    const safe_count = recentStats.filter(e => e.verdict === 'safe').length;
+    const saved_clicks = unsafe_count; // Количество спасенных кликов = количество опасных сайтов
+    
+    return {
+      total_checks,
+      unsafe_count,
+      safe_count,
+      saved_clicks,
+      last_updated: Date.now()
+    };
+  } catch (error) {
+    console.error('[AVQON Stats] Failed to get weekly stats:', error);
+    return {
+      total_checks: 0,
+      unsafe_count: 0,
+      safe_count: 0,
+      saved_clicks: 0,
+      last_updated: Date.now()
+    };
+  }
+}
+
+/**
+ * Очищает старые записи статистики (старше 7 дней)
+ */
+async function cleanupOldStats() {
+  try {
+    const stored = await new Promise((resolve) => 
+      chrome.storage.local.get([STATS_STORAGE_KEY], resolve)
+    );
+    
+    const stats = stored[STATS_STORAGE_KEY] || [];
+    const cutoffTime = Date.now() - (STATS_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+    const recentStats = stats.filter(entry => entry.timestamp >= cutoffTime);
+    
+    await new Promise((resolve) => 
+      chrome.storage.local.set({ [STATS_STORAGE_KEY]: recentStats }, resolve)
+    );
+  } catch (error) {
+    console.error('[AVQON Stats] Failed to cleanup old stats:', error);
+  }
+}
+// ===== КОНЕЦ МОДУЛЯ СТАТИСТИКИ =====
 
 // Состояние подключения к серверу
 let connectionState = {
@@ -119,6 +245,7 @@ class AVQONWebSocketClient {
   constructor() {
     this.ws = null;
     this.reconnectTimer = null;
+    this.pending = new Map(); // КРИТИЧНО: Инициализация Map для хранения pending запросов
   }
 
   async ensureConnected() {
@@ -1432,35 +1559,156 @@ function normalizeAnalysisPayload(payload, url) {
   return result;
 }
 
-async function scanUrl(url, useCache = true) {
+// Кэш для асинхронных проверок TI (чтобы не блокировать основной поток)
+const tiCheckCache = new Map();
+const TI_CHECK_CACHE_TTL = 30 * 1000; // 30 секунд
+
+function combineWithThreatIntelAndHeuristics(url, baseResult, context) {
+  // Если модуль TI/эвристик не загружен - возвращаем базовый результат
+  if (typeof ThreatIntelligenceAggregator === 'undefined' || typeof HeuristicEngine === 'undefined') {
+    return Promise.resolve({ ...baseResult });
+  }
+
+  return (async () => {
+    // Проверяем кэш для быстрого ответа (если проверка уже выполнялась недавно)
+    const cacheKey = `${url}_${context}`;
+    const cached = tiCheckCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < TI_CHECK_CACHE_TTL) {
+      const sync = await new Promise((r) => chrome.storage.sync.get(['sensitivityMode'], (x) => r(x || {})));
+      const sensitivityMode = sync.sensitivityMode || 'balanced';
+      let heuristic = cached.heuristic;
+      if (heuristic && typeof heuristic.riskScore === 'number') {
+        heuristic = { ...heuristic, riskLevel: HeuristicEngine._classifyRisk(heuristic.riskScore, sensitivityMode) };
+      }
+      const combined = { ...baseResult };
+      if (!combined.meta) combined.meta = {};
+      combined.meta.threat_intel = cached.tiSummary;
+      combined.meta.heuristics = heuristic;
+      return applyTIHeuristicDecision(combined, cached.tiSummary, heuristic);
+    }
+
+    let tiSummary = null;
+    try {
+      // Асинхронная проверка TI (не блокирует основной поток)
+      tiSummary = await ThreatIntelligenceAggregator.checkUrl(url);
+    } catch (e) {
+      console.warn('[AVQON] ThreatIntelligenceAggregator.checkUrl failed:', e && e.message);
+    }
+
+    let heuristic = null;
+    try {
+      const sync = await new Promise((r) => chrome.storage.sync.get(['sensitivityMode'], (x) => r(x || {})));
+      const sensitivityMode = sync.sensitivityMode || 'balanced';
+      heuristic = HeuristicEngine.evaluateUrl(url, context || 'link_check', tiSummary || {}, { sensitivityMode });
+    } catch (e) {
+      console.warn('[AVQON] HeuristicEngine.evaluateUrl failed:', e && e.message);
+    }
+
+    // Сохраняем в кэш
+    tiCheckCache.set(cacheKey, {
+      tiSummary,
+      heuristic,
+      timestamp: Date.now()
+    });
+
+    // Очистка старого кэша (раз в 100 проверок)
+    if (tiCheckCache.size > 100) {
+      const now = Date.now();
+      for (const [key, value] of tiCheckCache.entries()) {
+        if (now - value.timestamp > TI_CHECK_CACHE_TTL) {
+          tiCheckCache.delete(key);
+        }
+      }
+    }
+
+    const combined = { ...baseResult };
+    if (!combined.meta) combined.meta = {};
+    combined.meta.threat_intel = tiSummary || null;
+    combined.meta.heuristics = heuristic || null;
+
+    return applyTIHeuristicDecision(combined, tiSummary, heuristic);
+  })();
+}
+
+function applyTIHeuristicDecision(combined, tiSummary, heuristic) {
+  // Если любой источник дал однозначный злонамеренный вердикт — усиливаем защиту
+  const hasBlacklistHit =
+    tiSummary && tiSummary.blacklistHit && Array.isArray(tiSummary.hits) && tiSummary.hits.length > 0;
+  const heuristicLevel = heuristic && heuristic.riskLevel;
+
+  if (hasBlacklistHit) {
+    combined.safe = false;
+    combined.threat_type = (combined.threat_type || 'phishing');
+    combined.meta.decision = 'blacklist_ti';
+    // Добавляем детали в details
+    if (!combined.details) combined.details = '';
+    const sources = tiSummary.hits.map(h => h.source).join(', ');
+    combined.details = `Обнаружен в списках угроз: ${sources}. ${combined.details}`.trim();
+  } else if (heuristicLevel === 'HIGH_RISK' || heuristicLevel === 'CRITICAL') {
+    // Даже если сервер не пометил URL как опасный, при высоком риске блокируем
+    if (combined.safe !== false) {
+      combined.safe = false;
+      if (!combined.threat_type) {
+        combined.threat_type = 'heuristic_risk';
+      }
+      combined.meta.decision = 'heuristic_block';
+      // Добавляем информацию о факторах риска
+      if (heuristic && Array.isArray(heuristic.factors) && heuristic.factors.length > 0) {
+        const topFactors = heuristic.factors.slice(0, 3).join('; ');
+        if (!combined.details) combined.details = '';
+        combined.details = `Высокий риск по эвристике (${heuristic.riskScore} баллов): ${topFactors}. ${combined.details}`.trim();
+      }
+    }
+  } else {
+    combined.meta.decision = combined.meta.decision || 'server_or_unknown';
+  }
+
+  return combined;
+}
+
+async function scanUrl(url, useCache = true, source = 'link_check') {
   if (useCache) {
     const cached = getCached(url);
     if (cached) {
       console.log('[AVQON] scanUrl returning cached result, safe:', cached.safe, 'threat_type:', cached.threat_type);
+      // КРИТИЧНО: Записываем статистику даже для кэшированных результатов
+      recordUrlCheck(url, cached, 'link_check').catch(() => {});
       return cached;
     }
   }
 
   try {
     console.log('[AVQON] scanUrl requesting analysis for:', url);
-    const payload = await requestWsAnalysis('analyze_url', { url, context: 'link_check' });
+    const payload = await requestWsAnalysis('analyze_url', { url, context: source || 'link_check' });
     console.log('[AVQON] scanUrl received payload:', JSON.stringify(payload).substring(0, 300));
     const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
     console.log('[AVQON] scanUrl normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
     const enriched = await enrichWithFileAnalysis(url, normalized);
     console.log('[AVQON] scanUrl enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
-    setCached(url, enriched);
-    return enriched;
+
+    // Дополнительный слой: агрегатор TI + эвристический движок
+    const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, source || 'link_check');
+    console.log('[AVQON] scanUrl withThreatIntel/heuristics:', JSON.stringify(withRisk).substring(0, 300), 'safe:', withRisk.safe);
+
+    setCached(url, withRisk);
+    // КРИТИЧНО: Записываем статистику после успешной проверки (источник передаём явно)
+    recordUrlCheck(url, withRisk, source || 'link_check').catch(() => {});
+    return withRisk;
   } catch (error) {
     console.error('[AVQON] scanUrl failed:', error);
     // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
-    const fallback = {
+    const fallbackBase = {
       safe: null, // Не можем определить безопасность
       details: error?.message || 'Ошибка анализа. Повторите попытку.',
       source: 'error',
       threat_type: null
     };
-    return await enrichWithFileAnalysis(url, fallback);
+    const enriched = await enrichWithFileAnalysis(url, fallbackBase);
+    // Даже при ошибке пробуем запустить эвристики (они не требуют сети)
+    const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, source || 'link_check');
+    // КРИТИЧНО: Записываем статистику даже для ошибок
+    recordUrlCheck(url, withRisk, source || 'link_check').catch(() => {});
+    return withRisk;
   }
 }
 
@@ -1470,17 +1718,25 @@ async function scanHover(url) {
   try {
     const payload = await requestWsAnalysis('analyze_url', { url, context: 'hover' });
     const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
-    return await enrichWithFileAnalysis(url, normalized);
+    const enriched = await enrichWithFileAnalysis(url, normalized);
+    const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, 'hover');
+    // КРИТИЧНО: Записываем статистику после успешной проверки hover
+    recordUrlCheck(url, withRisk, 'hover').catch(() => {});
+    return withRisk;
   } catch (error) {
     console.error('[AVQON] scanHover failed:', error);
     // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
-    const fallback = {
+    const fallbackBase = {
       safe: null, // Не можем определить безопасность
       details: error?.message || 'Ошибка анализа. Повторите попытку.',
       source: 'error',
       threat_type: null
     };
-    return await enrichWithFileAnalysis(url, fallback);
+    const enriched = await enrichWithFileAnalysis(url, fallbackBase);
+    const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, 'hover');
+    // КРИТИЧНО: Записываем статистику даже для ошибок
+    recordUrlCheck(url, withRisk, 'hover').catch(() => {});
+    return withRisk;
   }
 }
 
@@ -1536,6 +1792,31 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === 'crowd_report_url') {
+    (async () => {
+      try {
+        if (!msg.url) {
+          sendResponse && sendResponse({ ok: false, error: 'no_url' });
+          return;
+        }
+        if (typeof ThreatIntelligenceAggregator === 'undefined') {
+          sendResponse && sendResponse({ ok: false, error: 'ti_unavailable' });
+          return;
+        }
+        await ThreatIntelligenceAggregator.submitCrowdReport({
+          url: msg.url,
+          verdict: msg.verdict || 'suspicious',
+          comment: msg.comment || null
+        });
+        sendResponse && sendResponse({ ok: true });
+      } catch (e) {
+        console.error('[AVQON] Crowd report failed:', e);
+        sendResponse && sendResponse({ ok: false, error: e?.message || 'crowd_report_failed' });
+      }
+    })();
+    return true;
+  }
+
   if (msg.type === 'settings_updated') {
     chrome.storage.sync.set(msg.settings, () => {
       sendResponse && sendResponse({ ok: !chrome.runtime.lastError });
@@ -1569,6 +1850,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         console.log('[AVQON] ws_analyze_url normalized:', JSON.stringify(normalized).substring(0, 300), 'safe:', normalized.safe);
         const enriched = await enrichWithFileAnalysis(url, normalized);
         console.log('[AVQON] ws_analyze_url enriched:', JSON.stringify(enriched).substring(0, 300), 'safe:', enriched.safe);
+        // КРИТИЧНО: Записываем статистику для проверки из popup
+        recordUrlCheck(url, enriched, msg.context || 'popup').catch(() => {});
         sendResponse({ ok: true, data: enriched });
       } catch (error) {
         console.error('[AVQON] ws_analyze_url error:', error);
@@ -1580,6 +1863,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           threat_type: null
         };
         const enriched = await enrichWithFileAnalysis(url, fallback).catch(() => fallback);
+        // КРИТИЧНО: Записываем статистику даже для ошибок
+        recordUrlCheck(url, enriched, msg.context || 'popup').catch(() => {});
         sendResponse({ ok: true, data: enriched }); // Всегда ok: true, чтобы показать результат
       }
     })();
@@ -1690,6 +1975,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ isOnline: connectionState.isOnline });
     return true;
   }
+
+  if (msg && msg.type === 'get_weekly_stats') {
+    // Возвращаем статистику за неделю
+    (async () => {
+      try {
+        const stats = await getWeeklyStats();
+        sendResponse({ ok: true, stats });
+      } catch (error) {
+        console.error('[AVQON] Failed to get weekly stats:', error);
+        sendResponse({ ok: false, error: error.message });
+      }
+    })();
+    return true;
+  }
   
   return false;
 });
@@ -1725,8 +2024,75 @@ chrome.runtime.onInstalled.addListener((details) => {
       // для гарантии, что браузер установил доверие
       setTimeout(() => warmUpConnection(), 2000);
     }
+    
+    // Очищаем старую статистику при установке/обновлении
+    cleanupOldStats().catch(() => {});
+
+    // Инициализируем контекстное меню для проверки/репорта сайта
+    try {
+      chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({
+          id: 'avqon-check-site',
+          title: 'Проверить сайт с помощью AVQON',
+          contexts: ['page']
+        });
+        chrome.contextMenus.create({
+          id: 'avqon-report-suspicious',
+          title: 'Пометить сайт как подозрительный (краудсорсинг AVQON)',
+          contexts: ['page']
+        });
+        chrome.contextMenus.create({
+          id: 'avqon-report-malicious',
+          title: 'Пометить сайт как опасный (краудсорсинг AVQON)',
+          contexts: ['page']
+        });
+      });
+    } catch (e) {
+      console.warn('[AVQON] Failed to create context menus:', e);
+    }
   });
 });
+
+// Обработчик кликов по пунктам контекстного меню
+if (chrome.contextMenus && chrome.contextMenus.onClicked) {
+  chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (!tab || !tab.url || tab.url.startsWith('chrome')) return;
+    const url = tab.url;
+
+    if (info.menuItemId === 'avqon-check-site') {
+      // Запускаем полную проверку текущего URL
+      (async () => {
+        try {
+          const res = await scanUrl(url, false, 'context_menu');
+          const verdict = res.safe === false ? 'malicious' : res.safe === true ? 'clean' : 'unknown';
+          const cfg = await getConfig();
+          maybeNotify(cfg, verdict, url);
+        } catch (e) {
+          console.error('[AVQON] Context menu check failed:', e);
+        }
+      })();
+    } else if (info.menuItemId === 'avqon-report-suspicious' || info.menuItemId === 'avqon-report-malicious') {
+      (async () => {
+        try {
+          if (typeof ThreatIntelligenceAggregator === 'undefined') {
+            console.warn('[AVQON] TI module unavailable, cannot send crowd report');
+            return;
+          }
+          const verdict = info.menuItemId === 'avqon-report-malicious' ? 'malicious' : 'suspicious';
+          await ThreatIntelligenceAggregator.submitCrowdReport({ url, verdict });
+          notifyFileAnalysis({
+            level: 'info',
+            title: 'Спасибо за ваш репорт',
+            message: 'Отчёт отправлен в систему AVQON',
+            details: ''
+          });
+        } catch (e) {
+          console.error('[AVQON] Context menu crowd report failed:', e);
+        }
+      })();
+    }
+  });
+}
 
 if (chrome.downloads && chrome.downloads.onCreated) {
   chrome.downloads.onCreated.addListener((downloadItem) => {

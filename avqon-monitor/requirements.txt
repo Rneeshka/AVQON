@@ -1,0 +1,21 @@
+# AVQON Monitor MVP 0.1 — экосистема AVQON
+# Python 3.10+
+
+# Telegram Bot API
+python-telegram-bot>=20.0,<22
+
+# Сбор данных (MTProto)
+telethon>=1.34.0
+
+# Анализ изображений (pHash)
+imagehash>=4.3.0
+Pillow>=10.0.0
+
+# Планировщик
+apscheduler>=3.10.0
+
+# PostgreSQL
+psycopg2-binary>=2.9.0
+
+# Опционально: загрузка .env
+# python-dotenv>=1.0.0

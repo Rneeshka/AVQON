@@ -78,6 +78,54 @@ class AdminRepository:
     def list_ip_reputation(self, limit: int = 200) -> List[Dict[str, Any]]:
         """Получает список IP репутации"""
         return db_manager.list_ip_reputation(limit)
+
+    # ===== CROWD / КРАУДСОРСИНГ =====
+
+    def get_crowd_summary(
+        self,
+        limit: int = 100,
+        domain_substring: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Агрегированная сводка по крауд‑репортам с опциональными фильтрами."""
+        if db_manager is None:
+            return {"items": [], "count": 0}
+        return db_manager.get_crowd_summary(
+            limit=limit,
+            domain_substring=domain_substring,
+            date_from=date_from,
+            date_to=date_to,
+        )
+
+    def get_crowd_reports_by_domain(self, domain: str, limit: int = 200) -> List[Dict[str, Any]]:
+        """Список репортов по домену."""
+        if db_manager is None:
+            return []
+        return db_manager.get_crowd_reports_by_domain(domain=domain, limit=limit)
+
+    def confirm_crowd_as_threat(self, domain: str, threat_type: str = "phishing") -> bool:
+        """Добавить домен в malicious_urls и очистить крауд‑данные по нему."""
+        if db_manager is None or not domain:
+            return False
+        domain = domain.strip().lower()
+        url = f"https://{domain}/"
+        desc = "Crowd moderation: confirmed as threat"
+        ok_add = db_manager.add_malicious_url(url, threat_type, desc, "high")
+        ok_clear = db_manager.clear_crowd_for_domain(domain)
+        return ok_add or ok_clear
+
+    def clear_crowd_for_domain(self, domain: str) -> bool:
+        """Очищает крауд‑репорты и агрегаты для домена."""
+        if db_manager is None:
+            return False
+        return db_manager.clear_crowd_for_domain(domain)
+
+    def clear_all_crowd(self) -> bool:
+        """Полностью очищает крауд‑репорты и агрегаты."""
+        if db_manager is None:
+            return False
+        return db_manager.clear_all_crowd()
     
     def get_api_keys(self, limit: int = 200) -> List[Dict[str, Any]]:
         """Получает список API ключей"""

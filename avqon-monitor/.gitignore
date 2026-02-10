@@ -1,0 +1,15 @@
+# Секреты и данные
+.env
+*.session
+*.session-journal
+data/
+
+# Логи
+logs/*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env.local

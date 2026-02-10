@@ -17,6 +17,7 @@
             <a href="/threats" {% if request.url.path.startswith("/threats") %}class="active"{% endif %}>Угрозы</a>
             <a href="/cache" {% if request.url.path.startswith("/cache") %}class="active"{% endif %}>Кэш URL</a>
             <a href="/ip" {% if request.url.path.startswith("/ip") %}class="active"{% endif %}>IP репутация</a>
+            <a href="/crowd" {% if request.url.path.startswith("/crowd") %}class="active"{% endif %}>Крауд</a>
             <a href="/logs" {% if request.url.path.startswith("/logs") %}class="active"{% endif %}>Логи</a>
             <a href="/reviews" {% if request.url.path.startswith("/reviews") %}class="active"{% endif %}>⭐ Отзывы</a>
             <a href="/danger" {% if request.url.path.startswith("/danger") %}class="active" style="color: #dc2626;"{% endif %}>⚠️ Опасная зона</a>

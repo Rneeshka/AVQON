@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Краудсорсинг – домены{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Краудсорсинг – домены</h1>
+    <p class="muted">Агрегированная сводка по доменам, на которые приходили пользовательские репорты.</p>
+</section>
+
+<section class="card">
+    <h2>Фильтры</h2>
+    <form method="get" action="/crowd" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px;">
+        <label>Домен: <input type="text" name="domain" value="{{ filter_domain or '' }}" placeholder="подстрока" style="width: 180px;" /></label>
+        <label>С: <input type="date" name="date_from" value="{{ filter_date_from or '' }}" /></label>
+        <label>По: <input type="date" name="date_to" value="{{ filter_date_to or '' }}" /></label>
+        <button type="submit">Применить</button>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Топ доменов по крауд‑репортам</h2>
+    {% if items and items|length > 0 %}
+    <form method="post" action="/crowd/clear" style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center;">
+        <select name="domain">
+            {% for item in items %}
+            <option value="{{ item.hostname }}">{{ item.hostname }} ({{ item.reports }} репортов)</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="mode" value="domain" />
+        <button type="submit">Очистить выбранный домен</button>
+        <button type="submit" name="mode" value="all" style="background:#dc2626;">Очистить все</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Домен</th>
+                    <th>Репортов всего</th>
+                    <th>Репортов за 24ч</th>
+                    <th>Score</th>
+                    <th>Последний репорт</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.hostname }}</td>
+                    <td>{{ item.reports }}</td>
+                    <td>{{ item.recent_reports_24h }}</td>
+                    <td>{{ "%.2f"|format(item.score) }}</td>
+                    <td>{{ item.lastReportAt }}</td>
+                    <td>
+                        <a href="/crowd/reports/{{ item.hostname }}">Репорты</a>
+                        <form method="post" action="/crowd/confirm-threat" style="display:inline; margin-left:8px;">
+                            <input type="hidden" name="domain" value="{{ item.hostname }}" />
+                            <button type="submit" style="background:#b91c1c; color:#fff; padding:4px 10px; border-radius:4px;">Подтвердить как угрозу</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">Пока нет ни одного домена с крауд‑репортами{% if filter_domain or filter_date_from or filter_date_to %} по заданным фильтрам{% endif %}.</p>
+    {% endif %}
+</section>
+{% endblock %}
+

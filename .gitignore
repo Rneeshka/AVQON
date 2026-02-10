@@ -1,30 +1,15 @@
-# python
-__pycache__/
-*.pyc
-
-# logs
-*.log
-logs/
-**/logs/
-
-# env
+# Секреты и данные
 .env
-.env.*
-env.env
+*.session
+*.session-journal
+data/
 
-# databases & dumps
-*.db
-*.sqlite
-*.sqlite.sql
+# Логи
+logs/*.log
 
-# runtime cache
-data/cache_*.jsonl
-antivirus-core/app/data/cache.db
-
-# virtualenvs
-venv/
+# Python
+__pycache__/
+*.py[cod]
 .venv/
-antivirus-core/venv/
-
-.DS_Store
-.vscode/
+venv/
+.env.local
