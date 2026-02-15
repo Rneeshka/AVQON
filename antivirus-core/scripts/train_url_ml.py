@@ -75,20 +75,36 @@ def extract_features_row(url: str) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Train URL risk ML model")
-    parser.add_argument("--data", required=True, help="CSV with columns: url, label (0/1 or safe/phishing)")
+    parser.add_argument(
+        "--data",
+        required=True,
+        action="append",
+        help="CSV with columns: url, label (0/1 or safe/phishing). Можно указывать несколько раз для объединения датасетов.",
+    )
     parser.add_argument("--output", default="app/data/url_ml_model.json", help="Output JSON path")
     parser.add_argument("--model", choices=["logistic", "lightgbm"], default="logistic")
     args = parser.parse_args()
 
-    data_path = Path(args.data)
-    if not data_path.is_file():
-        print(f"File not found: {data_path}")
+    # Загружаем один или несколько CSV и объединяем
+    dfs = []
+    for path_str in args.data:
+        data_path = Path(path_str)
+        if not data_path.is_file():
+            print(f"File not found: {data_path}")
+            sys.exit(1)
+        df_i = pd.read_csv(data_path)
+        if "url" not in df_i.columns or "label" not in df_i.columns:
+            print(f"{data_path}: CSV must have columns: url, label")
+            sys.exit(1)
+        dfs.append(df_i)
+
+    if not dfs:
+        print("No data loaded")
         sys.exit(1)
 
-    df = pd.read_csv(data_path)
-    if "url" not in df.columns or "label" not in df.columns:
-        print("CSV must have columns: url, label")
-        sys.exit(1)
+    df = pd.concat(dfs, ignore_index=True)
+    # Убираем дубли по URL, чтобы не считать одни и те же записи много раз
+    df = df.drop_duplicates(subset=["url"])
 
     # Нормализация меток: 0 = safe, 1 = phishing/malicious
     def norm_label(v):

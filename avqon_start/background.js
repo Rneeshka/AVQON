@@ -514,11 +514,13 @@ class AVQONWebSocketClient {
   }
 
   _rejectAllPending(errorMessage) {
-    const entries = Array.from(this.pending.entries());
-    this.pending.clear();
-    entries.forEach(([, pending]) => {
-      clearTimeout(pending.timeout);
-      pending.reject(new Error(errorMessage));
+    const pending = this.pending;
+    if (!pending || typeof pending.entries !== 'function') return;
+    const entries = Array.from(pending.entries());
+    pending.clear();
+    entries.forEach(([, p]) => {
+      clearTimeout(p.timeout);
+      p.reject(new Error(errorMessage));
     });
   }
 
