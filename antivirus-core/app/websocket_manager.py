@@ -19,6 +19,7 @@ class ClientConnection:
         self.connected_at: datetime = datetime.utcnow()
         self.last_heartbeat: datetime = self.connected_at
         self.subscriptions: Set[str] = set()
+        self.message_count: int = 0  # сообщений отправлено клиенту (для мониторинга)
 
     @property
     def features(self) -> Set[str]:
@@ -47,6 +48,7 @@ class WebSocketManager:
     def __init__(self) -> None:
         self._clients: Dict[str, ClientConnection] = {}
         self._lock = asyncio.Lock()
+        self._total_messages: int = 0  # всего сообщений отправлено (для админки)
 
     async def connect(self, websocket: WebSocket, user_info: Optional[Dict[str, Any]], meta: Optional[Dict[str, Any]]) -> ClientConnection:
         client = ClientConnection(websocket, user_info, meta)
@@ -72,6 +74,8 @@ class WebSocketManager:
     async def send_json(self, client: ClientConnection, payload: Dict[str, Any]) -> None:
         try:
             await client.websocket.send_json(payload)
+            client.message_count += 1
+            self._total_messages += 1
         except RuntimeError:
             # Соединение уже закрыто
             logger.debug(f"[WS] Attempted to send to closed connection {client.id}")
@@ -117,6 +121,36 @@ class WebSocketManager:
             except Exception:
                 pass
             logger.info(f"[WS] Client removed due to heartbeat timeout: id={client_id}")
+
+    def active_connections_count(self) -> int:
+        """Возвращает количество активных WebSocket соединений (для админки)."""
+        return len(self._clients)
+
+    def get_connection_count(self) -> int:
+        """Алиас для active_connections_count()."""
+        return self.active_connections_count()
+
+    def get_total_messages(self) -> int:
+        """Всего сообщений отправлено клиентам с момента старта."""
+        return self._total_messages
+
+    def get_top_clients_by_activity(self, limit: int = 10) -> list:
+        """Топ клиентов по количеству отправленных сообщений (для админки)."""
+        try:
+            clients = list(self._clients.values())
+            sorted_clients = sorted(clients, key=lambda c: c.message_count, reverse=True)
+            return [
+                {
+                    "id": c.id[:8],
+                    "ip": (c.meta or {}).get("ip") or "—",
+                    "user_id": (c.user_info or {}).get("user_id"),
+                    "messages": c.message_count,
+                    "connected_at": c.connected_at.isoformat() if c.connected_at else "—",
+                }
+                for c in sorted_clients[:limit]
+            ]
+        except Exception:
+            return []
 
     async def close_all(self) -> None:
         async with self._lock:

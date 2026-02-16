@@ -41,18 +41,27 @@ function ti_safeJsonParse(text, fallback = null) {
   }
 }
 
-async function ti_fetchWithTimeout(url, { method = 'GET', headers = {}, timeoutMs = 10000 } = {}) {
+async function ti_fetchWithTimeout(
+  url,
+  { method = 'GET', headers = {}, body = null, timeoutMs = 10000 } = {}
+) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
   try {
     const res = await fetch(url, {
       method,
       headers,
+      body,
       signal: controller.signal,
       cache: 'no-store',
       redirect: 'follow'
     });
     return res;
+  } catch (e) {
+    if (e && e.name === 'AbortError') {
+      throw new Error('timeout');
+    }
+    throw e;
   } finally {
     clearTimeout(timer);
   }
@@ -192,7 +201,7 @@ const ThreatIntelligenceAggregator = {
    */
   async syncCrowdCache() {
     let apiBase = (typeof self !== 'undefined' && self.AVQON_CONFIG && self.AVQON_CONFIG.API_BASE) ||
-      'https://prod.avqon.com';
+      'https://avqon.com';
     try {
       const stored = await new Promise((r) => chrome.storage.sync.get(['apiBase'], (x) => r(x || {})));
       if (stored.apiBase) apiBase = stored.apiBase;
@@ -276,6 +285,8 @@ const ThreatIntelligenceAggregator = {
 
   async _updatePhishTank() {
     // Публичный JSON‑фид активных фишинговых URL
+    // В текущей версии публичный JSON‑фид может требовать API‑ключ и возвращать 403.
+    // Если фид недоступен, мы не ломаем работу расширения — просто не обновляем локальный кэш.
     const PHISHTANK_URL = 'https://data.phishtank.com/data/online-valid.json';
     let res;
     try {
@@ -284,6 +295,7 @@ const ThreatIntelligenceAggregator = {
       throw new Error(`PhishTank fetch error: ${e && e.message}`);
     }
     if (!res || !res.ok) {
+      // Если PhishTank недоступен (403/404/503 и т.п.) — логируем и выходим без обновления
       throw new Error(`PhishTank HTTP ${res && res.status}`);
     }
 
@@ -313,8 +325,9 @@ const ThreatIntelligenceAggregator = {
 
   async _updateOpenPhish() {
     // OpenPhish: многие фиды требуют регистрации и лицензии.
-    // Здесь используем базовый публичный TXT‑фид, если он доступен.
-    const OPENPHISH_URL = 'https://openphish.com/feed.txt';
+    // Здесь используем публичный TXT‑фид из репозитория на GitHub (raw.githubusercontent.com).
+    // ВАЖНО: этот URL должен быть согласован с host_permissions и CSP.
+    const OPENPHISH_URL = 'https://raw.githubusercontent.com/openphish/public-feed/master/feed.txt';
     let res;
     try {
       res = await ti_fetchWithTimeout(OPENPHISH_URL, { timeoutMs: 15000 });
@@ -322,6 +335,7 @@ const ThreatIntelligenceAggregator = {
       throw new Error(`OpenPhish fetch error: ${e && e.message}`);
     }
     if (!res || !res.ok) {
+      // Если публичный фид OpenPhish недоступен (404 и т.п.), не считаем это фатальной ошибкой
       throw new Error(`OpenPhish HTTP ${res && res.status}`);
     }
 
@@ -535,18 +549,49 @@ const ThreatIntelligenceAggregator = {
   /**
    * Отправка крауд‑репорта на внешний бэкенд.
    * Ожидается, что базовый URL и ключи будут настроены на стороне сервера AVQON.
-   * @param {{url: string, verdict: 'suspicious'|'malicious', comment?: string}} payload
+   * @param {{url: string, verdict?: 'suspicious'|'malicious', comment?: string|null, threat_type?: string|null}} payload
    */
   async submitCrowdReport(payload) {
-    if (!payload || !payload.url) {
-      throw new Error('Invalid payload');
+    if (!payload || typeof payload.url !== 'string') {
+      throw new Error('Invalid payload: url is required');
     }
+
+    // Нормализуем URL и убеждаемся, что он валиден
+    let normalizedUrl = payload.url.trim();
+    if (!normalizedUrl) {
+      throw new Error('Invalid payload: url is empty');
+    }
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+      normalizedUrl = 'https://' + normalizedUrl;
+    }
+
+    try {
+      const urlObj = new URL(normalizedUrl);
+      const domain = urlObj.hostname;
+      console.log('[AVQON] Extracted domain for crowd report:', domain);
+    } catch (e) {
+      throw new Error(`Invalid URL format: ${payload.url}`);
+    }
+
+    // Гарантируем корректный вердикт для бэкенда
+    let verdict = (payload.verdict || 'suspicious').toLowerCase();
+    if (verdict !== 'suspicious' && verdict !== 'malicious') {
+      verdict = 'suspicious';
+    }
+
+    const comment =
+      typeof payload.comment === 'string' && payload.comment.trim().length > 0
+        ? payload.comment.trim()
+        : null;
+
+    const threatTypeRaw = typeof payload.threat_type === 'string' ? payload.threat_type : '';
+    const threat_type = threatTypeRaw.trim() || null;
 
     // По умолчанию шлём репорт в основной API_BASE на /crowd/report
     // Сам API_BASE берётся из глобальной конфигурации AVQON, если она доступна.
     const base =
       (typeof self !== 'undefined' && self.AVQON_CONFIG && self.AVQON_CONFIG.API_BASE) ||
-      'https://prod.avqon.com';
+      'https://avqon.com';
 
     const target = `${base.replace(/\/+$/, '')}/crowd/report`;
 
@@ -566,25 +611,46 @@ const ThreatIntelligenceAggregator = {
     });
 
     const body = {
-      url: payload.url,
-      verdict: payload.verdict || 'suspicious',
-      comment: payload.comment || null,
+      url: normalizedUrl,
+      verdict,
+      comment,
       device_id: deviceId,
-      reported_at: new Date().toISOString()
+      reported_at: new Date().toISOString(),
+      threat_type
     };
+
+    // Логируем фактическое тело запроса для диагностики
+    try {
+      console.log('[AVQON] Sending crowd report for normalized URL:', normalizedUrl);
+      console.log('[AVQON] Final crowd report URL field:', body.url);
+      console.log('[AVQON] Sending crowd report body:', body);
+    } catch (_) {
+      // ignore logging errors
+    }
+
+    try {
+      console.log('[AVQON] Full request URL:', target);
+      console.log('[AVQON] Full request headers:', {
+        'Content-Type': 'application/json'
+      });
+    } catch (_) {
+      // ignore logging errors
+    }
 
     const res = await ti_fetchWithTimeout(target, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
+      body: JSON.stringify(body),
       timeoutMs: 8000
     }).catch((e) => {
       throw new Error(`Crowd report network error: ${e && e.message}`);
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
+      const text = await res.text();
+      console.error('[AVQON] Crowd report error response:', text);
       throw new Error(`Crowd report HTTP ${res.status}: ${text || 'unknown error'}`);
     }
 

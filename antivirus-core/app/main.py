@@ -36,7 +36,7 @@ def _load_env_file():
 
 _load_env_file()
 
-from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, File, UploadFile, Request, Depends, WebSocket, WebSocketDisconnect, Response
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -63,6 +63,7 @@ from app.external_apis.manager import external_api_manager
 from app.background_jobs import background_job_manager
 from app.auth import auth_manager
 from app.routes.payments import router as payments_router
+from app.admin_ui import router as admin_ui_router
 
 # КРИТИЧНО: Безопасный импорт сервисов с обработкой ошибок
 try:
@@ -122,6 +123,11 @@ def require_feature(feature: str):
         return wrapper
     return decorator
 
+# Простое rate limiting для публичного hover‑эндпоинта
+HOVER_PUBLIC_RATE_LIMIT = 60  # максимум запросов с одного IP за окно
+HOVER_PUBLIC_RATE_WINDOW = 60  # окно в секундах
+_hover_public_requests: Dict[str, list] = {}
+
 
 async def handle_ws_message(client: ClientConnection, message: Dict[str, Any]) -> None:
     """Обрабатывает входящее сообщение от WebSocket клиента."""
@@ -167,16 +173,15 @@ async def handle_ws_message(client: ClientConnection, message: Dict[str, Any]) -
         if not url:
             await ws_manager.send_error(client, request_id, "Payload must include 'url'", code="bad_request")
             return
-
+        
         use_external = payload.get("use_external_apis")
         if use_external is None:
             use_external = True
-
+        
         context = payload.get("context", "generic")
-
-        if context == "hover" and "hover_analysis" not in client.features:
-            await ws_manager.send_error(client, request_id, "Hover analysis requires premium token", code="forbidden")
-            return
+        
+        # Hover‑анализ больше не требует премиум‑токена.
+        # Ранее здесь была проверка на feature 'hover_analysis', которая блокировала бесплатный hover.
 
         # КРИТИЧНО: Отправляем статус "scan_started" перед началом анализа
         try:
@@ -282,6 +287,8 @@ class CrowdReportRequest(BaseModel):
     verdict: str  # 'suspicious' или 'malicious'
     comment: Optional[str] = None
     device_id: Optional[str] = None
+    reported_at: Optional[str] = None
+    threat_type: Optional[str] = None
 
 app = FastAPI(
     title="Antivirus Core API",
@@ -292,6 +299,15 @@ app = FastAPI(
 ws_manager = WebSocketManager()
 app.state.ws_manager = ws_manager
 app.state.ws_cleanup_task = None
+
+
+@app.get("/favicon.ico")
+async def favicon() -> Response:
+    """
+    Простая заглушка для favicon, чтобы не сыпались 404 в админке.
+    Иконка фактически подставляется расширением, здесь достаточно вернуть пустой ответ.
+    """
+    return Response(status_code=204)
 
 # КРИТИЧНО: WebSocket endpoint должен быть зарегистрирован ПЕРВЫМ,
 # до всех HTTP‑middleware и роутеров, чтобы не перехватываться ими
@@ -404,6 +420,8 @@ app.add_middleware(
 )
 
 app.include_router(payments_router, prefix="/payments")
+# Админка: встроенный admin_ui (prefix /admin/ui в самом роутере). new-admin-service отключён.
+app.include_router(admin_ui_router)
 
 # Сжатие ответов для ускорения отдачи (после CORS, чтобы не мешать заголовкам)
 app.add_middleware(GZipMiddleware, minimum_size=500)
@@ -870,22 +888,38 @@ async def crowd_report_endpoint(payload: CrowdReportRequest, request: Request):
     if db_manager is None:
         raise HTTPException(status_code=503, detail="Database is not configured")
 
+    # Логируем сырое тело и распарсенный JSON для диагностики
+    try:
+        raw_body = await request.body()
+        logger.info(f"[CROWD] Raw body: {raw_body!r}")
+        try:
+            parsed_json = await request.json()
+            logger.info(f"[CROWD] Parsed JSON: {parsed_json}")
+        except Exception as json_err:
+            logger.warning(f"[CROWD] Failed to parse JSON body: {json_err}")
+    except Exception as body_err:
+        logger.warning(f"[CROWD] Failed to read request body: {body_err}")
+
     url = (payload.url or "").strip()
-    if not url:
-        raise HTTPException(status_code=400, detail="url is required")
 
     verdict = (payload.verdict or "").strip().lower()
+    # Оставляем только минимальную проверку по verdict, url не валидируем по формату.
     if verdict not in ("suspicious", "malicious"):
         raise HTTPException(status_code=400, detail="verdict must be 'suspicious' or 'malicious'")
 
-    # Определяем домен
+    # Определяем домен "best effort", без жёсткой валидации.
     try:
         parsed = urlparse(url)
         domain = (parsed.hostname or parsed.netloc or "").lower()
+        # Поддерживаем вариант, когда приходит только домен без схемы (virustotal.com)
+        if not domain:
+            path_candidate = (parsed.path or "").lower()
+            if path_candidate and "." in path_candidate and " " not in path_candidate:
+                domain = path_candidate
     except Exception:
         domain = ""
-    if not domain:
-        raise HTTPException(status_code=400, detail="invalid url")
+    # Даже если домен не распознан, мы продолжаем обработку:
+    # домен может быть пустой строкой, чтобы не возвращать 400.
 
     # Усечённый IP для агрегации (а не полный)
     client_ip = request.headers.get("X-Forwarded-For") or (request.client.host if request.client else None)
@@ -897,6 +931,7 @@ async def crowd_report_endpoint(payload: CrowdReportRequest, request: Request):
 
     device_id = (payload.device_id or "").strip() or None
     comment = (payload.comment or "").strip() or None
+    threat_type = (payload.threat_type or "").strip().lower() or None
 
     result = db_manager.add_crowd_report(
         url=url,
@@ -905,9 +940,12 @@ async def crowd_report_endpoint(payload: CrowdReportRequest, request: Request):
         device_id=device_id,
         client_ip_truncated=truncated_ip,
         comment=comment,
+        threat_type=threat_type,
     )
 
-    status = 200 if result.get("accepted") else 429 if result.get("reason", "").startswith("rate_limited") else 400
+    # Больше не возвращаем 400 для крауд‑репортов: любые строки в url считаются допустимыми.
+    # 200 — успешно или логически обработано, 429 — только для rate‑limit.
+    status = 200 if result.get("accepted") else 429 if result.get("reason", "").startswith("rate_limited") else 200
     return JSONResponse(
         status_code=status,
         content={
@@ -940,7 +978,8 @@ async def check_url_secure(
         client_ip = request.headers.get("X-Forwarded-For") or (request.client.host if request.client else None)
         user_agent = request.headers.get("User-Agent", "")
         api_key = request.headers.get("X-API-Key") or request.headers.get("Authorization", "").replace("Bearer ", "").strip()
-        is_hover = "hover" in user_agent.lower() or request.headers.get("X-Request-Source") == "hover"
+        request_source = request.headers.get("X-Request-Source") or ""
+        is_hover = "hover" in user_agent.lower() or request_source in ("hover", "hover_public")
         
         logger.info(f"[CHECK_URL] Request from {'HOVER' if is_hover else 'POPUP'}: url={str(url_request.url)[:50]}, has_api_key={bool(api_key)}, ip={client_ip}")
     except Exception as log_error:
@@ -1075,6 +1114,40 @@ async def check_url_secure(
             },
             headers={"Access-Control-Allow-Origin": "*"}
         )
+
+
+@app.post("/check/url/public", response_model=CheckResponse)
+async def check_url_public(
+    url_request: UrlCheckRequest,
+    request: Request
+):
+    """
+    Публичный эндпоинт для hover‑анализа без премиум‑токена.
+    
+    Используется расширением для проверки URL по наведению.
+    Логика анализа такая же, как у /check/url, но дополнительно
+    применяется простое ограничение частоты запросов по IP.
+    """
+    # Простейший rate limiting по IP для защиты публичного эндпоинта
+    try:
+        client_ip = request.headers.get("X-Forwarded-For") or (request.client.host if request.client else "unknown")
+        now_ts = time.time()
+        window_start = now_ts - HOVER_PUBLIC_RATE_WINDOW
+        timestamps = _hover_public_requests.get(client_ip, [])
+        timestamps = [ts for ts in timestamps if ts >= window_start]
+        if len(timestamps) >= HOVER_PUBLIC_RATE_LIMIT:
+            logger.warning(f"[CHECK_URL PUBLIC] Rate limit exceeded for IP {client_ip}")
+            raise HTTPException(status_code=429, detail="Too many hover requests, please slow down")
+        timestamps.append(now_ts)
+        _hover_public_requests[client_ip] = timestamps
+    except HTTPException:
+        raise
+    except Exception as rate_error:
+        # Не ломаем функционал из‑за ошибки в rate limiting, просто логируем
+        logger.warning(f"[CHECK_URL PUBLIC] Rate limiting error: {rate_error}")
+    
+    # Для публичного hover‑анализа переиспользуем основную логику /check/url
+    return await check_url_secure(url_request, request)
 
 # Совместимый алиас для старых клиентов
 @app.post("/scan/url", response_model=CheckResponse)
@@ -1288,8 +1361,8 @@ async def create_review(
         user_info = getattr(request.state, 'user_info', None)
         user_id = user_info.get('user_id') if user_info else None
         
-        # Получаем device_id из заголовков или генерируем
-        device_id = request.headers.get('X-Device-ID')
+        # Получаем device_id из заголовков или тела запроса
+        device_id = request.headers.get('X-Device-ID') or review_data.device_id
         
         # Получаем информацию о клиенте
         user_agent = request.headers.get('User-Agent')
@@ -1300,8 +1373,14 @@ async def create_review(
         except Exception:
             pass
         
-        # Получаем версию расширения из заголовков (если есть)
-        extension_version = request.headers.get('X-Extension-Version')
+        # Получаем версию расширения из заголовков или тела запроса (если есть)
+        extension_version = request.headers.get('X-Extension-Version') or review_data.extension_version
+        
+        # Простое rate limiting: не более одного отзыва за 24 часа
+        # с одного device_id или IP
+        if db_manager.has_recent_review(device_id=device_id, ip_address=client_ip, hours=24):
+            logger.warning(f"Review rate limit exceeded for device_id={device_id} ip={client_ip}")
+            raise HTTPException(status_code=429, detail="Too many reviews from this device, please try later")
         
         review_id = db_manager.create_review(
             rating=review_data.rating,
@@ -1321,9 +1400,22 @@ async def create_review(
             }
         else:
             raise HTTPException(status_code=500, detail="Failed to create review")
+    except HTTPException:
+        # Пробрасываем HTTP‑исключения (включая 429) как есть,
+        # чтобы клиент видел корректный статус, а не 500.
+        raise
     except Exception as e:
         logger.error(f"Create review error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create review")
+
+
+@app.post("/api/reviews", response_model=CreateReviewResponse)
+async def create_review_api(
+    review_data: CreateReviewRequest,
+    request: Request
+):
+    """Создание отзыва через API-эндпоинт (алиас для /reviews)"""
+    return await create_review(review_data, request)
 
 @app.get("/reviews/stats")
 async def get_review_stats():
@@ -1958,6 +2050,8 @@ async def bind_api_key(request: Request, bind_request: BindApiKeyRequest):
 @app.on_event("startup")
 async def startup_event():
     """Инициализация при старте сервера"""
+    from datetime import datetime as dt
+    app.state.start_time = dt.utcnow()
     logger.info("🚀 AVQON Server starting up...")
     
     # КРИТИЧНО: Проверяем что база данных инициализирована и таблицы созданы

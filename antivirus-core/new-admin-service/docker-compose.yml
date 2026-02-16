@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  admin-service:
+    build: .
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - ADMIN_DEFAULT_USER=${ADMIN_DEFAULT_USER:-admin}
+      - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD:-admin123}
+      - ADMIN_DANGER_ZONE_PASSWORD=${ADMIN_DANGER_ZONE_PASSWORD}
+      - ADMIN_ALLOWED_ORIGINS=${ADMIN_ALLOWED_ORIGINS}
+      - ADMIN_HOST=${ADMIN_HOST:-0.0.0.0}
+      - ADMIN_PORT=${ADMIN_PORT:-8001}
+      - ADMIN_RATE_LIMIT_PER_SECOND=${ADMIN_RATE_LIMIT_PER_SECOND:-10}
+      - ENVIRONMENT=${ENVIRONMENT:-prod}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-text}
+    depends_on:
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - admin-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - admin-network
+
+volumes:
+  redis-data:
+
+networks:
+  admin-network:
+    driver: bridge
+

@@ -53,7 +53,6 @@
   function normalizeApiBase(v) {
     let base = (v || '').toString().trim();
     if (!base) return window.AVQON_CONFIG?.API_BASE || DEFAULT_API_BASE;
-<<<<<<< HEAD
     
     // МИГРАЦИЯ: Автоматически обновляем старые URL на новые
     const oldUrl = base.toLowerCase();
@@ -66,8 +65,6 @@
       });
     }
     
-=======
->>>>>>> ed0e079 (refactor: rename aegis to avqon and normalize project structure)
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }

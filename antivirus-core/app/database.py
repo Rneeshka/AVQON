@@ -84,9 +84,32 @@ class DatabaseManager:
                     continue
                 logger.error(f"PostgreSQL connection error after {max_retries} attempts: {e}")
                 raise
-            except Exception as e:
-                logger.error(f"PostgreSQL connection error: {e}")
-                raise
+    
+    def init_reviews_table(self):
+        """Создание таблицы reviews, если её нет"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS reviews (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER DEFAULT NULL,
+                        device_id TEXT DEFAULT NULL,
+                        rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+                        text TEXT,
+                        extension_version TEXT,
+                        user_agent TEXT,
+                        ip_address TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
+                    )
+                """)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating)")
+                logger.info("✅ Table 'reviews' initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to create reviews table: {e}")
+            raise
     
     def _init_database(self):
         """
@@ -274,24 +297,6 @@ class DatabaseManager:
                         FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE
                     )
                 """)
-                
-                # 11.5. Таблица отзывов пользователей
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS reviews (
-                        id SERIAL PRIMARY KEY,
-                        user_id INTEGER DEFAULT NULL,
-                        device_id TEXT DEFAULT NULL,
-                        rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
-                        text TEXT,
-                        extension_version TEXT,
-                        user_agent TEXT,
-                        ip_address TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE SET NULL
-                    )
-                """)
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating)")
                 
                 # 12. Таблица пользователей Telegram бота
                 cursor.execute("""
@@ -602,9 +607,20 @@ class DatabaseManager:
                 
                 self._commit_if_needed(conn)
                 return True
-                
         except Exception as e:
             logger.error(f"Extend API key error: {e}")
+            return False
+
+    def set_api_key_active(self, api_key: str, is_active: bool) -> bool:
+        """Включает или отключает API ключ (блокировка/разблокировка)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE api_keys SET is_active = %s WHERE api_key = %s", (is_active, api_key))
+                self._commit_if_needed(conn)
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Set API key active error: {e}")
             return False
     
     def list_api_keys(self) -> List[Dict[str, Any]]:
@@ -1096,7 +1112,218 @@ class DatabaseManager:
         except (psycopg2.Error, Exception) as e:
             logger.error(f"Database stats error: {e}")
             return {}
-    
+
+    def get_requests_by_day(self, days: int = 14) -> List[Dict[str, Any]]:
+        """Запросы по дням для графика (PostgreSQL: date_trunc по timestamp или created_at)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Пробуем колонку timestamp, затем created_at
+                for col in ("timestamp", "created_at"):
+                    try:
+                        cursor.execute(f"""
+                            SELECT date_trunc('day', {col})::date as day, COUNT(*) as count
+                            FROM request_logs
+                            WHERE {col} > CURRENT_TIMESTAMP - INTERVAL '1 day' * %s
+                            GROUP BY 1 ORDER BY 1
+                        """, (days,))
+                        return [{"date": str(row["day"]), "count": row["count"]} for row in cursor.fetchall()]
+                    except (psycopg2.Error, Exception):
+                        continue
+                return []
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Requests by day error: {e}")
+            return []
+
+    def get_requests_by_hour(self, hours: int = 24) -> List[Dict[str, Any]]:
+        """Запросы по часам за последние N часов."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                for col in ("timestamp", "created_at"):
+                    try:
+                        cursor.execute(f"""
+                            SELECT date_trunc('hour', {col}) as hour, COUNT(*) as count
+                            FROM request_logs
+                            WHERE {col} > CURRENT_TIMESTAMP - INTERVAL '1 hour' * %s
+                            GROUP BY 1 ORDER BY 1
+                        """, (hours,))
+                        return [{"hour": str(row["hour"]), "count": row["count"]} for row in cursor.fetchall()]
+                    except (psycopg2.Error, Exception):
+                        continue
+                return []
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Requests by hour error: {e}")
+            return []
+
+    def get_recent_errors(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Последние ошибки (status_code >= 400) из request_logs."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                for ts_col in ("timestamp", "created_at"):
+                    try:
+                        cursor.execute(f"""
+                            SELECT endpoint, method, status_code, response_time_ms, client_ip_truncated, {ts_col} as ts
+                            FROM request_logs
+                            WHERE status_code >= 400
+                            ORDER BY {ts_col} DESC
+                            LIMIT %s
+                        """, (limit,))
+                        return [dict(row) for row in cursor.fetchall()]
+                    except (psycopg2.Error, Exception):
+                        continue
+                return []
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Recent errors error: {e}")
+            return []
+
+    def get_threat_types_distribution(self) -> Dict[str, int]:
+        """Распределение по типам угроз (malicious_urls.threat_type + malicious_hashes.threat_type)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT threat_type, COUNT(*) as c FROM malicious_urls GROUP BY threat_type")
+                by_url = {row["threat_type"] or "unknown": row["c"] for row in cursor.fetchall()}
+                cursor.execute("SELECT threat_type, COUNT(*) as c FROM malicious_hashes GROUP BY threat_type")
+                by_hash = {row["threat_type"] or "unknown": row["c"] for row in cursor.fetchall()}
+                result = {}
+                for k, v in by_url.items():
+                    result[k] = result.get(k, 0) + v
+                for k, v in by_hash.items():
+                    result[k] = result.get(k, 0) + v
+                return result
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Threat types distribution error: {e}")
+            return {}
+
+    def get_top_cached_domains(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Топ доменов по hit_count из cached_whitelist и cached_blacklist."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT domain, SUM(hit_count) as hits FROM (
+                        SELECT domain, hit_count FROM cached_whitelist
+                        UNION ALL
+                        SELECT domain, hit_count FROM cached_blacklist
+                    ) t GROUP BY domain ORDER BY hits DESC LIMIT %s
+                """, (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Top cached domains error: {e}")
+            return []
+
+    def get_requests_timeline(self, days: int = 14) -> List[Dict[str, Any]]:
+        """Запросы по дням для графика (DATE(created_at) или timestamp)."""
+        for col in ("created_at", "timestamp"):
+            try:
+                with self._get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(f"""
+                        SELECT DATE({col}) as day, COUNT(*) as count
+                        FROM request_logs
+                        WHERE {col} >= CURRENT_DATE - INTERVAL '1 day' * %s
+                        GROUP BY DATE({col})
+                        ORDER BY day
+                    """, (days,))
+                    return [{"date": str(row["day"]), "count": row["count"]} for row in cursor.fetchall()]
+            except (psycopg2.Error, Exception):
+                continue
+        return []
+
+    def get_top_ips_from_logs(self, limit: int = 20, days: int = 7) -> List[Dict[str, Any]]:
+        """Топ IP по количеству запросов (для гео: подключите ip2location для стран)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT client_ip_truncated as ip, COUNT(*) as requests
+                    FROM request_logs
+                    WHERE client_ip_truncated IS NOT NULL AND client_ip_truncated != ''
+                    GROUP BY client_ip_truncated
+                    ORDER BY requests DESC
+                    LIMIT %s
+                """, (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Top IPs from logs error: {e}")
+            return []
+
+    def get_top_countries_from_logs(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Топ стран по трафику (агрегация по IP через IP2Location). Без IP2Location возвращает пустой список."""
+        try:
+            from app.geo_ip import get_country
+        except ImportError:
+            return []
+        ips_with_requests = self.get_top_ips_from_logs(limit=200)
+        if not ips_with_requests:
+            return []
+        by_country: Dict[str, Dict[str, Any]] = {}
+        for row in ips_with_requests:
+            ip = row.get("ip")
+            requests = row.get("requests", 0)
+            info = get_country(ip)
+            if info:
+                code = info.get("country_short") or "—"
+                name = info.get("country_long") or code
+            else:
+                code = "—"
+                name = "Не определено"
+            key = code if (code and code != "—") else "__unknown"
+            if key not in by_country:
+                by_country[key] = {"country_code": code, "country_name": name, "requests": 0}
+            by_country[key]["requests"] += requests
+        result = list(by_country.values())
+        result.sort(key=lambda x: x["requests"], reverse=True)
+        return result[:limit]
+
+    def get_extension_version_stats(self) -> Dict[str, int]:
+        """Распределение пользователей по версиям расширения (из отзывов)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT COALESCE(extension_version, 'unknown') as ver, COUNT(*) as cnt
+                    FROM reviews
+                    GROUP BY extension_version
+                    ORDER BY cnt DESC
+                """)
+                return {row["ver"] or "unknown": row["cnt"] for row in cursor.fetchall()}
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Extension version stats error: {e}")
+            return {}
+
+    def get_requests_avg_per_day(self, days: int = 7) -> float:
+        """Среднее число запросов в день за последние N дней (для прогноза)."""
+        timeline = self.get_requests_timeline(days)
+        if not timeline:
+            return 0.0
+        total = sum(r["count"] for r in timeline)
+        return total / len(timeline) if timeline else 0.0
+
+    def get_critical_errors_count(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Критические ошибки (5xx) за последние записи для уведомлений."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                for ts_col in ("timestamp", "created_at"):
+                    try:
+                        cursor.execute(f"""
+                            SELECT endpoint, method, status_code, {ts_col} as ts
+                            FROM request_logs
+                            WHERE status_code >= 500
+                            ORDER BY {ts_col} DESC
+                            LIMIT %s
+                        """, (limit,))
+                        return [dict(row) for row in cursor.fetchall()]
+                    except (psycopg2.Error, Exception):
+                        continue
+                return []
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Critical errors count error: {e}")
+            return []
+
     def log_request(self, user_id: Optional[int], endpoint: str, method: str,
                    status_code: int, response_time_ms: int, 
                    user_agent: Optional[str], client_ip: Optional[str]):
@@ -1177,12 +1404,15 @@ class DatabaseManager:
         """
         Инициализирует таблицы для краудсорсинговых отчётов, если они ещё не созданы.
         Использует PostgreSQL синтаксис (SERIAL, ON CONFLICT).
+
+        Также выполняет мягкую миграцию схемы (добавление столбца threat_type).
         """
         if getattr(self, "_crowd_tables_initialized", False):
             return
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
+                # Базовое создание таблиц
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS crowd_reports (
@@ -1190,6 +1420,7 @@ class DatabaseManager:
                         url TEXT NOT NULL,
                         domain TEXT NOT NULL,
                         verdict TEXT NOT NULL CHECK (verdict IN ('suspicious', 'malicious')),
+                        threat_type TEXT,
                         comment TEXT,
                         device_id TEXT,
                         client_ip_truncated TEXT,
@@ -1199,6 +1430,17 @@ class DatabaseManager:
                     )
                     """
                 )
+                # Миграция: добавляем threat_type при обновлении старых схем
+                try:
+                    cursor.execute(
+                        """
+                        ALTER TABLE crowd_reports
+                        ADD COLUMN IF NOT EXISTS threat_type TEXT
+                        """
+                    )
+                except (psycopg2.Error, Exception) as mig_err:
+                    logger.warning(f"crowd_reports schema migration (threat_type) failed: {mig_err}")
+
                 cursor.execute(
                     "CREATE INDEX IF NOT EXISTS idx_crowd_reports_domain_created ON crowd_reports(domain, created_at)"
                 )
@@ -1231,6 +1473,7 @@ class DatabaseManager:
         device_id: Optional[str],
         client_ip_truncated: Optional[str],
         comment: Optional[str] = None,
+        threat_type: Optional[str] = None,
         dedupe_hours: int = 6,
         rate_limit_window_minutes: int = 60,
         max_reports_per_window: int = 50,
@@ -1244,11 +1487,10 @@ class DatabaseManager:
         self._ensure_crowd_tables()
         result = {"accepted": False, "reason": "", "aggregate": None}
 
-        if not url or not domain:
-            result["reason"] = "invalid_url"
-            return result
-
-        domain = domain.lower().strip()
+        # Минимальная нормализация: пустые значения тоже допускаются,
+        # чтобы бэкенд принимал любые строки и не возвращал 400.
+        url = (url or "").strip()
+        domain = (domain or "").strip().lower()
 
         try:
             with self._get_connection() as conn:
@@ -1306,15 +1548,18 @@ class DatabaseManager:
                         result["reason"] = "duplicate_device_domain"
                         return result
 
+                # Нормализуем тип угрозы для отчётности
+                normalized_threat_type = (threat_type or "").strip().lower() or None
+
                 # Вставка нового репорта
                 cursor.execute(
                     self._adapt_query(
                         """
-                        INSERT INTO crowd_reports (url, domain, verdict, comment, device_id, client_ip_truncated, created_at)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO crowd_reports (url, domain, verdict, threat_type, comment, device_id, client_ip_truncated, created_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """
                     ),
-                    (url, domain, verdict, comment, device_id, client_ip_truncated, now),
+                    (url, domain, verdict, normalized_threat_type, comment, device_id, client_ip_truncated, now),
                 )
 
                 # Обновление агрегатов по домену
@@ -1651,6 +1896,176 @@ class DatabaseManager:
         except (psycopg2.Error, Exception) as e:
             logger.error(f"Clear all crowd error: {e}")
             return False
+
+    def list_crowd_reports(
+        self,
+        status: Optional[str] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """
+        Возвращает плоский список крауд‑репортов для модерации.
+        status: None|'pending'|'approved'|'rejected'
+        """
+        self._ensure_crowd_tables()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                q = """
+                    SELECT id, url, domain, verdict, threat_type, comment,
+                           device_id, client_ip_truncated, created_at,
+                           confirmed, rejected
+                    FROM crowd_reports
+                    WHERE 1=1
+                """
+                params: List[Any] = []
+
+                normalized_status = (status or "").strip().lower()
+                if normalized_status == "pending":
+                    q += " AND (confirmed IS FALSE OR confirmed IS NULL) AND (rejected IS FALSE OR rejected IS NULL)"
+                elif normalized_status == "approved":
+                    q += " AND confirmed IS TRUE"
+                elif normalized_status == "rejected":
+                    q += " AND rejected IS TRUE"
+
+                if date_from is not None:
+                    q += " AND created_at >= %s"
+                    params.append(date_from)
+                if date_to is not None:
+                    q += " AND created_at <= %s"
+                    params.append(date_to)
+
+                q += " ORDER BY created_at DESC LIMIT %s OFFSET %s"
+                params.extend([limit, offset])
+
+                cursor.execute(self._adapt_query(q), tuple(params))
+                rows = cursor.fetchall() or []
+                return [dict(row) for row in rows]
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"List crowd reports error: {e}")
+            return []
+
+    def count_crowd_reports(self, status: Optional[str] = None) -> int:
+        """
+        Возвращает количество крауд‑репортов по статусу.
+        status: None|'pending'|'approved'|'rejected'
+        """
+        self._ensure_crowd_tables()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                q = "SELECT COUNT(*) AS c FROM crowd_reports WHERE 1=1"
+                params: List[Any] = []
+                normalized_status = (status or "").strip().lower()
+                if normalized_status == "pending":
+                    q += " AND (confirmed IS FALSE OR confirmed IS NULL) AND (rejected IS FALSE OR rejected IS NULL)"
+                elif normalized_status == "approved":
+                    q += " AND confirmed IS TRUE"
+                elif normalized_status == "rejected":
+                    q += " AND rejected IS TRUE"
+                cursor.execute(self._adapt_query(q), tuple(params))
+                row = cursor.fetchone() or {}
+                return int(row.get("c") or 0)
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Count crowd reports error: {e}")
+            return 0
+
+    def moderate_crowd_report(self, report_id: int, approve: bool) -> Optional[Dict[str, Any]]:
+        """
+        Обновляет статус отдельного крауд‑репорта.
+        - approve=True  → confirmed = true, rejected = false и URL добавляется в malicious_urls
+        - approve=False → confirmed = false, rejected = true
+        Также пересчитывает агрегаты по домену.
+        """
+        self._ensure_crowd_tables()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    self._adapt_query(
+                        """
+                        SELECT id, url, domain, verdict, threat_type, confirmed, rejected, created_at
+                        FROM crowd_reports
+                        WHERE id = %s
+                        """
+                    ),
+                    (report_id,),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                data = dict(row)
+                domain = (data.get("domain") or "").lower().strip()
+                url = data.get("url") or ""
+
+                if approve:
+                    cursor.execute(
+                        self._adapt_query(
+                            "UPDATE crowd_reports SET confirmed = TRUE, rejected = FALSE WHERE id = %s"
+                        ),
+                        (report_id,),
+                    )
+                    threat_type = (data.get("threat_type") or "").strip().lower() or "phishing"
+                    verdict = (data.get("verdict") or "").strip().lower()
+                    severity = "high" if verdict == "malicious" else "medium"
+                    desc = "Crowd moderation: approved as threat"
+                    try:
+                        self.add_malicious_url(url, threat_type, desc, severity)
+                    except Exception as add_err:
+                        logger.warning(f"Failed to add malicious URL from crowd moderation: {add_err}")
+                else:
+                    cursor.execute(
+                        self._adapt_query(
+                            "UPDATE crowd_reports SET confirmed = FALSE, rejected = TRUE WHERE id = %s"
+                        ),
+                        (report_id,),
+                    )
+
+                # Пересчитываем агрегаты по домену
+                if domain:
+                    now = datetime.utcnow()
+                    cursor.execute(
+                        self._adapt_query(
+                            """
+                            SELECT 
+                                COUNT(*) AS total,
+                                SUM(CASE WHEN created_at > %s THEN 1 ELSE 0 END) AS recent_24h
+                            FROM crowd_reports
+                            WHERE domain = %s AND (rejected IS FALSE OR rejected IS NULL)
+                            """
+                        ),
+                        (now - timedelta(hours=24), domain),
+                    )
+                    agg_row = cursor.fetchone() or {}
+                    total_reports = int(agg_row.get("total") or 0)
+                    recent_24h = int(agg_row.get("recent_24h") or 0)
+                    score = min(1.0, recent_24h / 3.0) if recent_24h > 0 else 0.0
+
+                    cursor.execute(
+                        self._adapt_query(
+                            """
+                            INSERT INTO crowd_aggregates (domain, reports_total, score, last_report_at, recent_reports_24h)
+                            VALUES (%s, %s, %s, %s, %s)
+                            ON CONFLICT (domain) DO UPDATE SET
+                                reports_total = EXCLUDED.reports_total,
+                                score = EXCLUDED.score,
+                                last_report_at = EXCLUDED.last_report_at,
+                                recent_reports_24h = EXCLUDED.recent_reports_24h
+                            """
+                        ),
+                        (domain, total_reports, score, now, recent_24h),
+                    )
+
+                self._commit_if_needed(conn)
+                data["confirmed"] = approve
+                data["rejected"] = not approve
+                return data
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"Moderate crowd report error: {e}")
+            return None
+
     def get_api_key_stats(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Возвращает статистику использования API ключа."""
         try:
@@ -1792,6 +2207,49 @@ class DatabaseManager:
         except (psycopg2.Error, Exception) as e:
             logger.error(f"Create review error: {e}")
             return None
+    
+    def has_recent_review(
+        self,
+        device_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        hours: int = 24
+    ) -> bool:
+        """
+        Проверяет, есть ли недавний отзыв за последние N часов
+        от того же device_id или IP (простое rate limiting).
+        """
+        if not device_id and not ip_address:
+            # Если нет идентификаторов, не ограничиваем
+            return False
+        
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                conditions = []
+                params: list[Any] = [hours]
+                
+                if device_id:
+                    conditions.append("device_id = %s")
+                    params.append(device_id)
+                if ip_address:
+                    conditions.append("ip_address = %s")
+                    params.append(ip_address)
+                
+                where_clause = " OR ".join(conditions)
+                
+                query = f"""
+                    SELECT COUNT(*) AS cnt
+                    FROM reviews
+                    WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '1 hour' * %s
+                      AND ({where_clause})
+                """
+                cursor.execute(self._adapt_query(query), tuple(params))
+                row = cursor.fetchone()
+                return bool(row and row["cnt"] > 0)
+        except (psycopg2.Error, Exception) as e:
+            logger.error(f"has_recent_review error: {e}")
+            # В случае ошибки не блокируем отправку, возвращаем False
+            return False
     
     def get_all_reviews(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Получает все отзывы"""
@@ -2904,6 +3362,11 @@ if _db_url:
             conn = db_manager._get_connection()
             conn.close()
             logger.info("✅ Database connection successful")
+            # Инициализируем таблицу отзывов при старте (без падения сервиса при ошибке)
+            try:
+                db_manager.init_reviews_table()
+            except Exception as e:
+                logger.error(f"⚠️ Failed to initialize 'reviews' table at startup: {e}")
         except Exception as conn_error:
             logger.warning(f"⚠️ Database connection failed (will retry on use): {conn_error}")
             # Не падаем - сервис может работать без БД для JWT аутентификации

@@ -24,8 +24,8 @@ const CONFIG = {
     WS_URL: 'wss://dev.avqon.com/ws'
   },
   PROD: {
-    API_BASE: 'https://prod.avqon.com',
-    WS_URL: 'wss://prod.avqon.com/ws'
+    API_BASE: 'https://avqon.com',
+    WS_URL: 'wss://avqon.com/ws'
   }
 };
 
@@ -102,7 +102,7 @@ async function recordUrlCheck(url, result, source = 'unknown') {
 
 /**
  * Получает статистику за последние 7 дней
- * @returns {Promise<object>} Статистика { total_checks, unsafe_count, safe_count, saved_clicks }
+ * @returns {Promise<object>} Статистика { total_checks, unsafe_count, safe_count, saved_clicks, unique_unsafe_count }
  */
 async function getWeeklyStats() {
   try {
@@ -120,12 +120,15 @@ async function getWeeklyStats() {
     const unsafe_count = recentStats.filter(e => e.verdict === 'unsafe').length;
     const safe_count = recentStats.filter(e => e.verdict === 'safe').length;
     const saved_clicks = unsafe_count; // Количество спасенных кликов = количество опасных сайтов
+    const unsafeDomains = recentStats.filter(e => e.verdict === 'unsafe').map(e => e.domain);
+    const unique_unsafe_count = new Set(unsafeDomains).size;
     
     return {
       total_checks,
       unsafe_count,
       safe_count,
       saved_clicks,
+      unique_unsafe_count,
       last_updated: Date.now()
     };
   } catch (error) {
@@ -135,6 +138,7 @@ async function getWeeklyStats() {
       unsafe_count: 0,
       safe_count: 0,
       saved_clicks: 0,
+      unique_unsafe_count: 0,
       last_updated: Date.now()
     };
   }
@@ -177,8 +181,12 @@ let connectionState = {
 let lastStateLoad = 0;
 const STATE_LOAD_INTERVAL = 5000; // Загружаем не чаще раза в 5 секунд
 const WS_RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000];
+const WS_CONNECT_TIMEOUT = 10000;
 const WS_RESPONSE_TIMEOUT = 15000;
 const WS_HEARTBEAT_INTERVAL = 20000;
+/** После стольких подряд неудачных подключений делаем длинную паузу (сервер недоступен) */
+const WS_BACKOFF_AFTER_FAILURES = 5;
+const WS_BACKOFF_PAUSE_MS = 90000;
 
 // === Side panel integration ===
 function initSidePanelIntegration() {
@@ -245,17 +253,33 @@ class AVQONWebSocketClient {
   constructor() {
     this.ws = null;
     this.reconnectTimer = null;
+    this.retryTimer = null;
+    this.retryAttempt = 0;
+    this.manuallyClosed = false;
     this.pending = new Map(); // КРИТИЧНО: Инициализация Map для хранения pending запросов
+    this._connectPromise = null; // Один общий промис подключения — не плодим параллельные таймауты
+    this.consecutiveConnectFailures = 0; // для длинного backoff при недоступном сервере
   }
 
   async ensureConnected() {
-    // Если уже подключен, возвращаем
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       return this.ws;
     }
-    
-    // Используем основной метод подключения _connect()
-    return await this._connect();
+    // Если подключение уже в процессе — ждём его, не запускаем второе
+    if (this._connectPromise) {
+      try {
+        await this._connectPromise;
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) return this.ws;
+      } finally {
+        this._connectPromise = null;
+      }
+    }
+    this._connectPromise = this._connect();
+    try {
+      return await this._connectPromise;
+    } finally {
+      this._connectPromise = null;
+    }
   }
 
   async _connect() {
@@ -264,6 +288,7 @@ class AVQONWebSocketClient {
       const apiKey = await getApiKey();
       const wsUrl = this._buildUrl(apiBase, apiKey);
       
+      const connectStart = Date.now();
       console.log('[AVQON WS] Connecting to:', wsUrl.replace(/api_key=[^&]+/, 'api_key=***'));
 
       return await new Promise((resolve, reject) => {
@@ -271,12 +296,14 @@ class AVQONWebSocketClient {
         const connectTimeout = setTimeout(() => {
           if (!settled) {
             settled = true;
+            const elapsed = Date.now() - connectStart;
+            console.warn('[AVQON WS] Connect timeout after', elapsed, 'ms');
             try {
               if (socket) socket.close();
             } catch (_) {}
             reject(new Error('WebSocket connection timeout'));
           }
-        }, 10000); // 10 секунд таймаут подключения
+        }, WS_CONNECT_TIMEOUT);
 
         let socket;
         try {
@@ -340,7 +367,8 @@ class AVQONWebSocketClient {
         }
       });
     } catch (error) {
-      console.error('[AVQON WS] Connect failed:', error);
+      this.consecutiveConnectFailures = (this.consecutiveConnectFailures || 0) + 1;
+      console.error('[AVQON WS] Connect failed:', error.message || error);
       this._scheduleReconnect();
       throw error;
     }
@@ -359,6 +387,7 @@ class AVQONWebSocketClient {
   }
   _handleOpen() {
     this.retryAttempt = 0;
+    this.consecutiveConnectFailures = 0;
     this.lastPong = Date.now();
     connectionState.isOnline = true;
     connectionState.lastCheck = Date.now();
@@ -377,7 +406,10 @@ class AVQONWebSocketClient {
     connectionState.retryCount += 1;
     saveConnectionState();
     broadcastConnectionStatus(false);
-    this._rejectAllPending(`Connection closed (${event?.code || 'unknown'})`);
+    this._rejectAllPending(`Connection closed (${event?.code ?? 'unknown'})`);
+    const code = event?.code ?? '?';
+    const reason = event?.reason || '';
+    console.warn('[AVQON WS] Connection closed:', { code, reason, retryAttempt: this.retryAttempt });
     if (!this.manuallyClosed) {
       this._scheduleReconnect();
     }
@@ -484,8 +516,24 @@ class AVQONWebSocketClient {
     if (this.retryTimer || this.manuallyClosed) {
       return;
     }
-    const delay = WS_RETRY_DELAYS[Math.min(this.retryAttempt, WS_RETRY_DELAYS.length - 1)];
-    this.retryAttempt += 1;
+    const failures = this.consecutiveConnectFailures || 0;
+    const useBackoff = failures >= WS_BACKOFF_AFTER_FAILURES;
+    const delay = useBackoff
+      ? WS_BACKOFF_PAUSE_MS
+      : (() => {
+          const attempt = typeof this.retryAttempt === 'number' ? this.retryAttempt : 0;
+          const baseDelay = WS_RETRY_DELAYS[Math.min(attempt, WS_RETRY_DELAYS.length - 1)];
+          const jitter = Math.floor(baseDelay * 0.2 * Math.random());
+          return Math.max(500, baseDelay + jitter);
+        })();
+    if (!useBackoff) {
+      this.retryAttempt = (typeof this.retryAttempt === 'number' ? this.retryAttempt : 0) + 1;
+    }
+    if (useBackoff) {
+      console.warn('[AVQON WS] Server unreachable after', failures, 'attempts. Pausing WS reconnect for', Math.round(delay / 1000), 's. Using REST API.');
+    } else {
+      console.warn('[AVQON WS] Reconnect scheduled:', { attempt: this.retryAttempt, delayMs: delay });
+    }
     this.retryTimer = setTimeout(() => {
       this.retryTimer = null;
       this.ensureConnected().catch(() => {
@@ -495,7 +543,7 @@ class AVQONWebSocketClient {
   }
 
   _resolvePending(requestId, payload) {
-    if (!requestId) return;
+    if (!requestId || !this.pending) return;
     const pending = this.pending.get(requestId);
     if (!pending) return;
     clearTimeout(pending.timeout);
@@ -505,7 +553,7 @@ class AVQONWebSocketClient {
   }
 
   _rejectPending(requestId, errorMessage) {
-    if (!requestId) return;
+    if (!requestId || !this.pending) return;
     const pending = this.pending.get(requestId);
     if (!pending) return;
     clearTimeout(pending.timeout);
@@ -515,7 +563,8 @@ class AVQONWebSocketClient {
 
   _rejectAllPending(errorMessage) {
     const pending = this.pending;
-    if (!pending || typeof pending.entries !== 'function') return;
+    if (!pending) return;
+    if (typeof pending.entries !== 'function') return;
     const entries = Array.from(pending.entries());
     pending.clear();
     entries.forEach(([, p]) => {
@@ -1043,7 +1092,7 @@ async function getApiBase() {
   // КРИТИЧНО: Используем CURRENT_CONFIG, а не CURRENT_ENV (старая переменная)
   if (typeof CURRENT_CONFIG === 'undefined') {
     console.error('[AVQON] CURRENT_CONFIG is not defined! Using fallback PROD API');
-    return 'https://prod.avqon.com';
+    return 'https://avqon.com';
   }
   return CURRENT_CONFIG.API_BASE;
 }
@@ -1306,7 +1355,12 @@ async function requestWsAnalysis(type, payload = {}, options = {}) {
     try {
       return await requestRestFallback(type, payload);
     } catch (restError) {
-      // Пробуем подключиться к WebSocket перед fallback
+      // Не ждём 10s подключения, если недавно уже падали (сервер недоступен)
+      const recentlyOffline = !connectionState.isOnline && (Date.now() - connectionState.lastCheck < 15000);
+      if (recentlyOffline) {
+        console.warn('[AVQON] Recently offline, skip WS connect, throw REST error');
+        throw restError;
+      }
       try {
         await wsClient.ensureConnected();
         if (wsClient.ws && wsClient.ws.readyState === WebSocket.OPEN) {
@@ -1407,7 +1461,11 @@ async function requestRestFallback(type, payload) {
   let body = {};
   
   if (type === 'analyze_url') {
-    endpoint = '/check/url';
+    const context = payload && payload.context ? String(payload.context) : '';
+    // Для hover используем публичный endpoint (временное решение, пока сервер не исправлен)
+    endpoint = (context === 'hover' || context === 'hover_public')
+      ? '/check/url/public'
+      : '/check/url';
     body = { url: payload.url };
     if (payload.context) {
       headers['X-Request-Source'] = payload.context;
@@ -1424,7 +1482,7 @@ async function requestRestFallback(type, payload) {
   
   try {
     const url = `${apiBase}${endpoint}`;
-    console.log('[Aegis REST] Requesting:', url.replace(/api_key=[^&]+/, 'api_key=***'));
+    console.log('[Aegis REST] Requesting:', url.replace(/api_key=[^&]+/, 'api_key=***'), 'type:', type, 'context:', payload?.context || '');
     
     const res = await fetch(url, {
       method: 'POST',
@@ -1718,16 +1776,63 @@ async function scanHover(url) {
   chrome.storage.local.set({ lastHoverActivity: Date.now() }).catch(() => {});
 
   try {
+    console.log('[AVQON] scanHover: starting analysis for URL:', url);
     const payload = await requestWsAnalysis('analyze_url', { url, context: 'hover' });
+    console.log('[AVQON] scanHover: WS/REST analyze_url payload:', JSON.stringify(payload).substring(0, 300));
+
     const normalized = normalizeAnalysisPayload(payload, url) || { safe: null, source: 'unknown' };
+    console.log('[AVQON] scanHover: normalized result:', {
+      safe: normalized.safe,
+      threat_type: normalized.threat_type,
+      source: normalized.source
+    });
+
     const enriched = await enrichWithFileAnalysis(url, normalized);
     const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, 'hover');
+    console.log('[AVQON] scanHover: final withRisk.safe:', withRisk.safe, 'threat_type:', withRisk.threat_type, 'source:', withRisk.source);
     // КРИТИЧНО: Записываем статистику после успешной проверки hover
     recordUrlCheck(url, withRisk, 'hover').catch(() => {});
     return withRisk;
   } catch (error) {
-    console.error('[AVQON] scanHover failed:', error);
-    // КРИТИЧНО: Возвращаем null для safe, чтобы показать, что проверка не удалась
+    console.error('[AVQON] scanHover failed (WS path):', error);
+
+    // Специальная обработка ошибки «premium token» для hover
+    const fullError = ((error && error.message) ? error.message : '') + ' ' + JSON.stringify(error || {});
+    const lower = fullError.toLowerCase();
+
+    if (lower.includes('premium token')) {
+      console.warn('[AVQON] scanHover: premium token error detected, trying REST hover public endpoint');
+      try {
+        const restResult = await requestRestFallback('analyze_url', { url, context: 'hover_public' });
+        console.log('[AVQON] scanHover: REST hover_public result:', {
+          safe: restResult?.safe,
+          threat_type: restResult?.threat_type,
+          source: restResult?.source
+        });
+
+        const enriched = await enrichWithFileAnalysis(url, restResult);
+        const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, 'hover');
+        recordUrlCheck(url, withRisk, 'hover').catch(() => {});
+        return withRisk;
+      } catch (restError) {
+        console.error('[AVQON] scanHover: REST hover_public also failed:', restError);
+        // Временная заглушка: считаем, что hover-анализ недоступен, но не падаем
+        const mock = {
+          safe: null,
+          threat_type: null,
+          details: 'Проверка по наведению временно недоступна',
+          source: 'hover_mock'
+        };
+        console.warn('[AVQON] scanHover: returning hover mock result:', mock);
+        const enriched = await enrichWithFileAnalysis(url, mock);
+        const withRisk = await combineWithThreatIntelAndHeuristics(url, enriched, 'hover');
+        recordUrlCheck(url, withRisk, 'hover').catch(() => {});
+        return withRisk;
+      }
+    }
+
+    // Общий fallback для прочих ошибок
+    console.error('[AVQON] scanHover: non-premium error, using generic fallback:', error);
     const fallbackBase = {
       safe: null, // Не можем определить безопасность
       details: error?.message || 'Ошибка анализа. Повторите попытку.',
@@ -1794,6 +1899,47 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === 'submit_review') {
+    (async () => {
+      try {
+        const apiBase = await getApiBase();
+        const url = `${apiBase}/api/reviews`;
+        console.log('[AVQON] submit_review: sending to', url, 'payload:', {
+          rating: msg.rating,
+          text: msg.text,
+          device_id: msg.deviceId,
+          extension_version: msg.version
+        });
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            rating: msg.rating,
+            text: msg.text,
+            device_id: msg.deviceId,
+            extension_version: msg.version
+          })
+        });
+
+        if (!response.ok) {
+          console.error('[AVQON] submit_review HTTP error:', response.status);
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json().catch(() => ({}));
+        console.log('[AVQON] submit_review success:', data);
+        sendResponse && sendResponse({ ok: true, data });
+      } catch (error) {
+        console.error('[AVQON] Review submission failed:', error);
+        sendResponse && sendResponse({ ok: false, error: error?.message || 'review_failed' });
+      }
+    })();
+    return true; // async response
+  }
+
   if (msg.type === 'crowd_report_url') {
     (async () => {
       try {
@@ -1805,11 +1951,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse && sendResponse({ ok: false, error: 'ti_unavailable' });
           return;
         }
-        await ThreatIntelligenceAggregator.submitCrowdReport({
-          url: msg.url,
-          verdict: msg.verdict || 'suspicious',
-          comment: msg.comment || null
-        });
+        const verdictRaw = (msg.verdict || 'suspicious').toLowerCase();
+        const verdict =
+          verdictRaw === 'malicious' || verdictRaw === 'suspicious' ? verdictRaw : 'suspicious';
+        const payload = {
+          url: String(msg.url),
+          verdict,
+          comment: typeof msg.comment === 'string' && msg.comment.trim().length > 0 ? msg.comment.trim() : null,
+          threat_type: typeof msg.threat_type === 'string' ? msg.threat_type : null
+        };
+        try {
+          console.log('[AVQON] Forwarding crowd report payload from background:', payload);
+        } catch (_) {
+          // ignore
+        }
+        await ThreatIntelligenceAggregator.submitCrowdReport(payload);
         sendResponse && sendResponse({ ok: true });
       } catch (e) {
         console.error('[AVQON] Crowd report failed:', e);

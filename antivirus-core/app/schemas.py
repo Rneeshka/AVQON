@@ -143,6 +143,8 @@ class LocalCacheStatsResponse(BaseModel):
 class CreateReviewRequest(BaseModel):
     rating: int = Field(..., ge=1, le=5, description="Оценка от 1 до 5 звезд")
     text: Optional[str] = Field(None, max_length=1000, description="Текст отзыва (опционально)")
+    device_id: Optional[str] = Field(None, description="Идентификатор устройства расширения (опционально)")
+    extension_version: Optional[str] = Field(None, description="Версия расширения (опционально)")
 
 # Модель для ответа при создании отзыва
 class CreateReviewResponse(BaseModel):

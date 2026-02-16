@@ -269,184 +269,87 @@
       .analysis-card.analysis-safe,
       .analysis-card.analysis-clean { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.12); }
 
-      /* Еженедельный отчёт (главная, светлая тема) */
+      /* Еженедельный отчёт — минимальный блок */
       .weekly-report-card {
         margin-top: 14px;
-        padding: 16px 18px 14px;
-        border-radius: 16px;
-        border: 1px solid rgba(59,130,246,0.4);
-        background:
-          radial-gradient(circle at 0% 0%, rgba(59,130,246,0.10), transparent 55%),
-          radial-gradient(circle at 100% 100%, rgba(56,189,248,0.13), transparent 55%),
-          #EFF6FF;
-        box-shadow: 0 16px 34px rgba(15,23,42,0.22);
-        position: relative;
-        overflow: hidden;
-      }
-      .weekly-report-card::before {
-        content: "";
-        position: absolute;
-        inset: -40%;
-        background: radial-gradient(circle at 0 0, rgba(129,140,248,0.3), transparent 65%);
-        opacity: 0.4;
-        pointer-events: none;
+        padding: 16px 18px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
       }
       .weekly-report-card-inner {
-        position: relative;
-        z-index: 1;
-      }
-      .weekly-header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
+        flex-direction: column;
+        gap: 12px;
       }
-      .weekly-header-title {
+      .weekly-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        margin: 0;
+      }
+      .weekly-hero {
         display: flex;
         flex-direction: column;
         gap: 2px;
       }
-      .weekly-header-eyebrow {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: rgba(100,116,139,0.9);
-      }
-      .weekly-header-main {
-        font-size: 14px;
-        font-weight: 600;
-      }
-      .weekly-hero {
-        margin-top: 6px;
-        margin-bottom: 6px;
-      }
       .weekly-hero-number {
-        font-size: 32px;
-        font-weight: 800;
-        color: #0B1120;
-        line-height: 1.05;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.1;
       }
       .weekly-hero-text {
         font-size: 12px;
-        color: rgba(15,23,42,0.9);
-      }
-      .weekly-inline-stats {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        color: rgba(15,23,42,0.8);
-        margin-bottom: 6px;
-      }
-      .dot-separator {
-        opacity: 0.6;
-      }
-      .weekly-bottom-row {
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .weekly-bar-wrapper {
-        flex: 1;
+        color: var(--muted);
       }
       .weekly-bar {
-        margin-top: 4px;
-        height: 9px;
+        height: 10px;
         border-radius: 999px;
-        background: linear-gradient(90deg, #e5e7eb, #dbeafe);
+        background: var(--border);
         overflow: hidden;
         position: relative;
       }
-      .weekly-bar-safe,
-      .weekly-bar-unsafe {
+      .weekly-bar .progress-safe,
+      .weekly-bar .progress-unsafe {
         position: absolute;
         top: 0;
         bottom: 0;
-        transition: width 0.6s ease-out;
+        transition: width 0.4s ease-out;
       }
-      .weekly-bar-safe {
+      .weekly-bar .progress-safe {
         left: 0;
+        width: 0%;
         background: linear-gradient(90deg, #16a34a, #4ade80);
-        width: 0%;
       }
-      .weekly-bar-unsafe {
+      .weekly-bar .progress-unsafe {
         right: 0;
-        background: linear-gradient(90deg, #fb7185, #ef4444);
         width: 0%;
+        background: linear-gradient(90deg, #f87171, #ef4444);
       }
-      .weekly-mini-ring {
-        --weekly-risk-deg: 0deg;
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background:
-          conic-gradient(
-            rgba(239,68,68,0.98) 0 var(--weekly-risk-deg),
-            rgba(15,23,42,0.10) var(--weekly-risk-deg) 360deg
-          );
-        position: relative;
+      .weekly-bar-labels {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 8px 20px rgba(15,23,42,0.30);
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
       }
-      .weekly-mini-ring::after {
-        content: "";
-        position: absolute;
-        inset: 7px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.95);
+      .weekly-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left;
       }
-      .weekly-mini-ring span {
-        position: relative;
-        z-index: 1;
+      .weekly-metric {
         font-size: 12px;
-        font-weight: 700;
-        color: #0B1120;
-        min-width: 26px;
-        text-align: center;
+        color: var(--muted);
       }
-      /* Лёгкая анимация для числа и подсветки карточки */
       .weekly-hero-number.has-data {
-        animation: weeklyNumberPop 0.6s ease-out;
+        animation: weeklyNumberPop 0.4s ease-out;
       }
-      .weekly-report-card {
-        animation: weeklyCardFadeIn 0.5s ease-out;
-      }
-      .weekly-report-card::before {
-        animation: weeklyGlow 4s ease-in-out infinite alternate;
-      }
-      .weekly-bar::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image: repeating-linear-gradient(
-          to right,
-          rgba(255,255,255,0.4) 0,
-          rgba(255,255,255,0.4) 1px,
-          transparent 1px,
-          transparent 8px
-        );
-        opacity: 0.25;
-        pointer-events: none;
-      }
-
       @keyframes weeklyNumberPop {
-        0% { transform: translateY(4px) scale(0.95); opacity: 0; }
-        60% { transform: translateY(0) scale(1.03); opacity: 1; }
-        100% { transform: translateY(0) scale(1); opacity: 1; }
-      }
-
-      @keyframes weeklyCardFadeIn {
-        0% { opacity: 0; transform: translateY(8px); }
-        100% { opacity: 1; transform: translateY(0); }
-      }
-
-      @keyframes weeklyGlow {
-        0% { opacity: 0.32; }
-        100% { opacity: 0.48; }
+        0% { opacity: 0.6; transform: scale(0.98); }
+        100% { opacity: 1; transform: scale(1); }
       }
 
       .analysis-card .status-row {
@@ -659,6 +562,77 @@
         color: var(--text);
       }
 
+      /* Кнопка открытия формы крауд‑репорта */
+      #crowd-report-toggle-btn {
+        font-weight: 600;
+        border: 1px solid rgba(248,113,113,0.7);
+        background: transparent;
+        color: #f97373;
+      }
+      #crowd-report-toggle-btn:hover {
+        background: rgba(248,113,113,0.10);
+      }
+
+      /* Карточка формы крауд‑репорта (тёмная, но в общей палитре) */
+      #crowd-report-form-card {
+        background: #0f172a;
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 10px;
+        color: #e2e8f0;
+      }
+
+      #crowd-report-form-card label {
+        display: block;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 4px;
+      }
+
+      #crowd-report-form-card input[type="text"],
+      #crowd-report-form-card select,
+      #crowd-report-form-card textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(148,163,184,0.5);
+        background: #111827;
+        color: #e2e8f0;
+        font-size: 13px;
+      }
+
+      #crowd-report-form-card input::placeholder,
+      #crowd-report-form-card textarea::placeholder {
+        color: #64748b;
+      }
+
+      #crowd-report-form-card textarea {
+        resize: vertical;
+        min-height: 70px;
+      }
+
+      #crowd-report-form-card .btn.primary,
+      #crowd-report-form-card .btn.secondary {
+        flex: initial;
+        min-width: 100px;
+        border-radius: 999px;
+        box-shadow: none;
+        font-size: 13px;
+      }
+
+      #crowd-report-form-card .btn.primary {
+        background: rgba(248,113,113,0.18);
+        border: 1px solid rgba(248,113,113,0.6);
+        color: #fecaca;
+      }
+
+      #crowd-report-form-card .btn.secondary {
+        background: transparent;
+        border: 1px solid rgba(148,163,184,0.6);
+        color: #e2e8f0;
+      }
+
       .btn:hover {
         transform: translateY(-1px);
       }
@@ -865,8 +839,33 @@
             </div>
 
             <div class="actions" id="crowd-actions">
-              <button class="btn secondary" id="crowd-report-suspicious-btn" type="button">Отправить на проверку</button>
-              <button class="btn primary" id="crowd-report-malicious-btn" type="button">Пометить как опасный</button>
+              <button class="btn secondary" id="crowd-report-toggle-btn" type="button">Сообщить об угрозе</button>
+            </div>
+
+            <div class="card hidden" id="crowd-report-form-card" style="margin-top:10px;">
+              <div class="section-title">Сообщить об угрозе</div>
+              <div class="form-field">
+                <label for="crowd-report-url">URL</label>
+                <input type="text" id="crowd-report-url" placeholder="https://пример-сайта.com" />
+              </div>
+              <div class="form-field">
+                <label for="crowd-report-type">Тип угрозы</label>
+                <select id="crowd-report-type">
+                  <option value="phishing">Фишинг</option>
+                  <option value="malware">Вредоносное ПО</option>
+                  <option value="trojan">Троян</option>
+                  <option value="fraud">Мошенничество</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="crowd-report-comment">Комментарий (опционально)</label>
+                <textarea id="crowd-report-comment" rows="3" placeholder="Опишите, что именно выглядит подозрительным"></textarea>
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="crowd-report-submit-btn" type="button">Отправить</button>
+                <button class="btn secondary" id="crowd-report-cancel-btn" type="button">Отмена</button>
+              </div>
             </div>
 
           </section>

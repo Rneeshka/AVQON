@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – угрозы{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>База угроз (упрощенная)</h1>
+    <p class="muted">Универсальная таблица для всех типов угроз</p>
+</div>
+<div class="row">
+    <div class="card col">
+        <h2>Добавить угрозу</h2>
+        <form method="post" action="/threats/add">
+            <label>Тип угрозы</label>
+            <select name="type" required>
+                <option value="hash">Хэш файла</option>
+                <option value="url">URL</option>
+                <option value="ip">IP адрес</option>
+                <option value="domain">Домен</option>
+            </select>
+            <label>Значение</label>
+            <input name="value" required placeholder="Введите значение угрозы" />
+            <label>Уровень угрозы</label>
+            <select name="threat_level">
+                <option value="safe">Безопасно</option>
+                <option value="suspicious" selected>Подозрительно</option>
+                <option value="malicious">Вредоносно</option>
+            </select>
+            <label>Источник</label>
+            <select name="source">
+                <option value="manual" selected>Ручное добавление</option>
+                <option value="external_api">Внешний API</option>
+                <option value="scan">Автоматическое сканирование</option>
+            </select>
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+    <div class="card col">
+        <h2>Статистика угроз</h2>
+        <div class="stats">
+            <div><strong>Хэши:</strong> {{ threats_by_type.hash | length }}</div>
+            <div><strong>URL:</strong> {{ threats_by_type.url | length }}</div>
+            <div><strong>IP адреса:</strong> {{ threats_by_type.ip | length }}</div>
+            <div><strong>Домены:</strong> {{ threats_by_type.domain | length }}</div>
+            <div><strong>Всего:</strong> {{ (threats_by_type.hash | length) + (threats_by_type.url | length) + (threats_by_type.ip | length) + (threats_by_type.domain | length) }}</div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <h2>Вредоносные URL</h2>
+    <div style="max-height:400px;overflow:auto">
+        <table>
+            <thead>
+                <tr><th>URL</th><th>Тип угрозы</th><th>Уровень</th><th>Источник</th><th>Обнаружений</th><th>Дата</th></tr>
+            </thead>
+            <tbody>
+                {% if threats_by_type.url %}
+                    {% for u in threats_by_type.url %}
+                    <tr>
+                        <td><a href="{{ u.value }}" target="_blank">{{ u.value[:80] }}{% if u.value | length > 80 %}...{% endif %}</a></td>
+                        <td>{{ u.get('threat_type', '-') }}</td>
+                        <td>{{ u.get('threat_level', '-') }}</td>
+                        <td>{{ u.get('source', '-') }}</td>
+                        <td>{{ u.get('detection_count', 0) }}</td>
+                        <td class="muted">{{ u.get('created_at', '-') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Нет вредоносных URL</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <h2>Вредоносные хэши</h2>
+    <div style="max-height:400px;overflow:auto">
+        <table>
+            <thead>
+                <tr><th>Хэш</th><th>Тип угрозы</th><th>Уровень</th><th>Источник</th><th>Обнаружений</th><th>Дата</th></tr>
+            </thead>
+            <tbody>
+                {% if threats_by_type.hash %}
+                    {% for h in threats_by_type.hash %}
+                    <tr>
+                        <td><code>{{ h.value[:64] }}...</code></td>
+                        <td>{{ h.get('threat_type', '-') }}</td>
+                        <td>{{ h.get('threat_level', '-') }}</td>
+                        <td>{{ h.get('source', '-') }}</td>
+                        <td>{{ h.get('detection_count', 0) }}</td>
+                        <td class="muted">{{ h.get('created_at', '-') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Нет вредоносных хэшей</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <h2>Поиск и удаление URL</h2>
+    <p class="muted">Найдите конкретный URL и удалите его из базы данных, если он ошибочно помечен как опасный</p>
+    <form method="get" action="/threats/search" style="margin-top:12px; display:grid; gap:8px;">
+        <label>Поиск URL или домена</label>
+        <input name="q" type="text" placeholder="Введите URL или домен для поиска" required />
+        <button type="submit">Найти</button>
+    </form>
+</div>
+<div class="card">
+    <h2>Очистка базы данных</h2>
+    <p class="muted" style="color: #dc2626; font-weight: 600;">⚠️ ВНИМАНИЕ: Эти действия необратимы!</p>
+    <form method="post" action="/threats/clear" style="margin-top:12px; display:grid; gap:8px;">
+        <label>Что очистить</label>
+        <select name="target" required>
+            <option value="urls">Только вредоносные URL</option>
+            <option value="hashes">Только вредоносные хэши</option>
+            <option value="all_urls">Все URL данные (URL + кэш)</option>
+            <option value="all">ВСЕ угрозы (URL + хэши)</option>
+        </select>
+        <button type="submit" style="background: #dc2626;">Очистить</button>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,1280 @@
+2026-02-15 22:12:02,195 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 22:12:02,230 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 22:12:02,230 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 22:12:02,230 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 22:12:02,235 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 22:12:02,235 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 22:12:02,257 - app.database - INFO - ✅ Database connection successful
+2026-02-15 22:12:02,392 - app.logger - INFO - 🚀 AVQON Server starting up...
+2026-02-15 22:12:02,419 - app.logger - INFO - ✅ Database tables verified
+2026-02-15 22:12:02,435 - app.logger - INFO - Database connection established successfully
+2026-02-15 22:12:02,457 - app.database - INFO - Rate limits reset successfully
+2026-02-15 22:12:02,458 - app.logger - INFO - Rate limits reset
+2026-02-15 22:12:02,459 - app.logger - INFO - Background job manager started
+2026-02-15 22:12:02,459 - app.logger - INFO - Background job manager started
+2026-02-15 22:12:02,460 - app.logger - INFO - WebSocket cleanup task started
+2026-02-15 22:12:02,460 - app.logger - INFO - ✅ WebSocket endpoint /ws registered: APIWebSocketRoute(path='/ws', name='websocket_endpoint')
+2026-02-15 22:12:02,460 - app.logger - INFO - 💳 YooKassa config check: SHOP_ID=SET, SECRET_KEY=SET
+2026-02-15 22:12:02,460 - app.logger - INFO - ✅ YooKassa configured: SHOP_ID=12386...
+2026-02-15 22:12:02,461 - app.logger - INFO - ✅ YooKassa aiohttp session initialized
+2026-02-15 22:12:02,462 - app.logger - INFO - ✅ AVQON Server startup complete
+2026-02-15 22:28:53,111 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:28:53,112 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:28:53,194 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:28:53,195 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:28:53,223 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:28:53,223 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:28:55,033 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:28:55,033 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:28:58,183 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 22:28:58,184 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 22:28:58,185 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 22:28:58,185 - app.logger - INFO - [WS] Client connected: id=4f724b45-0b47-4d0a-88a1-909c5d662f89, user_id=None, ip=127.0.0.1
+2026-02-15 22:29:02,688 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-15 22:29:02,689 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-15 22:29:02,713 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-15 22:29:02,713 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-15 22:29:02,717 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client 4f724b45-0b47-4d0a-88a1-909c5d662f89
+2026-02-15 22:29:53,874 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:29:53,876 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:30:53,638 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:30:53,640 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:31:53,400 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:31:53,405 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:32:53,168 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:32:53,171 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:33:53,112 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:33:53,114 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:34:53,118 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:34:53,120 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:35:53,130 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:35:53,131 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:36:53,190 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:36:53,190 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:37:53,182 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:37:53,184 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:38:09,865 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (context: popup)
+2026-02-15 22:38:09,866 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (ignore_db=False)
+2026-02-15 22:38:09,888 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35
+2026-02-15 22:38:09,892 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35: safe=True, source=external_apis
+2026-02-15 22:38:09,893 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 to client 4f724b45-0b47-4d0a-88a1-909c5d662f89
+2026-02-15 22:38:09,893 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (context: popup)
+2026-02-15 22:38:09,894 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (ignore_db=False)
+2026-02-15 22:38:09,915 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35
+2026-02-15 22:38:09,915 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35: safe=True, source=external_apis
+2026-02-15 22:38:09,916 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 to client 4f724b45-0b47-4d0a-88a1-909c5d662f89
+2026-02-15 22:38:53,113 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:38:53,115 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:39:53,109 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:39:53,111 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:40:53,119 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:40:53,121 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:41:43,940 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (context: popup)
+2026-02-15 22:41:43,940 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (ignore_db=False)
+2026-02-15 22:41:43,964 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35
+2026-02-15 22:41:43,968 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35: safe=True, source=external_apis
+2026-02-15 22:41:43,969 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 to client 4f724b45-0b47-4d0a-88a1-909c5d662f89
+2026-02-15 22:41:53,112 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:41:53,114 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:42:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:42:53,128 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:43:53,137 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:43:53,139 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:44:53,127 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:44:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:45:53,122 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:45:53,123 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:46:53,160 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:46:53,160 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:47:53,087 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:47:53,088 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:48:53,122 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:48:53,125 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:49:54,052 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:49:54,054 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:50:53,820 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:50:53,821 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:51:53,571 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:51:53,572 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:52:09,375 - app.logger - INFO - [WS] Client disconnected gracefully: 4f724b45-0b47-4d0a-88a1-909c5d662f89
+2026-02-15 22:52:09,375 - app.logger - INFO - [WS] Client disconnected: id=4f724b45-0b47-4d0a-88a1-909c5d662f89, reason=cleanup
+2026-02-15 22:52:09,474 - app.logger - INFO - Background job manager stopped
+2026-02-15 22:52:09,475 - app.logger - INFO - Background job manager stopped
+2026-02-15 22:52:09,475 - app.logger - INFO - 🛑 YooKassa aiohttp session closed
+2026-02-15 22:52:10,445 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 22:52:10,480 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 22:52:10,480 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 22:52:10,480 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 22:52:10,510 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 22:52:10,510 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 22:52:10,532 - app.database - INFO - ✅ Database connection successful
+2026-02-15 22:52:10,669 - app.logger - INFO - 🚀 AVQON Server starting up...
+2026-02-15 22:52:10,697 - app.logger - INFO - ✅ Database tables verified
+2026-02-15 22:52:10,715 - app.logger - INFO - Database connection established successfully
+2026-02-15 22:52:10,736 - app.database - INFO - Rate limits reset successfully
+2026-02-15 22:52:10,741 - app.logger - INFO - Rate limits reset
+2026-02-15 22:52:10,741 - app.logger - INFO - Background job manager started
+2026-02-15 22:52:10,742 - app.logger - INFO - Background job manager started
+2026-02-15 22:52:10,742 - app.logger - INFO - WebSocket cleanup task started
+2026-02-15 22:52:10,742 - app.logger - INFO - ✅ WebSocket endpoint /ws registered: APIWebSocketRoute(path='/ws', name='websocket_endpoint')
+2026-02-15 22:52:10,742 - app.logger - INFO - 💳 YooKassa config check: SHOP_ID=SET, SECRET_KEY=SET
+2026-02-15 22:52:10,742 - app.logger - INFO - ✅ YooKassa configured: SHOP_ID=12386...
+2026-02-15 22:52:10,742 - app.logger - INFO - ✅ YooKassa aiohttp session initialized
+2026-02-15 22:52:10,743 - app.logger - INFO - ✅ AVQON Server startup complete
+2026-02-15 22:52:13,995 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 22:52:13,996 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 22:52:13,996 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 22:52:13,996 - app.logger - INFO - [WS] Client connected: id=e3ebda66-b745-48b2-bb32-13148972c0b0, user_id=None, ip=127.0.0.1
+2026-02-15 22:52:53,352 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:52:53,354 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:53:15,327 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/reviews (context: link_check)
+2026-02-15 22:53:15,328 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/reviews (ignore_db=False)
+2026-02-15 22:53:15,351 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/reviews
+2026-02-15 22:53:15,355 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/reviews: safe=True, source=external_apis
+2026-02-15 22:53:15,356 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/reviews to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:15,376 - app.database - ERROR - Get all reviews error: relation "reviews" does not exist
+LINE 4:                     FROM reviews r
+                                 ^
+
+2026-02-15 22:53:15,393 - app.database - ERROR - Get review stats error: relation "reviews" does not exist
+LINE 1: SELECT COUNT(*) as total FROM reviews
+                                      ^
+
+2026-02-15 22:53:17,731 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ip (context: link_check)
+2026-02-15 22:53:17,732 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ip (ignore_db=False)
+2026-02-15 22:53:17,754 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/ip
+2026-02-15 22:53:17,757 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/ip: safe=True, source=external_apis
+2026-02-15 22:53:17,758 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ip to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:18,729 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/cache (context: link_check)
+2026-02-15 22:53:18,730 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/cache (ignore_db=False)
+2026-02-15 22:53:18,755 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/cache
+2026-02-15 22:53:18,756 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/cache: safe=True, source=external_apis
+2026-02-15 22:53:18,757 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/cache to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:31,484 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/threats (context: link_check)
+2026-02-15 22:53:31,484 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/threats (ignore_db=False)
+2026-02-15 22:53:31,505 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/threats
+2026-02-15 22:53:31,506 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/threats: safe=True, source=external_apis
+2026-02-15 22:53:31,507 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/threats to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:35,710 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/keys (context: link_check)
+2026-02-15 22:53:35,711 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/keys (ignore_db=False)
+2026-02-15 22:53:35,732 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/keys
+2026-02-15 22:53:35,733 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/keys: safe=True, source=external_apis
+2026-02-15 22:53:35,734 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/keys to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:36,708 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui (context: link_check)
+2026-02-15 22:53:36,708 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui (ignore_db=False)
+2026-02-15 22:53:36,734 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui
+2026-02-15 22:53:36,734 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui: safe=True, source=external_apis
+2026-02-15 22:53:36,735 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:53:53,107 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:53:53,107 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:54:20,907 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-15 22:54:20,907 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-15 22:54:20,933 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-15 22:54:20,933 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-15 22:54:20,934 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 22:54:53,106 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:54:53,108 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:55:53,139 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:55:53,140 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:56:53,126 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:56:53,127 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:57:53,114 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:57:53,116 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:58:53,092 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:58:53,093 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 22:59:53,119 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 22:59:53,121 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:00:53,127 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:00:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:01:53,190 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:01:53,192 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:02:53,131 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:02:53,132 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:03:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:03:53,128 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:04:53,191 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:04:53,191 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:05:44,100 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (context: popup)
+2026-02-15 23:05:44,101 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (ignore_db=False)
+2026-02-15 23:05:44,123 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35
+2026-02-15 23:05:44,127 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35: safe=True, source=external_apis
+2026-02-15 23:05:44,128 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 23:05:53,117 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:05:53,118 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:05:56,266 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (context: popup)
+2026-02-15 23:05:56,266 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 (ignore_db=False)
+2026-02-15 23:05:56,288 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35
+2026-02-15 23:05:56,288 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35: safe=True, source=external_apis
+2026-02-15 23:05:56,289 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/36d88045-5c51-480a-815f-8805c8b98f35 to client e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 23:06:28,940 - app.logger - INFO - [WS] Client disconnected gracefully: e3ebda66-b745-48b2-bb32-13148972c0b0
+2026-02-15 23:06:28,941 - app.logger - INFO - [WS] Client disconnected: id=e3ebda66-b745-48b2-bb32-13148972c0b0, reason=cleanup
+2026-02-15 23:06:29,040 - app.logger - INFO - Background job manager stopped
+2026-02-15 23:06:29,041 - app.logger - INFO - Background job manager stopped
+2026-02-15 23:06:29,042 - app.logger - INFO - 🛑 YooKassa aiohttp session closed
+2026-02-15 23:06:30,011 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:30,048 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:30,048 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:30,049 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:30,085 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:30,085 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:30,104 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:34,197 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:34,231 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:34,231 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:34,231 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:34,238 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:34,238 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:34,257 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:38,440 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:38,474 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:38,474 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:38,474 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:38,479 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:38,479 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:38,502 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:42,665 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:42,698 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:42,698 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:42,698 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:42,702 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:42,703 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:42,724 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:46,933 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:46,970 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:46,971 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:46,971 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:46,976 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:46,976 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:47,001 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:51,194 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:51,228 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:51,228 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:51,228 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:51,233 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:51,233 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:51,252 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:55,477 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:55,509 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:55,510 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:55,510 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:55,515 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:55,515 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:55,536 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:06:59,689 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:06:59,723 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:06:59,724 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:06:59,724 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:06:59,732 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:59,732 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:06:59,753 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:03,927 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:03,961 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:03,962 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:03,962 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:03,967 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:03,967 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:03,985 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:08,155 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:08,186 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:08,186 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:08,187 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:08,191 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:08,191 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:08,209 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:12,188 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:12,222 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:12,222 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:12,222 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:12,227 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:12,227 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:12,253 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:16,449 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:16,482 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:16,483 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:16,483 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:16,488 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:16,488 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:16,512 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:20,679 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:20,712 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:20,712 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:20,712 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:20,717 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:20,717 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:20,738 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:24,915 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:24,951 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:24,951 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:24,952 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:24,956 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:24,956 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:24,977 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:29,212 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:29,248 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:29,248 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:29,248 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:29,253 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:29,253 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:29,275 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:33,452 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:33,485 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:33,486 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:33,486 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:33,490 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:33,490 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:33,509 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:37,649 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:37,680 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:37,681 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:37,681 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:37,685 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:37,685 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:37,705 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:41,675 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:41,710 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:41,710 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:41,711 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:41,715 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:41,716 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:41,735 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:44,876 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:44,910 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:44,910 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:44,910 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:44,915 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:44,915 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:44,943 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:49,191 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:49,224 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:49,225 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:49,225 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:49,230 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:49,230 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:49,250 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:53,438 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:53,471 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:53,472 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:53,472 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:53,476 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:53,477 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:53,497 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:07:57,690 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:07:57,724 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:07:57,724 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:07:57,724 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:07:57,729 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:57,729 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:07:57,748 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:02,027 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:02,076 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:02,077 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:02,078 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:02,084 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:02,085 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:02,116 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:06,128 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:06,159 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:06,160 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:06,160 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:06,164 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:06,164 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:06,182 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:10,153 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:10,185 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:10,185 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:10,185 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:10,189 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:10,190 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:10,212 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:14,183 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:14,218 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:14,218 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:14,219 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:14,224 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:14,224 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:14,245 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:18,423 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:18,457 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:18,457 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:18,457 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:18,461 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:18,462 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:18,485 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:22,661 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:22,695 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:22,695 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:22,695 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:22,700 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:22,700 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:22,719 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:26,903 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:26,939 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:26,939 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:26,940 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:26,944 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:26,945 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:26,967 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:31,184 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:31,217 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:31,217 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:31,218 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:31,222 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:31,222 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:31,244 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:35,458 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:35,497 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:35,497 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:35,497 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:35,502 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:35,502 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:35,523 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:39,692 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:39,726 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:39,726 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:39,726 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:39,731 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:39,731 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:39,750 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:43,817 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:43,851 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:43,851 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:43,851 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:43,856 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:43,856 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:43,877 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:47,935 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:47,970 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:47,971 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:47,971 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:47,976 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:47,976 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:47,997 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:52,086 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:52,118 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:52,119 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:52,119 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:52,124 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:52,124 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:52,145 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:08:56,232 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:08:56,270 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:08:56,270 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:08:56,271 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:08:56,276 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:56,276 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:08:56,297 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:00,403 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:00,438 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:00,438 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:00,439 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:00,444 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:00,444 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:00,467 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:04,738 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:04,781 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:04,781 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:04,782 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:04,787 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:04,787 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:04,807 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:08,941 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:08,976 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:08,977 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:08,977 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:08,982 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:08,982 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:09,008 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:13,188 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:13,224 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:13,225 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:13,225 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:13,230 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:13,230 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:13,250 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:17,456 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:17,490 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:17,490 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:17,491 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:17,495 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:17,495 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:17,514 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:21,690 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:21,725 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:21,726 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:21,726 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:21,731 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:21,731 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:21,753 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:25,914 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:25,946 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:25,947 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:25,947 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:25,951 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:25,952 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:25,973 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:30,162 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:30,195 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:30,195 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:30,196 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:30,200 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:30,200 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:30,226 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:34,472 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:34,505 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:34,505 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:34,506 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:34,510 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:34,511 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:34,536 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:38,673 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:38,706 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:38,706 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:38,706 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:38,710 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:38,711 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:38,730 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:42,952 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:42,993 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:42,994 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:42,994 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:42,999 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:42,999 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:43,024 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:47,166 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:47,206 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:47,207 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:47,207 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:47,211 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:47,212 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:47,238 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:51,469 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:51,502 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:51,502 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:51,502 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:51,507 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:51,507 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:51,525 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:55,694 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:55,727 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:55,727 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:55,727 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:55,732 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:55,732 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:55,753 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:09:59,926 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:09:59,960 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:09:59,961 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:09:59,961 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:09:59,965 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:59,965 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:09:59,983 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:04,262 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:04,297 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:04,297 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:04,298 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:04,302 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:04,302 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:04,321 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:08,416 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:08,449 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:08,449 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:08,449 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:08,453 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:08,454 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:08,473 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:12,641 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:12,674 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:12,674 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:12,674 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:12,679 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:12,679 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:12,698 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:16,879 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:16,915 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:16,915 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:16,915 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:16,919 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:16,920 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:16,944 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:21,030 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:21,066 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:21,067 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:21,067 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:21,071 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:21,072 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:21,093 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:25,163 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:25,196 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:25,196 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:25,196 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:25,201 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:25,201 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:25,220 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:29,316 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:29,349 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:29,349 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:29,349 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:29,353 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:29,354 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:29,376 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:33,441 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:33,475 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:33,475 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:33,475 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:33,480 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:33,481 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:33,501 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:37,564 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:37,597 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:37,598 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:37,598 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:37,602 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:37,603 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:37,622 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:41,669 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:41,701 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:41,701 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:41,701 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:41,705 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:41,706 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:41,725 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:45,875 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:45,907 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:45,907 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:45,907 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:45,912 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:45,912 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:45,933 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:49,907 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:49,938 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:49,938 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:49,939 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:49,943 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:49,943 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:49,960 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:53,913 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:53,944 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:53,944 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:53,944 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:53,949 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:53,949 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:53,969 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:10:58,172 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:10:58,204 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:10:58,204 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:10:58,205 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:10:58,209 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:58,210 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:10:58,232 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:02,401 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:02,435 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:02,435 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:02,436 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:02,440 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:02,440 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:02,461 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:06,447 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:06,482 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:06,482 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:06,483 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:06,487 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:06,488 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:06,509 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:10,624 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:10,658 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:10,658 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:10,658 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:10,663 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:10,663 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:10,685 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:14,666 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:14,702 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:14,703 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:14,703 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:14,707 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:14,708 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:14,729 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:18,944 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:18,978 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:18,979 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:18,979 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:18,983 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:18,984 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:19,005 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:23,060 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:23,096 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:23,096 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:23,097 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:23,101 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:23,102 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:23,121 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:27,191 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:27,224 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:27,224 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:27,225 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:27,229 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:27,230 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:27,248 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:31,323 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:31,357 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:31,357 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:31,357 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:31,362 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:31,362 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:31,382 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:35,430 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:35,463 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:35,463 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:35,463 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:35,468 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:35,468 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:35,488 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:39,577 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:39,611 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:39,611 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:39,611 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:39,616 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:39,616 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:39,636 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:43,714 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:43,749 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:43,749 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:43,750 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:43,755 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:43,755 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:43,775 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:47,816 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:47,847 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:47,847 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:47,848 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:47,852 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:47,852 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:47,870 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:51,928 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:51,963 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:51,964 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:51,964 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:51,969 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:51,970 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:51,988 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:11:56,145 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:11:56,179 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:11:56,180 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:11:56,180 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:11:56,184 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:56,185 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:11:56,204 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:00,168 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:00,199 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:00,200 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:00,200 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:00,204 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:00,204 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:00,222 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:04,400 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:04,435 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:04,435 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:04,435 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:04,440 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:04,440 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:04,460 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:08,429 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:08,464 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:08,465 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:08,465 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:08,470 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:08,470 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:08,489 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:12,624 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:12,655 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:12,656 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:12,656 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:12,660 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:12,661 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:12,681 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:16,631 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:16,665 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:16,665 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:16,665 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:16,670 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:16,670 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:16,693 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:20,904 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:20,942 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:20,943 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:20,943 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:20,948 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:20,948 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:20,969 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:25,140 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:25,177 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:25,177 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:25,177 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:25,182 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:25,183 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:25,202 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:29,293 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:29,327 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:29,327 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:29,327 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:29,332 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:29,332 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:29,353 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:31,364 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:12:31,397 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:12:31,397 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:12:31,398 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:12:31,402 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:31,402 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:12:31,421 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:12:31,576 - app.logger - INFO - 🚀 AVQON Server starting up...
+2026-02-15 23:12:31,604 - app.logger - INFO - ✅ Database tables verified
+2026-02-15 23:12:31,622 - app.logger - INFO - Database connection established successfully
+2026-02-15 23:12:31,641 - app.database - INFO - Rate limits reset successfully
+2026-02-15 23:12:31,645 - app.logger - INFO - Rate limits reset
+2026-02-15 23:12:31,646 - app.logger - INFO - Background job manager started
+2026-02-15 23:12:31,646 - app.logger - INFO - Background job manager started
+2026-02-15 23:12:31,647 - app.logger - INFO - WebSocket cleanup task started
+2026-02-15 23:12:31,647 - app.logger - INFO - ✅ WebSocket endpoint /ws registered: APIWebSocketRoute(path='/ws', name='websocket_endpoint')
+2026-02-15 23:12:31,647 - app.logger - INFO - 💳 YooKassa config check: SHOP_ID=SET, SECRET_KEY=SET
+2026-02-15 23:12:31,647 - app.logger - INFO - ✅ YooKassa configured: SHOP_ID=12386...
+2026-02-15 23:12:31,648 - app.logger - INFO - ✅ YooKassa aiohttp session initialized
+2026-02-15 23:12:31,648 - app.logger - INFO - ✅ AVQON Server startup complete
+2026-02-15 23:12:34,942 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-15 23:12:53,564 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:12:53,565 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:13:37,738 - app.database - ERROR - Get all reviews error: relation "reviews" does not exist
+LINE 4:                     FROM reviews r
+                                 ^
+
+2026-02-15 23:13:37,758 - app.database - ERROR - Get review stats error: relation "reviews" does not exist
+LINE 1: SELECT COUNT(*) as total FROM reviews
+                                      ^
+
+2026-02-15 23:13:41,972 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:13:41,973 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:13:41,974 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:13:41,974 - app.logger - INFO - [WS] Client connected: id=548ecc30-fc3f-4e5f-8a88-59c95bb397c8, user_id=None, ip=127.0.0.1
+2026-02-15 23:13:41,999 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/reviews (context: link_check)
+2026-02-15 23:13:41,999 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/reviews (ignore_db=False)
+2026-02-15 23:13:42,026 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/reviews
+2026-02-15 23:13:42,026 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/reviews: safe=True, source=external_apis
+2026-02-15 23:13:42,027 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/reviews to client 548ecc30-fc3f-4e5f-8a88-59c95bb397c8
+2026-02-15 23:13:42,028 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/threats (context: link_check)
+2026-02-15 23:13:42,028 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/threats (ignore_db=False)
+2026-02-15 23:13:42,054 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/threats
+2026-02-15 23:13:42,055 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/threats: safe=True, source=external_apis
+2026-02-15 23:13:42,056 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/threats to client 548ecc30-fc3f-4e5f-8a88-59c95bb397c8
+2026-02-15 23:13:42,201 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/keys (context: link_check)
+2026-02-15 23:13:42,201 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/keys (ignore_db=False)
+2026-02-15 23:13:42,228 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/keys
+2026-02-15 23:13:42,228 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/keys: safe=True, source=external_apis
+2026-02-15 23:13:42,229 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/keys to client 548ecc30-fc3f-4e5f-8a88-59c95bb397c8
+2026-02-15 23:13:43,372 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui (context: link_check)
+2026-02-15 23:13:43,373 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui (ignore_db=False)
+2026-02-15 23:13:43,394 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui
+2026-02-15 23:13:43,395 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui: safe=True, source=external_apis
+2026-02-15 23:13:43,396 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui to client 548ecc30-fc3f-4e5f-8a88-59c95bb397c8
+2026-02-15 23:13:43,761 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-15 23:13:53,341 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:13:53,342 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:14:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:14:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:15:53,109 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:15:53,110 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:16:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:16:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:17:53,116 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:17:53,117 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:18:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:18:53,131 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:19:01,462 - app.logger - INFO - [WS] Client disconnected gracefully: 548ecc30-fc3f-4e5f-8a88-59c95bb397c8
+2026-02-15 23:19:01,462 - app.logger - INFO - [WS] Client disconnected: id=548ecc30-fc3f-4e5f-8a88-59c95bb397c8, reason=cleanup
+2026-02-15 23:19:01,561 - app.logger - INFO - Background job manager stopped
+2026-02-15 23:19:01,561 - app.logger - INFO - Background job manager stopped
+2026-02-15 23:19:01,562 - app.logger - INFO - 🛑 YooKassa aiohttp session closed
+2026-02-15 23:19:02,562 - app.logger - INFO - Logging system initialized with rotation
+2026-02-15 23:19:02,595 - app.logger - INFO - [ENV] env.env loaded: yes (/opt/avqon-dev/antivirus-core/app/env.env)
+2026-02-15 23:19:02,596 - app.logger - INFO - [ENV] VIRUSTOTAL_API_KEY: 8958...96ce
+2026-02-15 23:19:02,596 - app.logger - INFO - [External APIs] Enabled map: {'virustotal': True, 'google_safe_browsing': False, 'abuseipdb': True, 'urlscan': False}
+2026-02-15 23:19:02,630 - app.database - INFO - Initializing database manager with DATABASE_URL: postgresql://aegis:Kit08122004...
+2026-02-15 23:19:02,631 - app.database - INFO - Initializing PostgreSQL database: postgresql://aegis:Kit08122004...
+2026-02-15 23:19:02,650 - app.database - INFO - ✅ Database connection successful
+2026-02-15 23:19:02,792 - app.logger - INFO - 🚀 AVQON Server starting up...
+2026-02-15 23:19:02,819 - app.logger - INFO - ✅ Database tables verified
+2026-02-15 23:19:02,839 - app.logger - INFO - Database connection established successfully
+2026-02-15 23:19:02,862 - app.database - INFO - Rate limits reset successfully
+2026-02-15 23:19:02,868 - app.logger - INFO - Rate limits reset
+2026-02-15 23:19:02,868 - app.logger - INFO - Background job manager started
+2026-02-15 23:19:02,868 - app.logger - INFO - Background job manager started
+2026-02-15 23:19:02,869 - app.logger - INFO - WebSocket cleanup task started
+2026-02-15 23:19:02,869 - app.logger - INFO - ✅ WebSocket endpoint /ws registered: APIWebSocketRoute(path='/ws', name='websocket_endpoint')
+2026-02-15 23:19:02,869 - app.logger - INFO - 💳 YooKassa config check: SHOP_ID=SET, SECRET_KEY=SET
+2026-02-15 23:19:02,869 - app.logger - INFO - ✅ YooKassa configured: SHOP_ID=12386...
+2026-02-15 23:19:02,870 - app.logger - INFO - ✅ YooKassa aiohttp session initialized
+2026-02-15 23:19:02,870 - app.logger - INFO - ✅ AVQON Server startup complete
+2026-02-15 23:19:17,782 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-15 23:19:22,292 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:19:22,293 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:19:22,293 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:19:22,293 - app.logger - INFO - [WS] Client connected: id=f7a0ed80-7ed2-47b5-8831-bae7958b895b, user_id=None, ip=127.0.0.1
+2026-02-15 23:19:53,133 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:19:53,134 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:20:53,102 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:20:53,103 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:20:55,283 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-15 23:21:12,262 - app.logger - INFO - [WS] Starting URL analysis for: https://www.ip2location.com/documentation/ip2location-libraries/java/get-started (context: link_check)
+2026-02-15 23:21:12,263 - app.logger - INFO - 🔍 Analyzing URL: https://www.ip2location.com/documentation/ip2location-libraries/java/get-started (ignore_db=False)
+2026-02-15 23:21:19,378 - app.logger - INFO - 🔍 Checking external APIs for: https://www.ip2location.com/documentation/ip2location-libraries/java/get-started
+2026-02-15 23:21:19,731 - app.logger - INFO - URL not found in VirusTotal database (response: False), submitting for analysis: https://www.ip2location.com/documentation/ip2location-libraries/java/get-started
+2026-02-15 23:21:20,253 - app.logger - INFO - URL submitted for analysis, ID: u-666507a4f08f145855084001085f1f344bb040ab6aa9b29a25298bf3595f39b5-8190dd21
+2026-02-15 23:21:20,499 - app.logger - INFO - VirusTotal analysis status (u-666507a4f08f145855084001085f1f344bb040ab6aa9b29a25298bf3595f39b5-8190dd21): queued (attempt 1/5)
+2026-02-15 23:21:22,274 - app.logger - INFO - VirusTotal analysis status (u-666507a4f08f145855084001085f1f344bb040ab6aa9b29a25298bf3595f39b5-8190dd21): queued (attempt 2/5)
+2026-02-15 23:21:25,611 - app.logger - INFO - VirusTotal analysis status (u-666507a4f08f145855084001085f1f344bb040ab6aa9b29a25298bf3595f39b5-8190dd21): queued (attempt 3/5)
+2026-02-15 23:21:27,381 - app.logger - ERROR - External API check timed out for https://www.ip2location.com/documentation/ip2location-libraries/java/get-started
+2026-02-15 23:21:27,381 - app.logger - WARNING - External APIs did not return result for https://www.ip2location.com/documentation/ip2location-libraries/java/get-started, using heuristic analysis
+2026-02-15 23:21:27,384 - app.logger - INFO - [WS] URL analysis completed for https://www.ip2location.com/documentation/ip2location-libraries/java/get-started: safe=True, source=heuristic
+2026-02-15 23:21:27,385 - app.logger - INFO - [WS] Sent analysis_result for https://www.ip2location.com/documentation/ip2location-libraries/java/get-started to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:21:45,504 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/cache (context: link_check)
+2026-02-15 23:21:45,504 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/cache (ignore_db=False)
+2026-02-15 23:21:45,526 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/cache
+2026-02-15 23:21:45,530 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/cache: safe=True, source=external_apis
+2026-02-15 23:21:45,531 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/cache to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:21:48,121 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/threats (context: link_check)
+2026-02-15 23:21:48,124 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/threats (ignore_db=False)
+2026-02-15 23:21:48,144 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/threats
+2026-02-15 23:21:48,145 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/threats: safe=True, source=external_apis
+2026-02-15 23:21:48,146 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/threats to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:21:49,291 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/keys (context: link_check)
+2026-02-15 23:21:49,291 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/keys (ignore_db=False)
+2026-02-15 23:21:49,313 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/keys
+2026-02-15 23:21:49,314 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/keys: safe=True, source=external_apis
+2026-02-15 23:21:49,314 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/keys to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:21:53,121 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:21:53,123 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:21:56,371 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/keys (context: popup)
+2026-02-15 23:21:56,371 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/keys (ignore_db=False)
+2026-02-15 23:21:56,394 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/keys
+2026-02-15 23:21:56,394 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/keys: safe=True, source=external_apis
+2026-02-15 23:21:56,395 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/keys to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:22:53,168 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:22:53,170 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:23:53,154 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:23:53,156 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:24:53,135 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:24:53,137 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:25:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:25:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:26:53,129 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:26:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:27:53,146 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:27:53,147 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:28:53,128 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:28:53,129 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:29:19,300 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 (context: popup)
+2026-02-15 23:29:19,300 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 (ignore_db=False)
+2026-02-15 23:29:19,326 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741
+2026-02-15 23:29:19,326 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741: safe=True, source=external_apis
+2026-02-15 23:29:19,327 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:29:46,916 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 (context: popup)
+2026-02-15 23:29:46,917 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 (ignore_db=False)
+2026-02-15 23:29:46,941 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741
+2026-02-15 23:29:46,941 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741: safe=True, source=external_apis
+2026-02-15 23:29:46,942 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/26b75402-17d0-4bb9-b64b-9b3e5161b741 to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:29:53,146 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:29:53,147 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:30:53,118 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:30:53,120 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:31:53,987 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:31:53,987 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:32:34,284 - app.logger - INFO - [WS] Starting URL analysis for: https://chat.deepseek.com/a/chat/s/6eb52da6-78d2-43a2-b2a9-b1b6dfb1278d (context: popup)
+2026-02-15 23:32:34,285 - app.logger - INFO - 🔍 Analyzing URL: https://chat.deepseek.com/a/chat/s/6eb52da6-78d2-43a2-b2a9-b1b6dfb1278d (ignore_db=False)
+2026-02-15 23:32:34,310 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://chat.deepseek.com/a/chat/s/6eb52da6-78d2-43a2-b2a9-b1b6dfb1278d
+2026-02-15 23:32:34,311 - app.logger - INFO - [WS] URL analysis completed for https://chat.deepseek.com/a/chat/s/6eb52da6-78d2-43a2-b2a9-b1b6dfb1278d: safe=True, source=external_apis
+2026-02-15 23:32:34,312 - app.logger - INFO - [WS] Sent analysis_result for https://chat.deepseek.com/a/chat/s/6eb52da6-78d2-43a2-b2a9-b1b6dfb1278d to client f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:32:53,700 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:32:53,704 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:33:53,453 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:33:53,457 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:34:10,568 - app.logger - INFO - [WS] Client disconnected gracefully: f7a0ed80-7ed2-47b5-8831-bae7958b895b
+2026-02-15 23:34:10,569 - app.logger - INFO - [WS] Client disconnected: id=f7a0ed80-7ed2-47b5-8831-bae7958b895b, reason=cleanup
+2026-02-15 23:34:10,700 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:34:10,700 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:34:10,851 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:34:10,852 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:34:10,938 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:34:10,939 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:34:10,939 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:34:10,940 - app.logger - INFO - [WS] Client connected: id=db649fba-89f4-45e5-97e3-2bf2509e0f07, user_id=None, ip=127.0.0.1
+2026-02-15 23:34:11,003 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:34:11,004 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:34:11,030 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:34:11,031 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:35:11,702 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:35:11,703 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:36:11,448 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:36:11,449 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:37:11,244 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:37:11,244 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:38:10,988 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:38:10,989 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:39:10,931 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:39:10,932 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:40:10,941 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:40:10,942 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:10,939 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:10,942 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:30,315 - app.logger - INFO - [WS] Client disconnected gracefully: db649fba-89f4-45e5-97e3-2bf2509e0f07
+2026-02-15 23:41:30,316 - app.logger - INFO - [WS] Client disconnected: id=db649fba-89f4-45e5-97e3-2bf2509e0f07, reason=cleanup
+2026-02-15 23:41:30,401 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:30,402 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:30,491 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:30,493 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:30,520 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:30,520 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:30,950 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:30,951 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:31,003 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:31,004 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:31,035 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:41:31,035 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:41:31,411 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:41:31,412 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:41:31,412 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:41:31,412 - app.logger - INFO - [WS] Client connected: id=cff73ed5-f796-461b-93e2-0cf94ef1053b, user_id=None, ip=127.0.0.1
+2026-02-15 23:42:31,764 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:42:31,764 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:43:31,541 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:43:31,541 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:44:31,293 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:44:31,294 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:45:31,058 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:45:31,060 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:46:31,026 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:46:31,027 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:47:31,019 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:47:31,021 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:48:31,017 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:48:31,018 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:49:31,014 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:49:31,016 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:50:31,066 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:50:31,067 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:51:31,032 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:51:31,033 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:52:31,009 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:52:31,011 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:53:31,020 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:53:31,022 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:54:22,880 - app.logger - INFO - [WS] Client disconnected gracefully: cff73ed5-f796-461b-93e2-0cf94ef1053b
+2026-02-15 23:54:22,881 - app.logger - INFO - [WS] Client disconnected: id=cff73ed5-f796-461b-93e2-0cf94ef1053b, reason=cleanup
+2026-02-15 23:54:22,967 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:54:22,968 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:54:23,073 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:54:23,074 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:54:23,105 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:54:23,105 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:54:29,962 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:54:29,963 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:54:29,963 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:54:29,964 - app.logger - INFO - [WS] Client connected: id=1a6ed12a-e9ca-4949-8108-0052602e5461, user_id=None, ip=127.0.0.1
+2026-02-15 23:55:23,823 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:55:23,826 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:56:23,567 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:56:23,569 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:57:11,376 - app.logger - INFO - [WS] Client disconnected gracefully: 1a6ed12a-e9ca-4949-8108-0052602e5461
+2026-02-15 23:57:11,377 - app.logger - INFO - [WS] Client disconnected: id=1a6ed12a-e9ca-4949-8108-0052602e5461, reason=cleanup
+2026-02-15 23:57:11,471 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:57:11,471 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:57:11,559 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:57:11,559 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:57:11,587 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:57:11,587 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:57:13,665 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-15 23:57:13,665 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-15 23:57:13,666 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-15 23:57:13,666 - app.logger - INFO - [WS] Client connected: id=2c0680d2-ba53-4345-b7f2-bc8eaf72ad25, user_id=None, ip=127.0.0.1
+2026-02-15 23:58:12,320 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:58:12,321 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:59:12,063 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-15 23:59:12,064 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-15 23:59:33,869 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-16 00:00:06,303 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-16 00:00:11,828 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:00:11,832 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:00:47,812 - app.logger - INFO - [WS] Client disconnected gracefully: 2c0680d2-ba53-4345-b7f2-bc8eaf72ad25
+2026-02-16 00:00:47,813 - app.logger - INFO - [WS] Client disconnected: id=2c0680d2-ba53-4345-b7f2-bc8eaf72ad25, reason=cleanup
+2026-02-16 00:00:47,901 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:00:47,902 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:00:48,000 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:00:48,001 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:00:48,029 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:00:48,029 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:00:55,402 - app.logger - INFO - [WS] WebSocket connection attempt from 127.0.0.1, Upgrade: websocket, Connection: upgrade
+2026-02-16 00:00:55,403 - app.logger - INFO - [WS] WebSocket connection accepted from 127.0.0.1
+2026-02-16 00:00:55,403 - app.logger - INFO - [WS] WebSocket connection without token (basic access)
+2026-02-16 00:00:55,404 - app.logger - INFO - [WS] Client connected: id=ca5def26-dbf5-4142-afaa-650652b0c930, user_id=None, ip=127.0.0.1
+2026-02-16 00:01:48,767 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:01:48,768 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:02:48,521 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:02:48,523 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:03:48,266 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:03:48,267 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:04:48,026 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:04:48,026 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:05:47,969 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:05:47,969 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:06:10,442 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:06:10,442 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:06:10,465 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:06:10,466 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:06:10,466 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:06:13,353 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:06:13,354 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:06:13,377 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:06:13,378 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:06:13,378 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:06:13,379 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:06:13,379 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:06:13,401 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:06:13,402 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:06:13,403 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:06:48,064 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:06:48,066 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:06:54,928 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:06:54,928 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:06:54,961 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:06:54,961 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:06:54,962 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:07:32,136 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:07:32,136 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:07:32,159 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:07:32,159 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:07:32,160 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:07:48,017 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:07:48,017 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:08:03,895 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:08:03,895 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:08:03,920 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:08:03,920 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:08:03,921 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:08:28,779 - app.logger - INFO - [WS] Starting URL analysis for: https://www.google.com/search?q=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&oq=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&gs_lcrp=EgZjaHJvbWUyCQgAEEUYORiABDIHCAEQABiABDIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBBzM1NmowajeoAgCwAgA&sourceid=chrome&ie=UTF-8 (context: popup)
+2026-02-16 00:08:28,779 - app.logger - INFO - 🔍 Analyzing URL: https://www.google.com/search?q=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&oq=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&gs_lcrp=EgZjaHJvbWUyCQgAEEUYORiABDIHCAEQABiABDIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBBzM1NmowajeoAgCwAgA&sourceid=chrome&ie=UTF-8 (ignore_db=False)
+2026-02-16 00:08:28,803 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://www.google.com/search
+2026-02-16 00:08:28,804 - app.logger - INFO - [WS] URL analysis completed for https://www.google.com/search?q=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&oq=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&gs_lcrp=EgZjaHJvbWUyCQgAEEUYORiABDIHCAEQABiABDIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBBzM1NmowajeoAgCwAgA&sourceid=chrome&ie=UTF-8: safe=True, source=external_apis
+2026-02-16 00:08:28,804 - app.logger - INFO - [WS] Sent analysis_result for https://www.google.com/search?q=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&oq=%D0%B0%D1%81%D0%BF%D1%80%D0%BE&gs_lcrp=EgZjaHJvbWUyCQgAEEUYORiABDIHCAEQABiABDIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBBzM1NmowajeoAgCwAgA&sourceid=chrome&ie=UTF-8 to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:08:47,992 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:08:47,994 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:09:48,040 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:09:48,045 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:10:47,984 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:10:47,986 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:11:26,897 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:11:26,898 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:11:26,923 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:11:26,924 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:11:26,925 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:11:47,990 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:11:47,992 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:12:47,989 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:12:47,993 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:13:47,986 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:13:47,987 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:14:48,043 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:14:48,044 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:15:47,994 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:15:47,996 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:16:48,001 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:16:48,002 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:17:47,995 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:17:47,997 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:18:48,025 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:18:48,027 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:18:57,011 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/ (context: popup)
+2026-02-16 00:18:57,011 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/ (ignore_db=False)
+2026-02-16 00:18:57,035 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/
+2026-02-16 00:18:57,036 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/: safe=True, source=external_apis
+2026-02-16 00:18:57,041 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/ to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:19:48,004 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:19:48,005 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:20:47,990 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:20:47,991 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:21:48,949 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:21:48,953 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:22:48,707 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:22:48,708 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:23:48,463 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:23:48,465 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:24:48,221 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:24:48,222 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:25:48,009 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:25:48,011 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:26:47,996 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:26:47,998 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:27:48,050 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:27:48,052 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:27:53,690 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/keys (context: link_check)
+2026-02-16 00:27:53,691 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/keys (ignore_db=False)
+2026-02-16 00:27:53,718 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/keys
+2026-02-16 00:27:53,721 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/keys: safe=True, source=external_apis
+2026-02-16 00:27:53,723 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/keys to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:27:54,017 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui (context: link_check)
+2026-02-16 00:27:54,017 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui (ignore_db=False)
+2026-02-16 00:27:54,039 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui
+2026-02-16 00:27:54,043 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui: safe=True, source=external_apis
+2026-02-16 00:27:54,044 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:27:54,484 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-16 00:27:55,763 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/cache (context: link_check)
+2026-02-16 00:27:55,763 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/cache (ignore_db=False)
+2026-02-16 00:27:55,784 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/cache
+2026-02-16 00:27:55,785 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/cache: safe=True, source=external_apis
+2026-02-16 00:27:55,785 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/cache to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:28:14,109 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/threats (context: link_check)
+2026-02-16 00:28:14,109 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/threats (ignore_db=False)
+2026-02-16 00:28:14,133 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/threats
+2026-02-16 00:28:14,134 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/threats: safe=True, source=external_apis
+2026-02-16 00:28:14,135 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/threats to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:28:27,002 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui/cache (context: link_check)
+2026-02-16 00:28:27,003 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui/cache (ignore_db=False)
+2026-02-16 00:28:27,029 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui/cache
+2026-02-16 00:28:27,030 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui/cache: safe=True, source=external_apis
+2026-02-16 00:28:27,031 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui/cache to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:28:47,992 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:28:47,993 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:29:21,008 - app.logger - INFO - [WS] Starting URL analysis for: https://avqon.com/admin/ui (context: link_check)
+2026-02-16 00:29:21,009 - app.logger - INFO - 🔍 Analyzing URL: https://avqon.com/admin/ui (ignore_db=False)
+2026-02-16 00:29:21,040 - app.logger - INFO - ✅ URL found in local cache (whitelist/blacklist), skipping external APIs: https://avqon.com/admin/ui
+2026-02-16 00:29:21,041 - app.logger - INFO - [WS] URL analysis completed for https://avqon.com/admin/ui: safe=True, source=external_apis
+2026-02-16 00:29:21,041 - app.logger - INFO - [WS] Sent analysis_result for https://avqon.com/admin/ui to client ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:29:21,522 - app.database - ERROR - Extension version stats error: relation "reviews" does not exist
+LINE 3:                     FROM reviews
+                                 ^
+
+2026-02-16 00:29:48,000 - app.logger - INFO - [WS DEBUG] HTTP request to /ws - Method: HEAD, Upgrade: , Connection: upgrade
+2026-02-16 00:29:48,001 - app.logger - WARNING - [WS DEBUG] Request to /ws without WebSocket upgrade header - this might be a proxy issue
+2026-02-16 00:29:56,035 - app.logger - INFO - [WS] Client disconnected gracefully: ca5def26-dbf5-4142-afaa-650652b0c930
+2026-02-16 00:29:56,036 - app.logger - INFO - [WS] Client disconnected: id=ca5def26-dbf5-4142-afaa-650652b0c930, reason=cleanup
+2026-02-16 00:29:56,137 - app.logger - INFO - Background job manager stopped
+2026-02-16 00:29:56,137 - app.logger - INFO - Background job manager stopped
+2026-02-16 00:29:56,138 - app.logger - INFO - 🛑 YooKassa aiohttp session closed
