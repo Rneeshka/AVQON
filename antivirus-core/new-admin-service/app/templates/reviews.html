@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – Отзывы{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Отзывы пользователей</h1>
+    <p class="muted">Просмотр отзывов и оценок от пользователей расширения</p>
+</div>
+
+<!-- Статистика отзывов -->
+<div class="stats-grid">
+    <div class="stat-card stat-card-success">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+            <div class="stat-label">Всего отзывов</div>
+            <div class="stat-value">{{ stats.get('total', 0) }}</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-warning">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-label">Средняя оценка</div>
+            <div class="stat-value">{{ "%.2f"|format(stats.get('average_rating', 0)) }}</div>
+            <div class="stat-sublabel">из 5.0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Распределение оценок -->
+<div class="card">
+    <h2>Распределение оценок</h2>
+    <div class="rating-distribution">
+        {% for rating in range(5, 0, -1) %}
+        {% set rating_str = rating|string %}
+        {% set count = stats.get('rating_distribution', {}).get(rating_str, 0) or 0 %}
+        {% set percentage = rating_percentages.get(rating, 0) %}
+        <div class="rating-bar-row">
+            <div class="rating-label">
+                <span class="rating-number">{{ rating }}</span>
+                <span class="stars">{% for i in range(rating) %}⭐{% endfor %}</span>
+            </div>
+            <div class="rating-bar-container">
+                <div class="rating-bar" data-width="{{ percentage }}" style="width: 0%;"></div>
+            </div>
+            <div class="rating-count">{{ count }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Список отзывов -->
+<div class="card">
+    <h2>Все отзывы</h2>
+    {% if reviews %}
+    <div style="max-height: 600px; overflow-y: auto;">
+        {% for review in reviews %}
+        <div class="review-item">
+            <div class="review-header">
+                <div class="review-rating">
+                    {% for i in range(review.rating) %}
+                    <span class="star-filled">⭐</span>
+                    {% endfor %}
+                    {% for i in range(5 - review.rating) %}
+                    <span class="star-empty">☆</span>
+                    {% endfor %}
+                    <span class="rating-number">{{ review.rating }}/5</span>
+                </div>
+                <div class="review-meta">
+                    <span class="muted">{{ review.created_at }}</span>
+                </div>
+            </div>
+            {% if review.text %}
+            <div class="review-text">{{ review.text }}</div>
+            {% endif %}
+            <div class="review-footer">
+                {% if review.username %}
+                <span class="badge-basic">👤 {{ review.username }}</span>
+                {% elif review.email %}
+                <span class="badge-basic">📧 {{ review.email }}</span>
+                {% else %}
+                <span class="badge-basic">🔑 Анонимный</span>
+                {% endif %}
+                {% if review.extension_version %}
+                <span class="badge-basic">v{{ review.extension_version }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Отзывов пока нет</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.rating-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rating-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.rating-number {
+    font-weight: 600;
+    font-size: 14px;
+    width: 20px;
+    text-align: right;
+}
+
+.stars {
+    font-size: 12px;
+}
+
+.rating-bar-container {
+    flex: 1;
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rating-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    transition: width 0.3s;
+}
+
+.rating-count {
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+
+.review-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #f9fafb;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.star-filled {
+    color: #fbbf24;
+    font-size: 16px;
+}
+
+.star-empty {
+    color: #d1d5db;
+    font-size: 16px;
+}
+
+.review-text {
+    margin: 12px 0;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.review-footer {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+</style>
+<script>
+// Устанавливаем ширину прогресс-баров из data-атрибутов
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingBars = document.querySelectorAll('.rating-bar[data-width]');
+    ratingBars.forEach(function(bar) {
+        const width = bar.getAttribute('data-width');
+        if (width) {
+            bar.style.width = width + '%';
+        }
+    });
+});
+</script>
+{% endblock %}
+

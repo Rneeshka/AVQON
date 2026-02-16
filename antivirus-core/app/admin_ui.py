@@ -1,9 +1,14 @@
 import logging
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
-from typing import Optional
-from urllib.parse import quote
+import sys
+from fastapi import APIRouter, Request, Form, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, StreamingResponse
+from typing import Optional, List
+from urllib.parse import quote, unquote
 import os
+import json
+import html
+import csv
+import io
 from datetime import datetime, timedelta
 
 from app.database import db_manager
@@ -63,6 +68,8 @@ def _layout(request: Request, title: str, body: str) -> str:
       <a href=\"{p('admin/ui/threats')}\">Угрозы</a>
       <a href=\"{p('admin/ui/cache')}\">Кэш URL</a>
       <a href=\"{p('admin/ui/ip')}\">IP репутация</a>
+      <a href=\"{p('admin/ui/reviews')}\">Отзывы</a>
+      <a href=\"{p('admin/ui/crowd-reports')}\">Крауд-репорты</a>
       <a href=\"{p('admin/ui/logs')}\">Логи</a>
       <a href=\"{p('admin/ui/danger')}\" style=\"color: #dc2626;\">⚠️ Опасная зона</a>
       <a href=\"{p('docs')}\" style=\"float:right\">Документация</a>
@@ -125,57 +132,421 @@ async def _refresh_cache_entries(target: str, limit: int):
     return summary
 
 
+def _p(request: Request, path: str) -> str:
+    root = request.scope.get("root_path", "")
+    if not path:
+        return root or "/"
+    if path.startswith("/"):
+        path = path[1:]
+    return f"{root.rstrip('/')}/{path}" if root else f"/{path}"
+
+
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     stats = db_manager.get_database_stats()
     cache_stats = db_manager.get_cache_stats()
     prefix = request.scope.get("root_path", "")
-    refresh_action = prefix + ("/admin/ui/cache/refresh" if not prefix.endswith("/") else "admin/ui/cache/refresh")
+    refresh_action = _p(request, "admin/ui/cache/refresh")
+
+    # Данные для графиков и блоков
+    requests_by_day = db_manager.get_requests_by_day(14)
+    requests_by_hour = db_manager.get_requests_by_hour(24)
+    threat_dist = db_manager.get_threat_types_distribution()
+    top_domains = db_manager.get_top_cached_domains(15)
+    recent_errors = db_manager.get_recent_errors(50)
+
+    # Системная информация
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    try:
+        import fastapi
+        fastapi_ver = getattr(fastapi, "__version__", "?")
+    except Exception:
+        fastapi_ver = "?"
+    cpu_ram = "—"
+    try:
+        import psutil
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory()
+        cpu_ram = f"CPU: {cpu}% | RAM: {mem.percent}% ({mem.used // (1024*1024)} МБ / {mem.total // (1024*1024)} МБ)"
+    except Exception:
+        pass
+    uptime = "—"
+    if hasattr(request.app.state, "start_time"):
+        try:
+            delta = datetime.utcnow() - request.app.state.start_time
+            days, r = divmod(delta.total_seconds(), 86400)
+            hours, r = divmod(r, 3600)
+            mins = int(r // 60)
+            uptime = f"{int(days)}д {int(hours)}ч {mins}м"
+        except Exception:
+            pass
+    ws_count = 0
+    ws_total_messages = 0
+    ws_messages_per_sec = "—"
+    ws_top_clients = []
+    try:
+        ws_manager = getattr(request.app.state, "ws_manager", None)
+        if ws_manager:
+            ws_count = ws_manager.get_connection_count() if hasattr(ws_manager, "get_connection_count") else ws_manager.active_connections_count()
+            ws_total_messages = getattr(ws_manager, "get_total_messages", lambda: 0)()
+            ws_top_clients = getattr(ws_manager, "get_top_clients_by_activity", lambda limit=5: [])(5)
+            if hasattr(request.app.state, "start_time"):
+                try:
+                    delta = (datetime.utcnow() - request.app.state.start_time).total_seconds()
+                    if delta > 0:
+                        ws_messages_per_sec = f"{(ws_total_messages / delta):.2f}"
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    db_status = "PostgreSQL (активно)"  # можно улучшить проверкой соединения
+
+    # Статус внешних API
+    try:
+        from app.external_apis.manager import external_api_manager
+        api_status = external_api_manager.enabled_apis
+    except Exception:
+        api_status = {}
+
+    # Эффективность кэша (hit ratio)
+    total_hits = (cache_stats.get("whitelist_hits") or 0) + (cache_stats.get("blacklist_hits") or 0)
+    total_entries = (cache_stats.get("whitelist_entries") or 0) + (cache_stats.get("blacklist_entries") or 0)
+    cache_ratio = f"{(total_hits / (total_entries or 1)):.1f}" if total_entries else "0"
+    cache_bytes = cache_stats.get("bytes_estimated", 0)
+    cache_size_mb = f"{(cache_bytes / (1024*1024)):.2f} МБ" if cache_bytes else "—"
+
+    # JSON для графиков (экранируем для JS)
+    chart_days = json.dumps([r["date"] for r in requests_by_day])
+    chart_days_counts = json.dumps([r["count"] for r in requests_by_day])
+    chart_threat_labels = json.dumps(list(threat_dist.keys()) or ["Нет данных"])
+    chart_threat_data = json.dumps(list(threat_dist.values()) or [0])
+    chart_domain_labels = json.dumps([d["domain"][:30] for d in top_domains])
+    chart_domain_data = json.dumps([d["hits"] for d in top_domains])
+
+    # Гео (топ IP и топ стран по ip2location), версии расширения, прогноз
+    top_ips = db_manager.get_top_ips_from_logs(15)
+    top_countries = db_manager.get_top_countries_from_logs(15)
+    geo_available = False
+    try:
+        from app.geo_ip import is_available
+        geo_available = is_available()
+    except Exception:
+        pass
+    version_stats = db_manager.get_extension_version_stats()
+    avg_per_day = db_manager.get_requests_avg_per_day(7)
+    forecast_7d = int(avg_per_day * 7) if avg_per_day else 0
+    chart_version_labels = json.dumps(list(version_stats.keys()) or ["Нет данных"])
+    chart_version_data = json.dumps(list(version_stats.values()) or [0])
+    geo_ip_rows = "".join([f"<tr><td>{html.escape(str(r.get('ip') or '-'))}</td><td>{r.get('requests', 0)}</td></tr>" for r in top_ips])
+    geo_country_rows = "".join([
+        f"<tr><td>{html.escape(str(c.get('country_code') or '—'))}</td><td>{html.escape(str(c.get('country_name') or '—'))}</td><td>{c.get('requests', 0)}</td></tr>"
+        for c in top_countries
+    ])
+    ws_top_rows = "".join([f"<tr><td>{html.escape(str(c.get('id', '')))}</td><td>{c.get('ip', '—')}</td><td>{c.get('user_id') or '—'}</td><td>{c.get('messages', 0)}</td></tr>" for c in ws_top_clients])
+
+    errors_rows = "".join([
+        f"<tr><td class=\"muted\">{e.get('ts', '-')}</td><td>{e.get('method', '-')} {e.get('endpoint', '-')[:60]}</td>"
+        f"<td><span style=\"color:#dc2626;\">{e.get('status_code', '-')}</span></td><td>{e.get('response_time_ms') or '-'}</td><td>{e.get('client_ip_truncated') or '-'}</td></tr>"
+        for e in recent_errors[:30]
+    ])
+
+    api_status_html = "".join([
+        f"<div><span class=\"badge-{'premium' if api_status.get(k) else 'basic'}\">{k}</span> {'Вкл' if api_status.get(k) else 'Выкл'}</div>"
+        for k in ("virustotal", "google_safe_browsing", "abuseipdb", "urlscan")
+    ])
+
+    flash = unquote(request.cookies.get("flash", ""))
+    flash_escaped = html.escape(flash) if flash else ""
+    flash_block = f'<div class="card" style="background:#ecfdf5; border-color:#059669;"><strong>Результат:</strong> {flash_escaped}</div>' if flash_escaped else ""
+
     body = f"""
+    {flash_block}
     <div class="card">
-      <h1>Панель администратора</h1>
-      <p class="muted">Краткая сводка состояния системы</p>
+      <h1>📊 Панель администратора</h1>
+      <p class="muted">Дашборд мониторинга и управления</p>
     </div>
-    <div class="row">
-      <div class="card col"><h2>Угрозы</h2><div>Хэши: <b>{stats.get('malicious_hashes', 0)}</b></div><div>URL: <b>{stats.get('malicious_urls', 0)}</b></div><div>Всего угроз: <b>{stats.get('total_threats', 0)}</b></div></div>
-      <div class="card col"><h2>API ключи</h2><div>Активных ключей: <b>{stats.get('active_api_keys', 0)}</b></div><div>Всего запросов: <b>{stats.get('total_requests', 0)}</b></div></div>
-    </div>
+
     <div class="card">
-      <h2>Локальная база (hover-cache)</h2>
-      <div class="row">
-        <div class="col"><div>Белый список: <b>{cache_stats.get('whitelist_entries', 0)}</b></div></div>
-        <div class="col"><div>Чёрный список: <b>{cache_stats.get('blacklist_entries', 0)}</b></div></div>
-        <div class="col"><div>Хитов кэша: <b>{cache_stats.get('whitelist_hits', 0) + cache_stats.get('blacklist_hits', 0)}</b></div></div>
+      <h2>🖥 Системная информация</h2>
+      <div class="row" style="gap:12px;">
+        <div class="col"><strong>Python:</strong> {py_ver}</div>
+        <div class="col"><strong>FastAPI:</strong> {fastapi_ver}</div>
+        <div class="col"><strong>Ресурсы:</strong> {cpu_ram}</div>
+        <div class="col"><strong>Uptime:</strong> {uptime}</div>
+        <div class="col"><strong>WebSocket:</strong> {ws_count} соединений</div>
+        <div class="col"><strong>БД:</strong> {db_status}</div>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>🌐 Статус внешних API</h2>
+      <div class="row" style="gap:16px;">{api_status_html or '<div class="muted">Не загружено</div>'}</div>
+    </div>
+
+    <div class="card">
+      <h2>🔌 WebSocket мониторинг</h2>
+      <div class="row" style="gap:16px;">
+        <div class="col"><strong>Активные соединения:</strong> {ws_count}</div>
+        <div class="col"><strong>Всего сообщений:</strong> {ws_total_messages}</div>
+        <div class="col"><strong>Сообщ/сек (средн.):</strong> {ws_messages_per_sec}</div>
+      </div>
+      <h3 style="margin:12px 0 8px; font-size:14px;">Топ клиентов по активности</h3>
+      <div style="max-height:120px;overflow:auto">
+        <table><thead><tr><th>ID</th><th>IP</th><th>User ID</th><th>Сообщений</th></tr></thead><tbody>{ws_top_rows or '<tr><td colspan=4 class="muted">Нет данных</td></tr>'}</tbody></table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card col"><h2>Угрозы</h2><div>Хэши: <b>{stats.get('malicious_hashes', 0)}</b></div><div>URL: <b>{stats.get('malicious_urls', 0)}</b></div><div>Всего: <b>{stats.get('total_threats', 0)}</b></div></div>
+      <div class="card col"><h2>API ключи</h2><div>Активных: <b>{stats.get('active_api_keys', 0)}</b></div><div>Всего запросов: <b>{stats.get('total_requests', 0)}</b></div></div>
+      <div class="card col"><h2>Кэш URL</h2><div>Whitelist: <b>{cache_stats.get('whitelist_entries', 0)}</b></div><div>Blacklist: <b>{cache_stats.get('blacklist_entries', 0)}</b></div><div>Хитов: <b>{total_hits}</b> · Hit ratio: <b>{cache_ratio}</b></div><div>Размер: {cache_size_mb}</div></div>
+    </div>
+
+    <div class="row">
+      <div class="card col" style="flex:1.5;">
+        <h2>📈 Запросы по дням (14 дней)</h2>
+        <canvas id="chartRequestsDay" height="200"></canvas>
+      </div>
+      <div class="card col">
+        <h2>🥧 Типы угроз</h2>
+        <canvas id="chartThreats" height="200"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🔗 Топ запрашиваемых доменов (кэш)</h2>
+      <canvas id="chartDomains" height="180"></canvas>
+    </div>
+
+    <div class="row">
+      <div class="card col">
+        <h2>🌍 Гео: топ IP</h2>
+        <div style="max-height:160px;overflow:auto"><table><thead><tr><th>IP</th><th>Запросов</th></tr></thead><tbody>{geo_ip_rows or '<tr><td colspan=2 class="muted">Нет данных</td></tr>'}</tbody></table></div>
+      </div>
+      <div class="card col">
+        <h2>🌍 Топ стран по трафику</h2>
+        <p class="muted" style="font-size:12px;">{ 'IP2Location подключён' if geo_available else 'Укажите IP2LOCATION_BIN_PATH и установите: pip install IP2Location' }</p>
+        <div style="max-height:160px;overflow:auto"><table><thead><tr><th>Код</th><th>Страна</th><th>Запросов</th></tr></thead><tbody>{geo_country_rows or '<tr><td colspan=3 class="muted">Нет данных или IP2Location не настроен</td></tr>'}</tbody></table></div>
+      </div>
+      <div class="card col">
+        <h2>📦 Версия расширения → пользователи</h2>
+        <canvas id="chartVersion" height="160"></canvas>
+      </div>
+      <div class="card col">
+        <h2>📈 Предиктивная аналитика</h2>
+        <div><strong>Среднее запросов/день (7 дн.):</strong> {avg_per_day:.0f}</div>
+        <div><strong>Прогноз на 7 дней:</strong> ~{forecast_7d}</div>
+        <p class="muted" style="font-size:12px;">На основе request_logs</p>
+      </div>
+    </div>
+
+    <div id="notifications-toast" style="position:fixed;top:16px;right:16px;z-index:9999;max-width:360px;display:none;"></div>
+
+    <div class="card">
+      <h2>🚨 Последние ошибки (status ≥ 400)</h2>
+      <div style="max-height:280px;overflow:auto">
+        <table>
+          <thead><tr><th>Время</th><th>Запрос</th><th>Код</th><th>Мс</th><th>IP</th></tr></thead>
+          <tbody>{errors_rows or '<tr><td colspan=5 class="muted">Ошибок нет</td></tr>'}</tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:8px;"><a href="{_p(request, 'admin/ui/logs')}">Все логи →</a></p>
+    </div>
+
+    <div class="card">
+      <h2>Локальная база (обновление кэша)</h2>
       <form method="post" action="{refresh_action}" style="margin-top:12px; display:grid; gap:8px; max-width:400px;">
-        <label>Что обновить</label>
         <select name="target">
           <option value="all" selected>Белый и чёрный списки</option>
           <option value="whitelist">Только белый список</option>
           <option value="blacklist">Только чёрный список</option>
         </select>
-        <label>Сколько записей пересканировать (старейшие)</label>
         <input type="number" name="limit" min="1" max="50" value="10" />
         <button type="submit">Обновить локальную базу</button>
-        <p class="muted" style="font-size:12px;">Обновление вручную: мы пересканируем N самых старых записей через VirusTotal и перезапишем их в базе.</p>
       </form>
     </div>
+
     <div class="row">
       <div class="card col">
+        <h2>🧪 Тест URL</h2>
+        <p class="muted">Ручная проверка URL через админку</p>
+        <form method="post" action="{_p(request, 'admin/ui/test-url')}" style="display:grid;gap:8px;">
+          <input name="url" placeholder="https://example.com" required />
+          <button type="submit">Проверить URL</button>
+        </form>
+      </div>
+      <div class="card col">
         <h2>Быстрые действия</h2>
-        <div style=\"display:grid;gap:8px\">
-          <button onclick=\"nav('{request.scope.get('root_path','') + ('/admin/ui/keys' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/keys')}')\">Создать API ключ</button>
-          <button onclick=\"nav('{request.scope.get('root_path','') + ('/admin/ui/threats' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/threats')}')\">Добавить угрозу</button>
+        <div style="display:grid;gap:8px">
+          <button onclick="nav('{_p(request, 'admin/ui/keys')}')">Ключи API</button>
+          <button onclick="nav('{_p(request, 'admin/ui/threats')}')">Угрозы</button>
+          <button onclick="nav('{_p(request, 'admin/ui/reviews')}')">Отзывы</button>
+          <button onclick="nav('{_p(request, 'admin/ui/cache')}')">Кэш</button>
         </div>
       </div>
       <div class="card col" style="border: 2px solid #dc2626;">
         <h2 style="color: #dc2626;">⚠️ Опасная зона</h2>
-        <p class="muted" style="color: #dc2626;">Полная очистка базы данных</p>
-        <button onclick=\"nav('{request.scope.get('root_path','') + ('/admin/ui/danger' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/danger')}')\" style=\"background: #dc2626; margin-top: 8px;\">Открыть опасную зону</button>
+        <button onclick="nav('{_p(request, 'admin/ui/danger')}')" style="background: #dc2626;">Открыть</button>
       </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+    (function() {{
+      var days = {chart_days};
+      var daysCounts = {chart_days_counts};
+      var threatLabels = {chart_threat_labels};
+      var threatData = {chart_threat_data};
+      var domainLabels = {chart_domain_labels};
+      var domainData = {chart_domain_data};
+
+      if (document.getElementById('chartRequestsDay') && days.length) {{
+        new Chart(document.getElementById('chartRequestsDay'), {{
+          type: 'bar',
+          data: {{ labels: days, datasets: [{{ label: 'Запросы', data: daysCounts, backgroundColor: 'rgba(37,99,235,0.6)' }}] }},
+          options: {{ responsive: true, plugins: {{ legend: {{ display: false }} }}, scales: {{ y: {{ beginAtZero: true }} }} }}
+        }});
+      }}
+      if (document.getElementById('chartThreats') && threatLabels.length) {{
+        new Chart(document.getElementById('chartThreats'), {{
+          type: 'doughnut',
+          data: {{ labels: threatLabels, datasets: [{{ data: threatData, backgroundColor: ['#2563eb','#dc2626','#059669','#f59e0b','#8b5cf6'] }}] }},
+          options: {{ responsive: true }}
+        }});
+      }}
+      if (document.getElementById('chartDomains') && domainLabels.length) {{
+        new Chart(document.getElementById('chartDomains'), {{
+          type: 'bar',
+          data: {{ labels: domainLabels, datasets: [{{ label: 'Хитов', data: domainData, backgroundColor: 'rgba(5,150,105,0.6)' }}] }},
+          options: {{ indexAxis: 'y', responsive: true, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ beginAtZero: true }} }} }}
+        }});
+      }}
+      var versionLabels = {chart_version_labels};
+      var versionData = {chart_version_data};
+      if (document.getElementById('chartVersion') && versionLabels.length) {{
+        new Chart(document.getElementById('chartVersion'), {{
+          type: 'doughnut',
+          data: {{ labels: versionLabels, datasets: [{{ data: versionData, backgroundColor: ['#2563eb','#059669','#f59e0b','#8b5cf6','#ec4899'] }}] }},
+          options: {{ responsive: true }}
+        }});
+      }}
+    }})();
+    (function notificationPoll() {{
+      var base = document.querySelector('nav a[href*="admin/ui"]') ? (document.querySelector('nav a[href]').href.replace(/\\/admin\\/ui.*$/, '') || '') : '';
+      fetch((base || '') + '/admin/ui/notifications/critical')
+        .then(function(r) {{ return r.json(); }})
+        .then(function(data) {{
+          if (data && data.count > 0 && data.recent && data.recent.length > 0) {{
+            var el = document.getElementById('notifications-toast');
+            el.style.display = 'block';
+            el.style.background = '#fef2f2';
+            el.style.border = '1px solid #dc2626';
+            el.style.borderRadius = '8px';
+            el.style.padding = '12px';
+            el.innerHTML = '<strong>⚠️ Критические ошибки (' + data.count + ')</strong><br><small>' + (data.recent[0].endpoint || '') + ' ' + (data.recent[0].status_code || '') + '</small>';
+          }}
+        }})
+        .catch(function() {{}});
+      setTimeout(notificationPoll, 30000);
+    }})();
+    </script>
     """
     return _layout(request, "Админ панель – обзор", body)
+
+
+@router.post("/test-url")
+async def test_url_action(request: Request, url: str = Form(...)):
+    """Ручная проверка URL через админку (тест анализа)."""
+    try:
+        result = await analysis_service.analyze_url(url.strip(), use_external_apis=True, ignore_database=False)
+        safe = result.get("safe")
+        threat = result.get("threat_type") or "—"
+        source = result.get("source") or "—"
+        if safe is True:
+            msg = f"✅ URL безопасен. Источник: {source}"
+        elif safe is False:
+            msg = f"⚠️ Угроза: {threat}. Источник: {source}"
+        else:
+            msg = f"❓ Результат неопределён. Источник: {source}"
+    except Exception as e:
+        msg = f"❌ Ошибка: {str(e)}"
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=prefix + ("/admin/ui" if not prefix.endswith("/") else "admin/ui"), status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=15)
+    return redirect
+
+
+@router.get("/notifications/critical")
+async def notifications_critical(request: Request):
+    """Критические ошибки (5xx) для уведомлений в дашборде."""
+    recent = db_manager.get_critical_errors_count(10)
+    return {"count": len(recent), "recent": recent}
+
+
+@router.get("/export/keys")
+async def export_keys_csv(request: Request):
+    """Экспорт ключей API в CSV."""
+    keys = []
+    try:
+        with db_manager._get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT api_key, name, is_active, access_level, rate_limit_daily, rate_limit_hourly,
+                       requests_total, requests_today, requests_hour, created_at, last_used, expires_at
+                FROM api_keys ORDER BY created_at DESC
+            """)
+            keys = [dict(row) for row in cur.fetchall()]
+    except Exception:
+        pass
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["api_key", "name", "is_active", "access_level", "rate_limit_daily", "rate_limit_hourly", "requests_total", "requests_today", "requests_hour", "created_at", "last_used", "expires_at"])
+    for k in keys:
+        writer.writerow([k.get("api_key"), k.get("name"), k.get("is_active"), k.get("access_level"), k.get("rate_limit_daily"), k.get("rate_limit_hourly"), k.get("requests_total"), k.get("requests_today"), k.get("requests_hour"), k.get("created_at"), k.get("last_used"), k.get("expires_at")])
+    output.seek(0)
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=api_keys.csv"})
+
+
+@router.get("/export/reviews")
+async def export_reviews_csv(request: Request):
+    """Экспорт отзывов в CSV."""
+    reviews_list = db_manager.get_all_reviews(limit=5000)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "rating", "text", "extension_version", "created_at", "user_id", "username", "email", "device_id"])
+    for r in reviews_list:
+        writer.writerow([r.get("id"), r.get("rating"), (r.get("text") or "")[:500], r.get("extension_version"), r.get("created_at"), r.get("user_id"), r.get("username"), r.get("email"), r.get("device_id")])
+    output.seek(0)
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=reviews.csv"})
+
+
+@router.get("/export/logs")
+async def export_logs_csv(request: Request, from_date: Optional[str] = None, to_date: Optional[str] = None):
+    """Выгрузка логов за период в CSV (из request_logs, если есть; иначе из logs)."""
+    logs = db_manager.get_all_logs()
+    if from_date or to_date:
+        try:
+            from datetime import datetime as dt
+            filtered = []
+            for row in logs:
+                ts = row.get("created_at") or row.get("timestamp") or ""
+                if not ts:
+                    continue
+                if from_date and str(ts)[:10] < from_date:
+                    continue
+                if to_date and str(ts)[:10] > to_date:
+                    continue
+                filtered.append(row)
+            logs = filtered
+        except Exception:
+            pass
+    output = io.StringIO()
+    writer = csv.writer(output)
+    cols = ["endpoint", "method", "status_code", "response_time_ms", "client_ip", "api_key_hash", "created_at"]
+    writer.writerow(cols)
+    for row in logs[:10000]:
+        writer.writerow([row.get(c) for c in cols])
+    output.seek(0)
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=logs.csv"})
 
 
 @router.get("/keys", response_class=HTMLResponse)
@@ -235,9 +606,14 @@ async def keys_page(request: Request):
             return "Неизвестно"
     
     free_account_html = '<span style="color: #059669;">Свободен</span>'
+    toggle_action = _p(request, "admin/ui/keys/toggle-active")
+    bulk_action = _p(request, "admin/ui/keys/bulk")
+    import_action = _p(request, "admin/ui/keys/import-csv")
+    export_keys_url = _p(request, "admin/ui/export/keys")
     rows = "".join([
         (
-            f"<tr><td><code>{k['api_key']}</code></td><td>{k['name']}</td><td>{'да' if k['is_active'] else 'нет'}</td>"
+            f"<tr><td><input type=\"checkbox\" name=\"api_key\" value=\"{html.escape(k['api_key'])}\" form=\"bulk-form\"/></td>"
+            f"<td><code>{k['api_key']}</code></td><td>{k['name']}</td><td>{'да' if k['is_active'] else 'нет'}</td>"
             f"<td><span class=\"badge-{k.get('access_level', 'basic')}\">{k.get('access_level', 'basic')}</span></td>"
             f"<td>{k['username'] if k['username'] else free_account_html}</td>"
             f"<td>{k['email'] or '-'}</td>"
@@ -246,7 +622,8 @@ async def keys_page(request: Request):
             f"<td>{k['requests_today']}/{k['requests_hour']}</td>"
             f"<td>{k['requests_total']}</td>"
             f"<td class=\"muted\">{k['last_used']}</td><td class=\"muted\">{k['expires_at'] or '-'}</td>"
-            f"<td><span style=\"color: #059669; font-weight: 500;\">{format_time_remaining(k['expires_at'])}</span></td></tr>"
+            f"<td><span style=\"color: #059669; font-weight: 500;\">{format_time_remaining(k['expires_at'])}</span></td>"
+            f"<td><form method=\"post\" action=\"{toggle_action}\" style=\"display:inline;\"><input type=\"hidden\" name=\"api_key\" value=\"{html.escape(k['api_key'])}\"/><input type=\"hidden\" name=\"active\" value=\"{'0' if k['is_active'] else '1'}\"/><button type=\"submit\" style=\"padding:4px 8px;font-size:12px;background:{'#dc2626' if k['is_active'] else '#059669'};\">{'Заблокировать' if k['is_active'] else 'Разблокировать'}</button></form></td></tr>"
         )
         for k in keys
     ])
@@ -281,7 +658,7 @@ async def keys_page(request: Request):
     </div>
     <div class="card">
       <h2>Продлить ключ</h2>
-      <form method="post" action="{request.scope.get('root_path','') + ('/admin/ui/keys/extend' if not request.scope.get('root_path','').endswith('/') else 'admin/ui/keys/extend')}">
+      <form method="post" action="{_p(request, 'admin/ui/keys/extend')}">
         <label>API ключ</label>
         <input name="api_key" required placeholder="PREMI*-*****-..." />
         <label>Продлить на (дней)</label>
@@ -295,14 +672,42 @@ async def keys_page(request: Request):
       </form>
     </div>
     <div class="card">
+      <h2>Массовые операции</h2>
+      <form id="bulk-form" method="post" action="{bulk_action}" style="display:grid;gap:8px;grid-template-columns:auto 1fr auto auto;">
+        <label style="grid-column:1;">Выберите ключи выше, затем:</label>
+        <select name="action" style="grid-column:2;">
+          <option value="block">Заблокировать выбранные</option>
+          <option value="unblock">Разблокировать выбранные</option>
+          <option value="extend">Продлить выбранные</option>
+        </select>
+        <input type="number" name="extend_days" value="30" min="1" placeholder="Дней (для продления)" style="grid-column:3;" />
+        <button type="submit" style="grid-column:4;">Применить</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Импорт ключей из CSV</h2>
+      <p class="muted" style="font-size:12px;">Колонки: name, description, access_level, expires_days, daily_limit, hourly_limit (опционально: api_key для указания своего ключа)</p>
+      <form method="post" action="{import_action}" enctype="multipart/form-data" style="display:grid;gap:8px;">
+        <input type="file" name="file" accept=".csv" required />
+        <button type="submit">Импорт CSV</button>
+      </form>
+    </div>
+    <div class="card">
       <h2>Список ключей</h2>
+      <p><a href="{export_keys_url}">📥 Экспорт в CSV</a></p>
       <div style="overflow:auto">
         <table>
-          <thead><tr><th>Ключ</th><th>Имя</th><th>Активен</th><th>Уровень</th><th>Username</th><th>Email</th><th>Пароль</th><th>Лимиты (день/час)</th><th>Запросы (сегодня/час)</th><th>Всего</th><th>Последнее использование</th><th>Истекает</th><th>Осталось</th></tr></thead>
-          <tbody>{rows or '<tr><td colspan=13 class="muted">Ключей пока нет</td></tr>'}</tbody>
+          <thead><tr><th><input type="checkbox" id="select-all-keys" title="Выбрать все"/></th><th>Ключ</th><th>Имя</th><th>Активен</th><th>Уровень</th><th>Username</th><th>Email</th><th>Пароль</th><th>Лимиты (день/час)</th><th>Запросы (сегодня/час)</th><th>Всего</th><th>Последнее использование</th><th>Истекает</th><th>Осталось</th><th>Действие</th></tr></thead>
+          <tbody>{rows or '<tr><td colspan=15 class="muted">Ключей пока нет</td></tr>'}</tbody>
         </table>
       </div>
     </div>
+    <script>
+    document.getElementById('select-all-keys') && document.getElementById('select-all-keys').addEventListener('change', function() {{
+      var cbs = document.querySelectorAll('tbody input[name=api_key][type=checkbox]');
+      cbs.forEach(function(cb) {{ cb.checked = this.checked; }}, this);
+    }});
+    </script>
     """
     return _layout(request, "Админ панель – ключи API", body)
 
@@ -341,6 +746,81 @@ async def extend_key_action(
     redirect = RedirectResponse(url=(prefix + ("/admin/ui/keys" if not prefix.endswith('/') else "admin/ui/keys")), status_code=303)
     msg = quote("Ключ продлён" if ok else "Ключ не найден или ошибка продления")
     redirect.set_cookie("flash", msg, max_age=10)
+    return redirect
+
+
+@router.post("/keys/toggle-active")
+async def toggle_key_active_action(
+    request: Request,
+    api_key: str = Form(...),
+    active: str = Form("1"),
+):
+    is_active = active.strip() == "1"
+    ok = db_manager.set_api_key_active(api_key, is_active)
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/keys" if not prefix.endswith('/') else "admin/ui/keys")), status_code=303)
+    msg = quote("Ключ разблокирован" if (ok and is_active) else ("Ключ заблокирован" if ok else "Ошибка"))
+    redirect.set_cookie("flash", msg, max_age=10)
+    return redirect
+
+
+@router.post("/keys/bulk")
+async def keys_bulk_action(request: Request):
+    """Массовые операции: блокировка, разблокировка, продление выбранных ключей."""
+    form = await request.form()
+    action = form.get("action", "block")
+    extend_days = int(form.get("extend_days", 30) or 30)
+    keys = form.getlist("api_key")
+    if not keys:
+        msg = quote("Выберите хотя бы один ключ")
+    else:
+        done = 0
+        for key in keys:
+            if action == "block":
+                if db_manager.set_api_key_active(key, False):
+                    done += 1
+            elif action == "unblock":
+                if db_manager.set_api_key_active(key, True):
+                    done += 1
+            elif action == "extend":
+                if db_manager.extend_api_key(key, extend_days):
+                    done += 1
+        msg = quote(f"Обработано ключей: {done} из {len(keys)}")
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/keys" if not prefix.endswith('/') else "admin/ui/keys")), status_code=303)
+    redirect.set_cookie("flash", msg, max_age=10)
+    return redirect
+
+
+@router.post("/keys/import-csv")
+async def keys_import_csv_action(request: Request, file: UploadFile = Form(...)):
+    """Импорт API ключей из CSV (колонки: name, description, access_level, expires_days, daily_limit, hourly_limit)."""
+    created = 0
+    errors = 0
+    try:
+        content = (await file.read()).decode("utf-8", errors="replace")
+        reader = csv.DictReader(io.StringIO(content))
+        for row in reader:
+            name = (row.get("name") or row.get("Name") or "").strip()
+            if not name:
+                errors += 1
+                continue
+            desc = (row.get("description") or row.get("Description") or "").strip()
+            access = (row.get("access_level") or "premium").strip() or "premium"
+            days = int(row.get("expires_days") or row.get("expires_days") or "30")
+            daily = int(row.get("daily_limit") or row.get("rate_limit_daily") or "10000")
+            hourly = int(row.get("hourly_limit") or row.get("rate_limit_hourly") or "1000")
+            key = db_manager.create_api_key(name, desc, access, daily, hourly, days)
+            if key:
+                created += 1
+            else:
+                errors += 1
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Import keys CSV error: {e}")
+        created, errors = 0, 1
+    prefix = request.scope.get("root_path", "")
+    redirect = RedirectResponse(url=(prefix + ("/admin/ui/keys" if not prefix.endswith('/') else "admin/ui/keys")), status_code=303)
+    redirect.set_cookie("flash", quote(f"Импорт: создано {created}, ошибок {errors}"), max_age=10)
     return redirect
 
 
@@ -686,6 +1166,265 @@ async def clear_threats_action(
     return redirect
 
 
+@router.get("/reviews", response_class=HTMLResponse)
+async def reviews_page(request: Request):
+    """Страница отзывов пользователей (из расширения)."""
+    try:
+        reviews_list = db_manager.get_all_reviews(limit=500)
+        review_stats = db_manager.get_review_stats()
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Get reviews error: {e}")
+        reviews_list = []
+        review_stats = {"total": 0, "average_rating": 0.0, "rating_distribution": {}}
+
+    total = review_stats.get("total", 0)
+    avg_rating = review_stats.get("average_rating", 0.0)
+    dist = review_stats.get("rating_distribution", {})
+
+    rows = "".join([
+        f"<tr><td>{r.get('id')}</td><td>{'★' * (r.get('rating') or 0)}{'☆' * (5 - (r.get('rating') or 0))}</td>"
+        f"<td>{ (r.get('text') or '-')[:200] }{'...' if (r.get('text') or '') and len(r.get('text', '')) > 200 else ''}</td>"
+        f"<td>{r.get('username') or r.get('device_id') or '-'}</td><td>{r.get('email') or '-'}</td>"
+        f"<td>{r.get('extension_version') or '-'}</td><td class=\"muted\">{r.get('created_at')}</td></tr>"
+        for r in reviews_list
+    ])
+
+    body = f"""
+    <div class="card">
+      <h1>Отзывы пользователей</h1>
+      <p class="muted">Отзывы из браузерного расширения AVQON · <a href="{_p(request, 'admin/ui/export/reviews')}">Экспорт в CSV</a></p>
+    </div>
+    <div class="row">
+      <div class="card col">
+        <h2>Статистика</h2>
+        <div><strong>Всего отзывов:</strong> {total}</div>
+        <div><strong>Средняя оценка:</strong> {avg_rating:.1f}</div>
+        <div><strong>По оценкам:</strong> {', '.join([f'{k}★: {v}' for k, v in sorted(dist.items(), reverse=True)]) or '-'}</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Список отзывов</h2>
+      <div style="max-height:600px;overflow:auto">
+        <table>
+          <thead><tr><th>ID</th><th>Оценка</th><th>Текст</th><th>Пользователь / device</th><th>Email</th><th>Версия расширения</th><th>Дата</th></tr></thead>
+          <tbody>{rows or '<tr><td colspan=7 class="muted">Отзывов пока нет</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    """
+    return _layout(request, "Админ панель – Отзывы", body)
+
+
+@router.get("/crowd-reports", response_class=HTMLResponse)
+async def crowd_reports_page(
+    request: Request,
+    status: str = "all",
+    period: str = "all",
+):
+    """
+    Страница модерации крауд‑репортов (плоский список отдельных отчётов).
+    Фильтры:
+    - статус: all | pending | approved | rejected
+    - период: all | today | week | month
+    """
+    if not db_manager:
+        body = """
+        <div class="card">
+          <h1>Крауд-репорты</h1>
+          <p class="muted">База данных недоступна, модерация временно невозможна.</p>
+        </div>
+        """
+        return _layout(request, "Админ панель – крауд-репорты", body)
+
+    status_normalized = (status or "all").strip().lower()
+    if status_normalized not in ("all", "pending", "approved", "rejected"):
+        status_normalized = "all"
+
+    period_normalized = (period or "all").strip().lower()
+    now = datetime.utcnow()
+    date_from = None
+    date_to = None
+    if period_normalized == "today":
+        date_from = datetime(now.year, now.month, now.day)
+    elif period_normalized == "week":
+        date_from = now - timedelta(days=7)
+    elif period_normalized == "month":
+        date_from = now - timedelta(days=30)
+
+    # Получаем список репортов и количество ожидающих модерации
+    reports = db_manager.list_crowd_reports(
+        status=None if status_normalized == "all" else status_normalized,
+        date_from=date_from,
+        date_to=date_to,
+        limit=300,
+        offset=0,
+    )
+    pending_count = db_manager.count_crowd_reports(status="pending")
+
+    def row_status(row: dict) -> str:
+        if row.get("confirmed"):
+            return "approved"
+        if row.get("rejected"):
+            return "rejected"
+        return "pending"
+
+    status_badge = {
+        "pending": '<span class="badge-basic">pending</span>',
+        "approved": '<span class="badge-premium">approved</span>',
+        "rejected": '<span class="badge-basic" style="background:#fee2e2;color:#b91c1c;">rejected</span>',
+    }
+
+    rows = []
+    for r in reports:
+        st = row_status(r)
+        st_html = status_badge.get(st, status_badge["pending"])
+        threat = (r.get("threat_type") or "—").lower()
+        if threat == "other":
+            threat = "other"
+        comment = (r.get("comment") or "").strip()
+        if len(comment) > 120:
+            comment_display = html.escape(comment[:120]) + "…"
+        else:
+            comment_display = html.escape(comment) or "—"
+        url = r.get("url") or ""
+        url_display = html.escape(url[:80]) + ("…" if len(url) > 80 else "")
+        device_id = (r.get("device_id") or "").strip()
+        device_short = device_id[:8] + "…" if device_id and len(device_id) > 8 else device_id or "—"
+        created_at = r.get("created_at") or "-"
+
+        approve_action = _p(request, f"admin/ui/crowd-reports/{r.get('id')}/approve")
+        reject_action = _p(request, f"admin/ui/crowd-reports/{r.get('id')}/reject")
+
+        rows.append(
+            f"<tr>"
+            f"<td>{r.get('id')}</td>"
+            f"<td><a href=\"{html.escape(url)}\" target=\"_blank\" rel=\"noopener\">{url_display}</a></td>"
+            f"<td>{html.escape(threat) if threat != '—' else '—'}</td>"
+            f"<td>{comment_display}</td>"
+            f"<td>{html.escape(device_short)}</td>"
+            f"<td class=\"muted\">{created_at}</td>"
+            f"<td>{st_html}</td>"
+            f"<td>"
+            f"<form method=\"post\" action=\"{approve_action}\" style=\"display:inline;margin-right:4px;\">"
+            f"<button type=\"submit\" style=\"padding:4px 8px;font-size:12px;background:#059669;color:#fff;border-radius:4px;\">Одобрить</button>"
+            f"</form>"
+            f"<form method=\"post\" action=\"{reject_action}\" style=\"display:inline;\">"
+            f"<button type=\"submit\" style=\"padding:4px 8px;font-size:12px;background:#dc2626;color:#fff;border-radius:4px;\">Отклонить</button>"
+            f"</form>"
+            f"</td>"
+            f"</tr>"
+        )
+
+    rows_html = "".join(rows) if rows else '<tr><td colspan="8" class="muted">Репортов пока нет</td></tr>'
+
+    # Выпадающие фильтры
+    def opt(val: str, label: str, cur: str) -> str:
+        sel = " selected" if cur == val else ""
+        return f'<option value="{val}"{sel}>{label}</option>'
+
+    status_filter_html = "".join(
+        [
+            opt("all", "Все", status_normalized),
+            opt("pending", "Только ожидающие", status_normalized),
+            opt("approved", "Только одобренные", status_normalized),
+            opt("rejected", "Только отклонённые", status_normalized),
+        ]
+    )
+    period_filter_html = "".join(
+        [
+            opt("all", "За всё время", period_normalized),
+            opt("today", "Сегодня", period_normalized),
+            opt("week", "Последние 7 дней", period_normalized),
+            opt("month", "Последние 30 дней", period_normalized),
+        ]
+    )
+
+    body = f"""
+    <div class="card">
+      <h1>Крауд-репорты</h1>
+      <p class="muted">Отчёты пользователей о подозрительных и вредоносных сайтах.</p>
+      <p class="muted">Ожидает модерации: <strong>{pending_count}</strong></p>
+    </div>
+    <div class="card">
+      <h2>Фильтры</h2>
+      <form method="get" action="{_p(request, 'admin/ui/crowd-reports')}" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        <label>Статус
+          <select name="status" style="margin-left:4px;min-width:140px;">
+            {status_filter_html}
+          </select>
+        </label>
+        <label>Период
+          <select name="period" style="margin-left:4px;min-width:160px;">
+            {period_filter_html}
+          </select>
+        </label>
+        <button type="submit">Применить</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Список крауд-репортов</h2>
+      <div style="max-height:650px;overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>URL</th>
+              <th>Тип угрозы</th>
+              <th>Комментарий</th>
+              <th>Device ID</th>
+              <th>Дата</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows_html}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    """
+    return _layout(request, "Админ панель – крауд-репорты", body)
+
+
+@router.post("/crowd-reports/{report_id}/approve")
+async def crowd_report_approve_action(
+    request: Request,
+    report_id: int,
+):
+    """Одобрение отдельного крауд‑репорта через HTML‑форму."""
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    updated = db_manager.moderate_crowd_report(report_id, approve=True)
+    msg = "Репорт одобрен, URL добавлен в угрозы" if updated else "Репорт не найден"
+    prefix = request.scope.get("root_path", "")
+    # Сохраняем исходные query‑параметры (status, period)
+    qs = request.url.query
+    base = prefix + ("/admin/ui/crowd-reports" if not prefix.endswith("/") else "admin/ui/crowd-reports")
+    url = f"{base}?{qs}" if qs else base
+    redirect = RedirectResponse(url=url, status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
+    return redirect
+
+
+@router.post("/crowd-reports/{report_id}/reject")
+async def crowd_report_reject_action(
+    request: Request,
+    report_id: int,
+):
+    """Отклонение отдельного крауд‑репорта через HTML‑форму."""
+    if not db_manager:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    updated = db_manager.moderate_crowd_report(report_id, approve=False)
+    msg = "Репорт отклонён" if updated else "Репорт не найден"
+    prefix = request.scope.get("root_path", "")
+    qs = request.url.query
+    base = prefix + ("/admin/ui/crowd-reports" if not prefix.endswith("/") else "admin/ui/crowd-reports")
+    url = f"{base}?{qs}" if qs else base
+    redirect = RedirectResponse(url=url, status_code=303)
+    redirect.set_cookie("flash", quote(msg), max_age=10)
+    return redirect
+
 @router.get("/logs", response_class=HTMLResponse)
 async def logs_page(request: Request):
     # Получаем логи из упрощенной таблицы logs
@@ -702,7 +1441,7 @@ async def logs_page(request: Request):
     body = f"""
     <div class="card">
       <h1>Логи запросов (упрощенные)</h1>
-      <p class="muted">Последние события API из таблицы logs</p>
+      <p class="muted">Последние события API из таблицы logs · <a href="{_p(request, 'admin/ui/export/logs')}">Экспорт в CSV</a></p>
     </div>
     <div class="card">
       <h2>Статистика</h2>
@@ -729,10 +1468,22 @@ async def cache_page(request: Request):
     try:
         whitelist_entries = db_manager.get_all_cached_whitelist(limit=500)
         blacklist_entries = db_manager.get_all_cached_blacklist(limit=500)
+        cache_stats = db_manager.get_cache_stats()
+        top_domains = db_manager.get_top_cached_domains(20)
     except Exception as e:
         logging.getLogger(__name__).error(f"Get cache entries error: {e}")
         whitelist_entries = []
         blacklist_entries = []
+        cache_stats = {}
+        top_domains = []
+    total_hits = (cache_stats.get("whitelist_hits") or 0) + (cache_stats.get("blacklist_hits") or 0)
+    total_entries = (cache_stats.get("whitelist_entries") or 0) + (cache_stats.get("blacklist_entries") or 0)
+    hit_ratio = f"{(total_hits / (total_entries or 1)):.1f}" if total_entries else "0"
+    cache_bytes = cache_stats.get("bytes_estimated", 0)
+    cache_size_str = f"{(cache_bytes / (1024*1024)):.2f} МБ" if cache_bytes else "—"
+    top_domain_rows = "".join([
+        f"<tr><td>{html.escape(d['domain'][:80])}</td><td>{d['hits']}</td></tr>" for d in top_domains
+    ])
     
     whitelist_rows = "".join([
         f"<tr><td><a href=\"https://{w['domain']}\" target=\"_blank\">{w['domain']}</a></td>"
@@ -766,6 +1517,15 @@ async def cache_page(request: Request):
           <div><strong>Whitelist записей:</strong> {len(whitelist_entries)}</div>
           <div><strong>Blacklist записей:</strong> {len(blacklist_entries)}</div>
           <div><strong>Всего:</strong> {len(whitelist_entries) + len(blacklist_entries)}</div>
+          <div><strong>Хитов кэша:</strong> {total_hits}</div>
+          <div><strong>Hit ratio (эффективность):</strong> {hit_ratio}</div>
+          <div><strong>Размер (оценка):</strong> {cache_size_str}</div>
+        </div>
+      </div>
+      <div class="card col">
+        <h2>Топ закэшированных доменов</h2>
+        <div style="max-height:180px;overflow:auto">
+          <table><thead><tr><th>Домен</th><th>Хитов</th></tr></thead><tbody>{top_domain_rows or '<tr><td colspan=2 class="muted">Нет данных</td></tr>'}</tbody></table>
         </div>
       </div>
       <div class="card col">

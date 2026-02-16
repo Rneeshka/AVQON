@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель – логи{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Логи запросов (упрощенные)</h1>
+    <p class="muted">Последние события API из таблицы logs</p>
+</div>
+<div class="card">
+    <h2>Статистика</h2>
+    <div class="stats">
+        <div><strong>Всего записей:</strong> {{ logs | length }}</div>
+        <div><strong>Показано:</strong> {{ logs | length }}</div>
+    </div>
+</div>
+<div class="card">
+    <div style="max-height:600px;overflow:auto">
+        <table>
+            <thead>
+                <tr><th>Время</th><th>API ключ</th><th>Запрос</th><th>Статус</th><th>Время ответа</th><th>IP</th></tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr>
+                        <td class="muted">{{ log.created_at }}</td>
+                        <td><code>{{ log.api_key_hash or '-' }}</code></td>
+                        <td>{{ log.method }} {{ log.endpoint }}</td>
+                        <td>{{ log.status_code }}</td>
+                        <td>{{ log.response_time_ms or '-' }}</td>
+                        <td>{{ log.client_ip or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="6" class="muted">Логи пусты</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

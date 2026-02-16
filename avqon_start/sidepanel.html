@@ -252,6 +252,89 @@
       .analysis-card.analysis-safe,
       .analysis-card.analysis-clean { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08); }
 
+      /* Еженедельный отчёт — минимальный блок (тёмная тема) */
+      .weekly-report-card {
+        margin-top: 10px;
+        padding: 12px 14px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .weekly-report-card-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .weekly-title {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-dim);
+        margin: 0;
+      }
+      .weekly-hero {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .weekly-hero-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.1;
+      }
+      .weekly-hero-text {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .weekly-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+        position: relative;
+      }
+      .weekly-bar .progress-safe,
+      .weekly-bar .progress-unsafe {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        transition: width 0.4s ease-out;
+      }
+      .weekly-bar .progress-safe {
+        left: 0;
+        width: 0%;
+        background: linear-gradient(90deg, #059669, #34d399);
+      }
+      .weekly-bar .progress-unsafe {
+        right: 0;
+        width: 0%;
+        background: linear-gradient(90deg, #f87171, #ef4444);
+      }
+      .weekly-bar-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .weekly-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left;
+      }
+      .weekly-metric {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .weekly-hero-number.has-data {
+        animation: weeklyNumberPop 0.4s ease-out;
+      }
+      @keyframes weeklyNumberPop {
+        0% { opacity: 0.6; transform: scale(0.98); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+
       .status-row {
         display: flex;
         justify-content: space-between;
@@ -442,6 +525,88 @@
       .btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      /* Кнопка открытия формы крауд‑репорта в сайдпанели */
+      #crowd-report-toggle-btn {
+        font-weight: 600;
+        border: 1px solid rgba(248,113,113,0.7);
+        background: transparent;
+        color: #f97373;
+      }
+
+      #crowd-report-toggle-btn:hover {
+        background: rgba(248,113,113,0.10);
+      }
+
+      /* Карточка формы крауд‑репорта (тёмная, в стиле sidepanel) */
+      #crowd-report-form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 10px;
+        color: #e2e8f0;
+      }
+
+      #crowd-report-form-card .section-title {
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+
+      #crowd-report-form-card .form-field {
+        margin-bottom: 10px;
+      }
+
+      #crowd-report-form-card label {
+        display: block;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      #crowd-report-form-card input[type="text"],
+      #crowd-report-form-card select,
+      #crowd-report-form-card textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        color: var(--text);
+        font-size: 11px;
+      }
+
+      #crowd-report-form-card input::placeholder,
+      #crowd-report-form-card textarea::placeholder {
+        color: var(--text-dim);
+      }
+
+      #crowd-report-form-card textarea {
+        resize: vertical;
+        min-height: 70px;
+      }
+
+      #crowd-report-form-card .actions .btn.primary,
+      #crowd-report-form-card .actions .btn.secondary {
+        min-width: 100px;
+        border-radius: 999px;
+        box-shadow: none;
+        font-size: 11px;
+      }
+
+      #crowd-report-form-card .actions .btn.primary {
+        background: rgba(248,113,113,0.2);
+        border-color: rgba(248,113,113,0.6);
+        color: #fecaca;
+      }
+
+      #crowd-report-form-card .actions .btn.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
       }
 
       .actions {
@@ -713,6 +878,37 @@
               <p class="muted" id="warning-text">Подробности появятся здесь.</p>
             </div>
           </div>
+
+          <div class="actions" id="crowd-actions">
+            <button class="btn secondary" id="crowd-report-toggle-btn" type="button">Сообщить об угрозе</button>
+          </div>
+
+          <div class="card hidden" id="crowd-report-form-card" style="margin-top:10px;">
+            <div class="section-title">Сообщить об угрозе</div>
+            <div class="form-field">
+              <label for="crowd-report-url">URL</label>
+              <input type="text" id="crowd-report-url" placeholder="https://пример-сайта.com" />
+            </div>
+            <div class="form-field">
+              <label for="crowd-report-type">Тип угрозы</label>
+              <select id="crowd-report-type">
+                <option value="phishing">Фишинг</option>
+                <option value="malware">Вредоносное ПО</option>
+                <option value="trojan">Троян</option>
+                <option value="fraud">Мошенничество</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="crowd-report-comment">Комментарий (опционально)</label>
+              <textarea id="crowd-report-comment" rows="3" placeholder="Опишите, что именно выглядит подозрительным"></textarea>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="crowd-report-submit-btn" type="button">Отправить</button>
+              <button class="btn secondary" id="crowd-report-cancel-btn" type="button">Отмена</button>
+            </div>
+          </div>
+
      <div class="analysis-card bot-card" id="open-telegram-bot" style="margin-top: 12px; padding: 12px 16px;">
     <div style="display: flex; align-items: center; gap: 12px;">
       <div style="width: 36px; height: 36px; background: rgba(59,130,246,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">

@@ -365,9 +365,16 @@ function formatFileSize(bytes) {
 
 function determineVerdict(result) {
   if (!result) {
+    console.log('[AVQON] determineVerdict input: null/undefined');
     console.log('[Aegis Content] determineVerdict: no result, returning unknown');
-    return 'unknown';
+    const returnValue = 'unknown';
+    console.log('[AVQON] determineVerdict returning:', returnValue);
+    return returnValue;
   }
+  
+  console.log('[AVQON] determineVerdict input:', result);
+  console.log('[AVQON] determineVerdict result.safe:', result?.safe);
+  console.log('[AVQON] determineVerdict result.threat_type:', result?.threat_type);
   
   console.log('[Aegis Content] determineVerdict input:', {
     safe: result.safe,
@@ -377,38 +384,40 @@ function determineVerdict(result) {
     source: result.source
   });
   
+  let returnValue = 'unknown';
+  
   // КРИТИЧНО: Приоритет проверки - сначала safe, потом threat_type
   if (result.safe === false) {
     console.log('[Aegis Content] determineVerdict: safe === false, returning malicious');
-    return 'malicious';
-  }
-  if (result.safe === true) {
+    returnValue = 'malicious';
+  } else if (result.safe === true) {
     console.log('[Aegis Content] determineVerdict: safe === true, returning safe');
-    return 'safe';
-  }
-  // КРИТИЧНО: Если есть threat_type, значит есть угроза (небезопасно)
-  if (result.threat_type && result.threat_type.trim()) {
-    console.log('[Aegis Content] determineVerdict: threat_type present:', result.threat_type, 'returning malicious');
-    return 'malicious';
-  }
-  
-  // КРИТИЧНО: Если source === 'error', это ошибка анализа
-  if (result.source === 'error') {
+    returnValue = 'safe';
+  } else if (result.threat_type && result.threat_type.trim()) {
+    // Для hover‑анализа при наличии threat_type ведём себя так же, как popup: «suspicious»
+    console.log('[Aegis Content] determineVerdict: threat_type present:', result.threat_type, 'returning suspicious');
+    returnValue = 'suspicious';
+  } else if (result.source === 'error') {
+    // КРИТИЧНО: Если source === 'error', это ошибка анализа
     const msg = String(result.details || '').toLowerCase();
     // Сетевые ошибки - подозрительно
     if (msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') || msg.includes('превышено время ожидания')) {
       console.log('[Aegis Content] determineVerdict: network error, returning suspicious');
-      return 'suspicious';
+      returnValue = 'suspicious';
+    } else {
+      // Другие ошибки - неизвестно
+      console.log('[Aegis Content] determineVerdict: error source, returning unknown');
+      returnValue = 'unknown';
     }
-    // Другие ошибки - неизвестно
-    console.log('[Aegis Content] determineVerdict: error source, returning unknown');
-    return 'unknown';
+  } else {
+    // КРИТИЧНО: Если safe === null и нет threat_type - неизвестно
+    // НЕ возвращаем 'safe' по умолчанию!
+    console.log('[Aegis Content] determineVerdict: safe is null and no threat_type, returning unknown');
+    returnValue = 'unknown';
   }
   
-  // КРИТИЧНО: Если safe === null и нет threat_type - неизвестно
-  // НЕ возвращаем 'safe' по умолчанию!
-  console.log('[Aegis Content] determineVerdict: safe is null and no threat_type, returning unknown');
-  return 'unknown';
+  console.log('[AVQON] determineVerdict returning:', returnValue);
+  return returnValue;
 }
 
 // Логирование жизненного цикла контент-скрипта
@@ -672,6 +681,7 @@ function formatAnalysisResult(result, url) {
   if (!result) return '<span style="color: #93a0c0;">Неизвестно</span>';
   
   const verdict = determineVerdict(result);
+  console.log('[AVQON] formatAnalysisResult verdict:', verdict);
   
   // Упрощенный вывод: только статус
   const verdicts = {
@@ -1140,6 +1150,11 @@ function handleMessage(msg, sender, sendResponse) {
       hideContextInvalidatedMessage();
       console.debug('[Aegis] Received hover_result, context is valid, resetting invalidated flag');
     }
+    
+    console.log('[AVQON] hover_result raw:', msg);
+    console.log('[AVQON] hover_result.res:', msg.res);
+    console.log('[AVQON] hover_result.res.safe:', msg.res?.safe);
+    console.log('[AVQON] hover_result.res.threat_type:', msg.res?.threat_type);
     
     console.log('[Aegis Content] hover_result received:', {
       url: msg.url,

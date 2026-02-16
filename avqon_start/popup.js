@@ -3,7 +3,7 @@
     linkCheck: true,
     hoverScan: true,
     notify: true,
-    apiBase: window.AVQON_CONFIG?.API_BASE || 'https://prod.avqon.com',
+    apiBase: window.AVQON_CONFIG?.API_BASE || 'https://avqon.com',
     hoverTheme: 'classic',
     sensitivityMode: 'balanced'  // conservative | balanced | aggressive
   };
@@ -206,54 +206,131 @@
     }
   }
 
-  function showInternalNotification(message, type = 'info') {
-    // Создаем элемент уведомления внутри расширения
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#F59E0B'};
-      color: white;
+  function showToast(message, type = 'info') {
+    // Удаляем эмодзи и лишние символы для строгого стиля
+    const raw = String(message || '');
+    const withoutEmojis = raw.replace(
+      /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27FF}]/gu,
+      ''
+    );
+    const cleaned = withoutEmojis.trim();
+
+    const existingContainer = document.getElementById('avqon-toast-container');
+    const container = existingContainer || document.createElement('div');
+    if (!existingContainer) {
+      container.id = 'avqon-toast-container';
+      container.style.cssText = `
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      `;
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+
+    // Цвет тонкой левой полосы в зависимости от типа
+    let leftBorderColor = 'rgba(59,130,246,0.7)'; // info по умолчанию
+    if (type === 'success') {
+      leftBorderColor = 'rgba(16,185,129,0.7)'; // #10b981
+    } else if (type === 'warning') {
+      leftBorderColor = 'rgba(245,158,11,0.7)'; // #f59e0b
+    } else if (type === 'error') {
+      leftBorderColor = 'rgba(239,68,68,0.7)'; // #ef4444
+    }
+
+    toast.style.cssText = `
+      min-width: 280px;
+      max-width: 320px;
       padding: 12px 16px;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 10000;
-      font-size: 14px;
-      font-weight: 500;
-      max-width: 300px;
-      animation: slideIn 0.3s ease-out;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid ${leftBorderColor};
+      background: var(--surface, #0f172a);
+      color: #e2e8f0;
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 400;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      transform: translateX(100%);
+      opacity: 0;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      position: relative;
+      pointer-events: auto;
+      overflow: hidden;
     `;
-    notification.textContent = message;
-    
-    // Добавляем стиль для анимации
-    if (!document.getElementById('notification-styles')) {
-      const style = document.createElement('style');
-      style.id = 'notification-styles';
-      style.textContent = `
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-          from { transform: translateX(0); opacity: 1; }
-          to { transform: translateX(100%); opacity: 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(notification);
-    
-    // Удаляем через 3 секунды
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease-out';
+
+    // Текст
+    const textEl = document.createElement('div');
+    textEl.textContent = cleaned || 'Сообщение';
+    toast.appendChild(textEl);
+
+    // Кнопка закрытия (показывается только при hover)
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      padding: 0;
+      margin: 0;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    `;
+    toast.appendChild(closeBtn);
+
+    toast.addEventListener('mouseenter', () => {
+      closeBtn.style.opacity = '1';
+    });
+    toast.addEventListener('mouseleave', () => {
+      closeBtn.style.opacity = '0';
+    });
+
+    const removeToast = () => {
+      toast.style.transform = 'translateX(100%)';
+      toast.style.opacity = '0';
       setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
         }
-      }, 300);
-    }, 3000);
+        if (container.childElementCount === 0 && container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+      }, 250);
+    };
+
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeToast();
+    });
+
+    container.appendChild(toast);
+
+    // Плавное появление
+    requestAnimationFrame(() => {
+      toast.style.transform = 'translateX(0)';
+      toast.style.opacity = '1';
+    });
+
+    // Авто‑закрытие через 3.5 секунды
+    setTimeout(removeToast, 3500);
+  }
+
+  // Для обратной совместимости
+  function showInternalNotification(message, type = 'info') {
+    showToast(message, type);
   }
 
   function toggleWarning(show, text) {
@@ -1549,35 +1626,25 @@
       }
     }
 
-    // Всегда приводим карточку к лаконичному, наглядному виду
     card.className = 'card weekly-report-card';
     card.innerHTML = `
       <div class="weekly-report-card-inner">
-        <div class="weekly-header">
-          <div class="weekly-header-title">
-            <span class="weekly-header-eyebrow">Еженедельный отчет</span>
-            <span class="weekly-header-main">Ваша защита за 7 дней</span>
-          </div>
-        </div>
+        <h3 class="weekly-title">Статистика за 7 дней</h3>
         <div class="weekly-hero">
           <div class="weekly-hero-number" id="weekly-unsafe-count">0</div>
           <div class="weekly-hero-text">угроз заблокировано</div>
         </div>
-        <div class="weekly-inline-stats">
-          <span id="weekly-inline-total">0 проверок</span>
-          <span class="dot-separator">•</span>
-          <span id="weekly-inline-risk">риск: —</span>
+        <div class="weekly-bar" title="Соотношение безопасных и опасных проверок">
+          <div class="progress-safe" id="weekly-bar-safe"></div>
+          <div class="progress-unsafe" id="weekly-bar-unsafe"></div>
         </div>
-        <div class="weekly-bottom-row">
-          <div class="weekly-bar-wrapper">
-            <div class="weekly-bar" title="Соотношение безопасных и опасных проверок">
-              <div class="weekly-bar-safe" id="weekly-bar-safe"></div>
-              <div class="weekly-bar-unsafe" id="weekly-bar-unsafe"></div>
-            </div>
-          </div>
-          <div class="weekly-mini-ring" id="weekly-mini-ring">
-            <span id="weekly-ring-percent">—</span>
-          </div>
+        <div class="weekly-bar-labels">
+          <span id="weekly-label-safe">Безопасно 0%</span>
+          <span id="weekly-label-unsafe">Опасно 0%</span>
+        </div>
+        <div class="weekly-metrics">
+          <div class="weekly-metric">Впервые обнаружено: <span id="weekly-unique-unsafe">—</span></div>
+          <div class="weekly-metric">Всего проверок: <span id="weekly-total-checks">0</span></div>
         </div>
       </div>
     `;
@@ -1629,63 +1696,32 @@
         }
       }
 
-      // Обновляем общее количество проверок
-      const totalChecksEl = document.getElementById('weekly-total-checks');
-      if (totalChecksEl) {
-        totalChecksEl.textContent = totalChecks;
-      }
-
-      // Обновляем количество безопасных
-      const safeCountEl = document.getElementById('weekly-safe-count');
-      if (safeCountEl) {
-        safeCountEl.textContent = safeCount;
-      }
-
-      // Обновляем прогресс-бар (safe / unsafe) и мини-диаграмму
       const barSafe = document.getElementById('weekly-bar-safe');
       const barUnsafe = document.getElementById('weekly-bar-unsafe');
-      const miniRing = document.getElementById('weekly-mini-ring');
-      const miniRingPercent = document.getElementById('weekly-ring-percent');
-      if (barSafe && barUnsafe && totalChecks > 0) {
-        const safePercent = (safeCount / totalChecks) * 100;
-        const unsafePercent = (unsafeCount / totalChecks) * 100;
-        barSafe.style.width = `${safePercent}%`;
-        barUnsafe.style.width = `${unsafePercent}%`;
+      const labelSafe = document.getElementById('weekly-label-safe');
+      const labelUnsafe = document.getElementById('weekly-label-unsafe');
+      const uniqueEl = document.getElementById('weekly-unique-unsafe');
+      const totalEl = document.getElementById('weekly-total-checks');
 
-        // Компактные подписи под героем
-        const inlineTotalEl = document.getElementById('weekly-inline-total');
-        const inlineRiskEl = document.getElementById('weekly-inline-risk');
-        if (inlineTotalEl) {
-          inlineTotalEl.textContent = `${totalChecks} проверок`;
+      const resolvedTotal = safeCount + unsafeCount;
+      if (totalChecks > 0 && resolvedTotal > 0) {
+        const safePercent = (safeCount / resolvedTotal) * 100;
+        const unsafePercent = (unsafeCount / resolvedTotal) * 100;
+        if (barSafe) barSafe.style.width = `${safePercent}%`;
+        if (barUnsafe) barUnsafe.style.width = `${unsafePercent}%`;
+        if (labelSafe) labelSafe.textContent = `Безопасно ${Math.round(safePercent)}%`;
+        if (labelUnsafe) labelUnsafe.textContent = `Опасно ${Math.round(unsafePercent)}%`;
+        if (totalEl) totalEl.textContent = String(totalChecks);
+        if (uniqueEl) {
+          uniqueEl.textContent = stats.unique_unsafe_count != null ? String(stats.unique_unsafe_count) : '—';
         }
-        if (inlineRiskEl) {
-          let label = 'низкий';
-          if (unsafePercent >= 15) label = 'высокий';
-          else if (unsafePercent >= 5) label = 'средний';
-          inlineRiskEl.textContent = `риск: ${Math.round(unsafePercent)}% · ${label}`;
-        }
-
-        // Кольцевая мини‑диаграмма риска
-        if (miniRing && miniRingPercent) {
-          const deg = Math.max(0, Math.min(360, (unsafePercent / 100) * 360));
-          miniRing.style.setProperty('--weekly-risk-deg', `${deg}deg`);
-          miniRing.classList.add('has-data');
-          miniRingPercent.textContent = `${Math.round(unsafePercent)}%`;
-        }
-      } else if (barSafe && barUnsafe) {
-        barSafe.style.width = '0%';
-        barUnsafe.style.width = '0%';
-
-        const inlineTotalEl = document.getElementById('weekly-inline-total');
-        const inlineRiskEl = document.getElementById('weekly-inline-risk');
-        if (inlineTotalEl) inlineTotalEl.textContent = '0 проверок';
-        if (inlineRiskEl) inlineRiskEl.textContent = 'риск: —';
-
-        if (miniRing && miniRingPercent) {
-          miniRing.style.setProperty('--weekly-risk-deg', `0deg`);
-          miniRing.classList.remove('has-data');
-          miniRingPercent.textContent = '—';
-        }
+      } else {
+        if (barSafe) barSafe.style.width = '0%';
+        if (barUnsafe) barUnsafe.style.width = '0%';
+        if (labelSafe) labelSafe.textContent = 'Безопасно 0%';
+        if (labelUnsafe) labelUnsafe.textContent = 'Опасно 0%';
+        if (totalEl) totalEl.textContent = String(totalChecks || '0');
+        if (uniqueEl) uniqueEl.textContent = '—';
       }
 
       // Показываем уведомление при первом открытии после воскресенья/понедельника
@@ -1737,6 +1773,7 @@
    * Initialization
    */
   async function init() {
+    console.log('[AVQON] init() start, crowd button exists in HTML?', !!document.getElementById('crowd-report-toggle-btn'));
     state.settings = await loadSettings();
     state.settings.apiBase = normalizeApiBase(state.settings.apiBase);
     state.hoverTheme = state.settings.hoverTheme || 'classic';
@@ -1813,25 +1850,75 @@
     // Инициализация формы отзывов
     initReviewForm();
 
-    // Инициализация кнопок краудсорсинга
-    const crowdSuspiciousBtn = document.getElementById('crowd-report-suspicious-btn');
-    const crowdMaliciousBtn = document.getElementById('crowd-report-malicious-btn');
+    // Инициализация формы крауд‑репорта
+    const crowdToggleBtn = document.getElementById('crowd-report-toggle-btn');
+    const crowdFormCard = document.getElementById('crowd-report-form-card');
+    const crowdUrlInput = document.getElementById('crowd-report-url');
+    const crowdTypeSelect = document.getElementById('crowd-report-type');
+    const crowdCommentInput = document.getElementById('crowd-report-comment');
+    const crowdSubmitBtn = document.getElementById('crowd-report-submit-btn');
+    const crowdCancelBtn = document.getElementById('crowd-report-cancel-btn');
 
-    async function sendCrowdReport(verdict) {
+    console.log('[AVQON] After DOM init, crowd button exists?', !!crowdToggleBtn);
+
+    async function openCrowdForm() {
+      if (!crowdFormCard) return;
       try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const tab = tabs && tabs[0];
-        if (!tab || !tab.url || tab.url.startsWith('chrome')) {
-          showInternalNotification('Нет доступного URL для репорта', 'warning');
-          return;
+        if (tab && tab.url && !tab.url.startsWith('chrome') && crowdUrlInput) {
+          crowdUrlInput.value = tab.url;
+        }
+      } catch (e) {
+        console.warn('[AVQON] Failed to prefill crowd-report URL:', e);
+      }
+      crowdFormCard.classList.remove('hidden');
+    }
+
+    function closeCrowdForm() {
+      if (crowdFormCard) {
+        crowdFormCard.classList.add('hidden');
+      }
+    }
+
+    async function sendCrowdReportFromForm() {
+      if (!crowdUrlInput || !crowdTypeSelect) return;
+      const url = crowdUrlInput.value.trim();
+      const threatType = crowdTypeSelect.value || 'other';
+      const comment = crowdCommentInput ? crowdCommentInput.value.trim() : '';
+
+      if (!url) {
+        showInternalNotification('Укажите URL для репорта', 'warning');
+        return;
+      }
+
+      // Маппинг типов угроз на вердикт для backend (suspicious/malicious)
+      let verdict = 'suspicious';
+      if (['phishing', 'malware', 'trojan', 'fraud'].includes(threatType)) {
+        verdict = 'malicious';
+      }
+
+      try {
+        try {
+          console.log('[AVQON] Preparing crowd report from popup:', {
+            url,
+            verdict,
+            threat_type: threatType,
+            comment: comment || null
+          });
+        } catch (_) {
+          // ignore
         }
         const resp = await sendRuntimeMessage({
           type: 'crowd_report_url',
-          url: tab.url,
-          verdict
+          url,
+          verdict,
+          threat_type: threatType,
+          comment: comment || null
         });
         if (resp && resp.ok) {
           showInternalNotification('Спасибо! Ваш репорт отправлен.', 'success');
+          closeCrowdForm();
         } else {
           showInternalNotification('Не удалось отправить репорт. Повторите позже.', 'error');
         }
@@ -1841,14 +1928,23 @@
       }
     }
 
-    if (crowdSuspiciousBtn) {
-      crowdSuspiciousBtn.addEventListener('click', () => {
-        sendCrowdReport('suspicious');
+    if (crowdToggleBtn && crowdFormCard) {
+      crowdToggleBtn.addEventListener('click', () => {
+        if (crowdFormCard.classList.contains('hidden')) {
+          openCrowdForm();
+        } else {
+          closeCrowdForm();
+        }
       });
     }
-    if (crowdMaliciousBtn) {
-      crowdMaliciousBtn.addEventListener('click', () => {
-        sendCrowdReport('malicious');
+    if (crowdSubmitBtn) {
+      crowdSubmitBtn.addEventListener('click', () => {
+        sendCrowdReportFromForm();
+      });
+    }
+    if (crowdCancelBtn) {
+      crowdCancelBtn.addEventListener('click', () => {
+        closeCrowdForm();
       });
     }
   }
@@ -1941,7 +2037,15 @@
         const manifest = chrome.runtime.getManifest();
         const extensionVersion = manifest.version || '1.0.8';
 
-        const response = await fetch(`${apiBase}/reviews`, {
+        console.log('[Reviews] Sending review to:', `${apiBase}/api/reviews`);
+        console.log('[Reviews] Payload:', {
+          rating,
+          text,
+          device_id: deviceId,
+          extension_version: extensionVersion
+        });
+
+        const response = await fetch(`${apiBase}/api/reviews`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
