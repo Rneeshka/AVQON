@@ -23,15 +23,20 @@
  Telegram-бот — поддержка и уведомления
 ```
 
-## Моя зона ответственности — инфраструктура и деплой
+## Кто что делал
 
-- развёртывание и сопровождение сервера, сервисы под systemd;
-- два окружения, **dev и prod**, на одном сервере в разных каталогах и юнитах;
-- **CI/CD на GitHub Actions** (`.github/workflows/`):
-  - `deploy-dev.yml` — пуш в ветку `dev` выкатывает dev-окружение;
-  - `deploy-prod.yml` — пуш тега `v*` выкатывает в прод именно эту версию;
-  - доступ к серверу по SSH-ключу из GitHub Secrets, секреты в репозиторий не попадают;
-- миграция с SQLite на PostgreSQL (`convert_sqlite_to_postgres.py`), бэкап и восстановление БД;
+**Артём** ([@Artemy579](https://github.com/Artemy579)) и **Никита** ([@NKubarR](https://github.com/NKubarR)) — продукт и код:
+- API-ядро на FastAPI: проверка URL и файлов, интеграции с VirusTotal, Google Safe Browsing, AbuseIPDB и WHOIS, кэш вердиктов, WebSocket-связь с расширением;
+- авторизация (JWT), API-ключи и лимиты, оплата через ЮKassa;
+- админ-сервис: дашборд, управление ключами, логи;
+- браузерное расширение (Chrome, Manifest V3): popup, side panel, content script, native host;
+- сайт и Telegram-бот.
+
+**Никита Рябченко** ([@Rneeshka](https://github.com/Rneeshka)) — инфраструктура и деплой:
+- сервер, сервисы под systemd, Nginx;
+- два окружения, dev и prod, на одном сервере в разных каталогах и юнитах;
+- CI/CD на GitHub Actions (`.github/workflows/`): пуш в `dev` выкатывает dev-окружение, тег `v*` — прод; доступ к серверу по SSH-ключу из GitHub Secrets;
+- переезд с SQLite на PostgreSQL, бэкап и восстановление БД;
 - разбор инцидентов, в том числе рассинхрона dev и prod.
 
 ## Найденная проблема в прод-деплое (исправлено)
@@ -57,8 +62,3 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 Без ключей внешних сервисов ядро работает в базовом режиме, только на локальном кэше.
 
 Основные эндпоинты: `GET /health`, `POST /check/url`, `POST /scan/url`, `POST /check/file`.
-
-## Команда
-
-- **Артём** ([@Artemy579](https://github.com/Artemy579)) и **Никита** ([@NKubarR](https://github.com/NKubarR)) — бэкенд (API-ядро, админ-сервис) и фронтенд (расширение, сайт);
-- **Никита Рябченко** ([@Rneeshka](https://github.com/Rneeshka)) — инфраструктура: сервер, окружения dev/prod, CI/CD, база данных и деплой.
