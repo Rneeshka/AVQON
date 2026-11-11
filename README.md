@@ -1,50 +1,63 @@
-Aegis — Антивирусное расширение и API ядро
+# AVQON — браузерное расширение для проверки ссылок и файлов
 
-Лёгкое, быстрое и локально работающее решение для проверки URL и файлов. Aegis объединяет браузерное расширение (Chrome/Chromium) и FastAPI‑сервер, который использует локальный кэш + внешние сервисы (VirusTotal, Google Safe Browsing, AbuseIPDB).
+> **Статус: архив.** Командный проект (2025–2026), сервис закрыт. Репозиторий оставлен как пример архитектуры и инфраструктуры. Все ключи, логи и базы данных удалены из истории.
 
- Возможности
+Расширение для Chrome проверяет URL и файлы на вредоносность через собственное API-ядро. Ядро объединяет локальный кэш и внешние сервисы проверки. На пике расширением пользовались **80+ человек**.
 
-Проверка URL и файлов на вредоносность
+## Архитектура
 
-Быстрые ответы за счёт локального кэша
+```
+ Chrome-расширение (avqon_start/)
+   popup / sidepanel / content script
+        │  HTTPS + WebSocket
+        ▼
+ Nginx ──► API-ядро (antivirus-core/, FastAPI + uvicorn, systemd)
+              │            │
+              │            ├─► VirusTotal / Google Safe Browsing / AbuseIPDB
+              │            └─► WHOIS (возраст домена)
+              ▼
+         PostgreSQL (пользователи, ключи, кэш вердиктов, логи запросов)
 
-Интеграции с внешними API (при наличии ключей)
+ Админ-сервис (antivirus-core/new-admin-service/) — дашборд, ключи, логи
+ Сайт (avqon-website/) — лендинг и оплата
+ Telegram-бот — поддержка и уведомления
+```
 
-WebSocket‑связь с расширением
+## Моя зона ответственности — серверная часть и инфраструктура
 
-Нативный хост для безопасной работы с файлами
+- развёртывание и сопровождение сервера, сервисы под systemd;
+- два окружения, **dev и prod**, на одном сервере в разных каталогах и юнитах;
+- **CI/CD на GitHub Actions** (`.github/workflows/`):
+  - `deploy-dev.yml` — пуш в ветку `dev` выкатывает dev-окружение;
+  - `deploy-prod.yml` — пуш тега `v*` выкатывает в прод именно эту версию;
+  - доступ к серверу по SSH-ключу из GitHub Secrets, секреты в репозиторий не попадают;
+- миграция с SQLite на PostgreSQL (`convert_sqlite_to_postgres.py`), бэкап и восстановление БД;
+- разбор инцидентов, в том числе рассинхрона dev и prod.
 
- Структура проекта
-Aegis/
-aegis_start/ — браузерное расширение (popup, background, native host)
+## Найденная проблема в прод-деплое (исправлено)
 
-antivirus-core/ — FastAPI-сервер ядра и утилиты
+В `deploy-prod.yml` команды на сервер передавались через heredoc в кавычках (`<< 'EOF'`), поэтому переменная `$GITHUB_REF_NAME` не подставлялась на раннере. На сервере она пустая, и `git checkout` без аргумента ничего не делал: прод перезапускался на той версии кода, что уже лежала на сервере, а не на выпущенном теге.
 
-data/ — sqlite-базы и кэши
+Исправление: тег передаётся явно через `env` и `TAG=$TAG bash -s`, на сервере выполняется `git checkout "$TAG"`.
 
-logs/ — лог-файлы
-1) Установка зависимостей
-python -m venv .venv
-source .venv/bin/activate
+## Стек
+
+Python, FastAPI, uvicorn, aiohttp, PostgreSQL, Nginx, systemd, GitHub Actions, JavaScript (Chrome Extension Manifest V3), Docker Compose (админ-сервис).
+
+## Локальный запуск ядра
+
+```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -r antivirus-core/requirements.txt
-2) Запуск API
 cd antivirus-core
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-3) Установка расширения (Chrome)
-chrome://extensions → Режим разработчика → Загрузить распакованное
-Выбрать папку aegis_start/
-Основные API‑эндпоинты
-GET  /health
-POST /check/url
-POST /scan/url
-POST /check/file
-POST /local-cache/check
+cp ../.env.example .env   # заполнить своими ключами
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
 
-Пример запроса:
+Без ключей внешних сервисов ядро работает в базовом режиме, только на локальном кэше.
 
-curl -X POST http://127.0.0.1:8000/check/url \
-  -H "Content-Type: application/json" \
-  -d '{"url":"http://example.com"}'
- API‑ключи
+Основные эндпоинты: `GET /health`, `POST /check/url`, `POST /scan/url`, `POST /check/file`.
 
-Для работы с VirusTotal, Google Safe Browsing и AbuseIPDB добавьте переменные окружения с вашими ключами. Без них ядро работает в базовом режиме.
+## Команда
+
+Над проектом работали несколько человек, см. Contributors.

@@ -18,17 +18,19 @@ jobs:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Deploy PROD
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "TAG=$TAG bash -s" << 'EOF'
           set -e
 
           cd /opt/avqon-prod/antivirus-core
 
           git fetch --tags
-          git checkout $GITHUB_REF_NAME
+          git checkout "$TAG"
 
           sudo systemctl restart avqon-backend-prod
-          echo "PROD deploy done for version $GITHUB_REF_NAME"
+          echo "PROD deploy done for version $TAG"
           EOF

@@ -28,3 +28,13 @@ antivirus-core/venv/
 
 .DS_Store
 .vscode/
+
+# virtualenv / IDE
+venv/
+.venv/
+**/.vs/
+*.jsonl
+*.db-shm
+*.db-wal
+*.db.bak*
+!.env.example
